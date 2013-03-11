@@ -12,7 +12,9 @@
 
 class Primitive {
 public:
-  typedef std::function<bool(double t, const Vector3D &normal)> IntersectFn;
+  typedef std::function<bool(double t, const Vector3D &normal,
+                             const Point2D &uv, const Vector3D &u,
+                             const Vector3D &v)> IntersectFn;
   virtual bool intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const = 0;
   virtual Matrix4x4 get_transform() { return Matrix4x4(); }
 };

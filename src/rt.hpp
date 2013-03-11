@@ -13,7 +13,11 @@ typedef SceneNode::FlatList FlatList;
 typedef SceneNode::FlatGeo FlatGeo;
 
 // Callback type that gets passed to my main raytracing function.
-typedef std::function<bool(const FlatGeo &, double, const RTHitInfo &)>
+typedef std::function<bool(const FlatGeo &geo, double t,
+                           const Vector3D &normal,
+                           const Point2D &uv,
+                           const Vector3D &u,
+                           const Vector3D &v)>
         RaytraceFn;
 
 // Stores ray tracing "context" -- ie, anything I might need and don't want to

@@ -40,11 +40,11 @@ bool Quadric::intersect(const Point3D &eye, const Point3D &_ray, const Intersect
 
       // Figure out the uv.
       const Point3D pt = eye + t * ray;
-      const double theta = atan(-safe_div(pt.z, pt.x));
-      const double y = pt.y;
+      const double theta = atan(-safe_div(pt[2], pt[0]));
+      const double y = pt[1];
       const Point2D uv(0.5 + theta/M_PI, 0.5 + y * 0.5);
-      const Point3D u(-pt.y, pt.x, 0);
-      const Point3D v(normal.cross(u));
+      const Vector3D u(-pt[1], pt[0], 0);
+      const Vector3D v(normal.cross(u));
       if(!fn(ts[i], normal, uv, u, v))
 	return false;
     }

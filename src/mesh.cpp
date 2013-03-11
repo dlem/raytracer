@@ -39,7 +39,8 @@ bool Mesh::intersect(const Point3D &eye, const Point3D &_ray, const IntersectFn 
 
   if(GETOPT(bv))
     if(axis_aligned_box_check(eye, _ray, m_mins, m_maxes,
-          [](double, const Vector3D &) { return false; }))
+          [](double, const Vector3D &, const Point2D &uv, const Vector3D &u,
+	    const Vector3D &v) { return false; }))
       return true;
 
   // The maximum number of hits we'll allow ourselves to record. This bound
@@ -106,7 +107,7 @@ bool Mesh::intersect(const Point3D &eye, const Point3D &_ray, const IntersectFn 
 	goto no_hit;
     }
 
-    if(!fn(t, normal, Point2D(0, 0), Point3D(0, 0, 0), Point3D(0, 0, 0)))
+    if(!fn(t, normal, Point2D(0, 0), Vector3D(0, 0, 0), Vector3D(0, 0, 0)))
       return false;
 
 no_hit: ;

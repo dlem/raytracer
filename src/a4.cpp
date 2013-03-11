@@ -33,7 +33,7 @@ Colour ray_pupil_background(const RTContext &ctx,
 
   if(!in_pupil)
   {
-    double theta = atan(save_div(offset_y, offset_x));
+    double theta = atan(safe_div(offset_y, offset_x));
     theta /= 2 * M_PI / arcs;
     theta -= 0.5;
     in_pupil |= (int)abs(floor(theta)) % 2 >= 1;
@@ -44,10 +44,10 @@ Colour ray_pupil_background(const RTContext &ctx,
 
 // Performs the phong model lighting calculation.
 Colour phong(const RTContext &ctx,
-             const Point3D &ray,     // The ray that produced the hit.
+             const Point3D &ray,
              const double t,
-             const FlatGeo &geo,     // The geometry we hit.
-             const Vector3D &normal  // The normal.
+             const FlatGeo &geo,
+             const Vector3D &normal,
 	     const Point2D &uv,
 	     const Vector3D &u,
 	     const Vector3D &v
@@ -56,17 +56,16 @@ Colour phong(const RTContext &ctx,
   assert(dynamic_cast<const PhongMaterial *>(geo.mat));
 
   const PhongMaterial *pm = static_cast<const PhongMaterial *>(geo.mat);
-  pm->get_normal(normal, uv, u, v);
+  Vector3D phong_n = normal;
+  pm->get_normal(phong_n, uv, u, v);
   const Point3D &eye = ctx.eye;
   const Colour &phong_kd = pm->kd(uv);
   const Colour &phong_ks = pm->ks(uv);
   const double phong_p = pm->shininess(uv);
   const Point3D phong_P = eye + t * (ray - eye);
   Vector3D phong_v = eye - phong_P;
-  Vector3D phong_n = normal;
 
   phong_v.normalize();
-  phong_n.normalize();
 
   // Ambient term.
   Colour rv = ctx.ambient * phong_kd;

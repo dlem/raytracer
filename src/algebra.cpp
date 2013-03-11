@@ -243,54 +243,54 @@ bool is_inside(const Point3D &p, const Point3D &mins, const Point3D &maxes)
       && p[c2] >= mins[c2] && p[c2] <= maxes[c2];
 }
 
-void cube_uv(int face, const Point3D &p, Point2D &uv, Point3D &u, Point3D &v)
+void cube_uv(int face, const Point3D &p, Point2D &uv, Vector3D &u, Vector3D &v)
 {
   const int coord = face / 2;
   const int c1 = (coord + 1) % 3;
   const int c2 = (coord + 2) % 3;
-  Point2D base;
   switch(face)
   {
     case 0:
-      base = Point2D(2/4., 1/3.);
-      u = Point3D(0, -1, 0);
-      v = Point3D(0, 0, -1);
+      uv = Point2D(2/4., 1/3.);
+      u = Vector3D(0, -1, 0);
+      v = Vector3D(0, 0, -1);
       break;
     case 1:
-      base = Point2D(0, 1/3.);
-      u = Point3D(0, 1, 0);
-      v = Point3D(0, 0, -1);
+      uv = Point2D(0, 1/3.);
+      u = Vector3D(0, 1, 0);
+      v = Vector3D(0, 0, -1);
       break;
     case 2:
-      base = Point2D(1/3., 1/4.);
-      u = Point3D(1, 0, 0);
-      v = Point3D(0, 0, -1);
+      uv = Point2D(1/3., 1/4.);
+      u = Vector3D(1, 0, 0);
+      v = Vector3D(0, 0, -1);
       break;
     case 3:
-      base = Point2D(3/4., 1/3.);
-      u = Point3D(-1, 0, 0);
-      v = Point3D(0, 0, -1);
+      uv = Point2D(3/4., 1/3.);
+      u = Vector3D(-1, 0, 0);
+      v = Vector3D(0, 0, -1);
       break;
     case 4:
-      base = Point2D(1/4., 2/3.);
-      u = Point3D(1, 0, 0);
-      v = Point3D(0, -1, 0);
+      uv = Point2D(1/4., 2/3.);
+      u = Vector3D(1, 0, 0);
+      v = Vector3D(0, -1, 0);
       break;
     case 5:
-      base = Point2D(1/4., 0);
-      u = Point3D(1, 0, 0);
-      v = Point3D(0, -1, 0);
+      uv = Point2D(1/4., 0);
+      u = Vector3D(1, 0, 0);
+      v = Vector3D(0, -1, 0);
       break;
     default: assert(0); break;
   }
-  base[c1] += p[c1];
-  base[c2] += p[c2];
-  return base;
+  uv[c1] += p[c1];
+  uv[c2] += p[c2];
 }
 
 bool axis_aligned_box_check(const Point3D &eye, const Point3D &ray_end,
 			    const Point3D &mins, const Point3D &maxes,
-			    const std::function<bool(double t, const Vector3D &normal)> &fn)
+			    const std::function<bool(double t, const Vector3D &normal,
+                                                     const Point2D &uv, const Vector3D &u,
+                                                     const Vector3D &v)> &fn)
 {
   const Vector3D ray = ray_end - eye;
   double t;
@@ -306,7 +306,7 @@ bool axis_aligned_box_check(const Point3D &eye, const Point3D &ray_end,
       normal[FACE/2] = FACE % 2 == 0 ? 1 : -1; \
       Point2D uv; \
       Vector3D u, v; \
-      cube_uv(uv, u, v); \
+      cube_uv(FACE, p, uv, u, v); \
       if(!fn(t, normal, uv, u, v)) \
 	return false; \
     } \

@@ -37,7 +37,7 @@ T clamp(T val, T lo, T hi)
 { return max(lo, min(hi, val)); }
 
 template<typename T>
-T save_div(T x, T y)
+T safe_div(T x, T y)
 {
   return y == 0 ? 0 : x / y;
 }
@@ -644,6 +644,8 @@ std::ostream &operator<<(std::ostream &os, Polynomial<2> &p);
 
 bool axis_aligned_box_check(const Point3D &eye, const Point3D &ray,
 			    const Point3D &mins, const Point3D &maxes,
-			    const std::function<bool(double, const Vector3D &)> &fn);
+			    const std::function<bool(double, const Vector3D &,
+                              const Point2D &uv, const Vector3D &u,
+                              const Vector3D &v)> &fn);
 
 #endif // CS488_ALGEBRA_HPP
