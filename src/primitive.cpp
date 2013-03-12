@@ -5,6 +5,7 @@
 **/
 
 #include "primitive.hpp"
+#include <iostream>
 #include "mesh.hpp"
 
 using namespace std;
@@ -36,14 +37,16 @@ bool Quadric::intersect(const Point3D &eye, const Point3D &_ray, const Intersect
     {
       // Figure out the normal.
       const double t = ts[i];
-      const Vector3D normal(ddx.eval(t), ddy.eval(t), ddz.eval(t));
+      Vector3D normal(ddx.eval(t), ddy.eval(t), ddz.eval(t));
+      normal.normalize();
 
       // Figure out the uv.
       const Point3D pt = eye + t * ray;
       const double theta = atan(-safe_div(pt[2], pt[0]));
       const double y = pt[1];
       const Point2D uv(0.5 + theta/M_PI, 0.5 + y * 0.5);
-      const Vector3D u(-pt[1], pt[0], 0);
+      Vector3D u(pt[1], -pt[0], 0);
+      u.normalize();
       const Vector3D v(normal.cross(u));
       if(!fn(ts[i], normal, uv, u, v))
 	return false;

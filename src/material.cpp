@@ -67,7 +67,6 @@ void PhongMaterial::get_normal(Vector3D &normal, const Point2D &uv,
     return;
 
   const Point2D perturb = (*m_bumpmap)(uv);
-  normal = normal + perturb[0] * u;
-  normal = normal + perturb[1] * v;
+  normal = normal + perturb[0] * u + perturb[1] * v;
   normal.normalize();
 }

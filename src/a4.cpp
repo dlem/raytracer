@@ -10,6 +10,7 @@
 #include "threading.hpp"
 #include "cmdopts.hpp"
 #include "rt.hpp"
+#include "textures.hpp"
 
 using namespace std;
 

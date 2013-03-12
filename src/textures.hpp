@@ -3,6 +3,10 @@
 
 #include "algebra.hpp"
 
+class Image;
+
+void gradients(Image &grad, const Image &img);
+
 class Texture
 {
 public:

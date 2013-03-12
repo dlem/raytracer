@@ -2,6 +2,7 @@
 #include <string>
 #include <functional>
 #include <map>
+#include <cassert>
 #include "image.hpp"
 
 using namespace std;
@@ -18,47 +19,7 @@ public:
   ImageBumpmap(const Image &img)
     : m_bumpmap(img.width(), img.height(), 2)
   {
-    auto intensity = [&img](int x, int y)
-    {
-      return (img(x, y, 0) + img(x, y, 1) + img(x, y, 2))/3;
-    };
-
-    // Compute x gradients.
-    for(int ixrow = 0; ixrow < img.height(); ixrow++)
-    {
-      if(img.width() > 1)
-      {
-        m_bumpmap(0, ixrow, 0) = intensity(1, ixrow) - intensity(0, ixrow);
-        m_bumpmap(img.width() - 1, ixrow, 0) = intensity(img.width() - 1, ixrow) -
-                                               intensity(img.width() - 2, ixrow);
-      }
-
-      for(int ixcol = 1; ixcol < img.width() - 1; ixcol++)
-      {
-        m_bumpmap(ixcol, ixrow, 0) = 0.5 * (intensity(ixcol + 1, ixrow) -
-                                            intensity(ixcol - 1, ixrow));
-      }
-    }
-
-    // Compute y gradients.
-    if(img.height() > 1)
-    {
-      for(int ixcol = 0; ixcol < img.width(); ixcol++)
-      {
-        m_bumpmap(ixcol, 0, 1) = intensity(ixcol, 1) - intensity(ixcol, 0);
-        m_bumpmap(ixcol, img.height() - 1, 1) = intensity(ixcol, img.height() - 1) -
-                                                intensity(ixcol, img.height() - 2);
-      }
-    }
-
-    for(int ixrow = 1; ixrow < img.height() - 1; ixrow++)
-    {
-      for(int ixcol = 0; ixcol < img.width(); ixcol++)
-      {
-        m_bumpmap(ixcol, ixrow, 1) = 0.5 * (intensity(ixcol, ixrow + 1) -
-                                            intensity(ixcol, ixrow - 1));
-      }
-    }
+    gradients(m_bumpmap, img);
   }
 
   virtual Point2D operator()(const Point2D &uv)
@@ -66,7 +27,7 @@ public:
     const int u = clamp<double>(uv[0] * m_bumpmap.width(), 0, m_bumpmap.width());
     // Make sure we invert the y coordinate for PNGs!
     const int v = clamp<double>((1 - uv[1]) * m_bumpmap.height(), 0, m_bumpmap.height());
-    return Point2D(m_bumpmap(u, v, 0), m_bumpmap(u, v, 1));
+    return Point2D(5 * m_bumpmap(u, v, 0), 5 * m_bumpmap(u, v, 1));
   }
 
 private:
@@ -119,5 +80,57 @@ Texture *Texture::get(const string &name)
   {
     delete img;
     return 0;
+  }
+}
+
+void gradients(Image &grad, const Image &img)
+{   
+  assert(grad.width() == img.width());
+  assert(grad.height() == img.height());
+  assert(img.elements() == 1);
+  assert(grad.elements() >= 2);
+
+  auto intensity = [&img](int x, int y)
+  {
+    return img(x, y, 0);
+  };
+
+  // Compute x gradients.
+  for(int ixrow = 0; ixrow < img.height(); ixrow++)
+  {
+    if(img.width() > 1)
+    {
+      grad(0, ixrow, 0) = intensity(1, ixrow) - intensity(0, ixrow);
+      grad(img.width() - 1, ixrow, 0) = intensity(img.width() - 1, ixrow) -
+                                             intensity(img.width() - 2, ixrow);
+    }
+
+    for(int ixcol = 1; ixcol < img.width() - 1; ixcol++)
+    {
+      grad(ixcol, ixrow, 0) = 0.5 * (intensity(ixcol + 1, ixrow) -
+                                          intensity(ixcol - 1, ixrow));
+    }
+  }
+
+  // Compute y gradients.
+  // Note that the subtractions are inverted because of messed up PNG y
+  // coordinates.
+  if(img.height() > 1)
+  {
+    for(int ixcol = 0; ixcol < img.width(); ixcol++)
+    {
+      grad(ixcol, 0, 1) = intensity(ixcol, 0) - intensity(ixcol, 1);
+      grad(ixcol, img.height() - 1, 1) = intensity(ixcol, img.height() - 2) -
+                                              intensity(ixcol, img.height() - 1);
+    }
+  }
+
+  for(int ixrow = 1; ixrow < img.height() - 1; ixrow++)
+  {
+    for(int ixcol = 0; ixcol < img.width(); ixcol++)
+    {
+      grad(ixcol, ixrow, 1) = 0.5 * (intensity(ixcol, ixrow - 1) -
+                                          intensity(ixcol, ixrow + 1));
+    }
   }
 }
