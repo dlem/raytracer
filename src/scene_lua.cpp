@@ -79,7 +79,7 @@ struct gr_node_ud {
 // The "userdata" type for a material. Objects of this type will be
 // allocated by Lua to represent materials.
 struct gr_material_ud {
-  Material* material;
+  PhongMaterial* material;
 };
 
 // The "userdata" type for a light. Objects of this type will be
@@ -365,6 +365,31 @@ int gr_render_cmd(lua_State* L)
   return 0;
 }
 
+extern "C"
+int gr_material_set_texture_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+  gr_material_ud* selfdata = (gr_material_ud*)luaL_checkudata(L, 1, "gr.material");
+  luaL_argcheck(L, selfdata != 0, 1, "Material expected");
+  const char *texture = luaL_checkstring(L, 2);
+  luaL_argcheck(L, texture, 2, "Texture name/file expected");
+  selfdata->material->set_texture(texture);
+  return 0;
+}
+
+extern "C"
+int gr_material_set_bumpmap_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+  gr_material_ud* selfdata = (gr_material_ud*)luaL_checkudata(L, 1, "gr.material");
+  luaL_argcheck(L, selfdata != 0, 1, "Material expected");
+  const char *bumpmap = luaL_checkstring(L, 2);
+  luaL_argcheck(L, bumpmap, 2, "Texture name/file expected");
+  selfdata->material->set_bumpmap(bumpmap);
+  return 0;
+
+}
+
 // Create a material
 extern "C"
 int gr_material_cmd(lua_State* L)
@@ -384,7 +409,7 @@ int gr_material_cmd(lua_State* L)
                                      Colour(ks[0], ks[1], ks[2]),
                                      shininess);
 
-  luaL_newmetatable(L, "gr.material");
+  luaL_getmetatable(L, "gr.material");
   lua_setmetatable(L, -2);
   
   return 1;
@@ -563,7 +588,13 @@ static const luaL_reg grlib_node_methods[] = {
   {"rotate", gr_node_rotate_cmd},
   {"translate", gr_node_translate_cmd},
   {"render", gr_render_cmd},
+
   {0, 0}
+};
+
+static const luaL_reg grlib_material_methods[] = {
+  {"set_texture", gr_material_set_texture_cmd},
+  {"set_bumpmap", gr_material_set_bumpmap_cmd},
 };
 
 // This function calls the lua interpreter to define the scene and
@@ -591,6 +622,15 @@ bool run_lua(const std::string& filename)
 
   // Load the gr.node methods
   luaL_openlib(L, 0, grlib_node_methods, 0);
+
+  // Metatable for material.
+  luaL_newmetatable(L, "gr.material");
+  lua_pushstring(L, "__index");
+  lua_pushvalue(L, -2);
+  lua_settable(L, -3);
+
+  // Add material methods.
+  luaL_openlib(L, 0, grlib_material_methods, 0);
 
   // Load the gr functions
   luaL_openlib(L, "gr", grlib_functions, 0);
