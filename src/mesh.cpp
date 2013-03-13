@@ -8,6 +8,7 @@
 #include <iostream>
 #include <algorithm>
 #include "cmdopts.hpp"
+#include "intersection.hpp"
 
 using namespace std;
 
@@ -34,13 +35,8 @@ Mesh::Mesh(const std::vector<Point3D>& verts,
 
 bool Mesh::intersect(const Point3D &eye, const Point3D &_ray, const IntersectFn &fn) const
 {
-  if(GETOPT(draw_bv))
-    return axis_aligned_box_check(eye, _ray, m_mins, m_maxes, fn);
-
   if(GETOPT(bv))
-    if(axis_aligned_box_check(eye, _ray, m_mins, m_maxes,
-          [](double, const Vector3D &, const Point2D &uv, const Vector3D &u,
-	    const Vector3D &v) { return false; }))
+    if(!axis_aligned_box_check(eye, _ray, m_mins, m_maxes))
       return true;
 
   // The maximum number of hits we'll allow ourselves to record. This bound

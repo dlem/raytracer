@@ -16,14 +16,13 @@ extern const struct CmdOpts
     aa = bv = true;
     aa_jitter = 0;
     aa_grid = 3;
-    draw_bv = draw_aa = false;
+    draw_aa = false;
     threads = 4;
     aa_threshold = 0.5;
     aa_jitter = 0.;
   }
 
   bool aa, bv;
-  bool draw_bv;
   bool draw_aa;
   unsigned aa_grid;
   unsigned threads;

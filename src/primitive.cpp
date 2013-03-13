@@ -7,6 +7,7 @@
 #include "primitive.hpp"
 #include <iostream>
 #include "mesh.hpp"
+#include "intersection.hpp"
 
 using namespace std;
 
@@ -37,17 +38,18 @@ bool Quadric::intersect(const Point3D &eye, const Point3D &_ray, const Intersect
     {
       // Figure out the normal.
       const double t = ts[i];
+      const Point3D pt = eye + t * ray;
+      if(!predicate(pt))
+	continue;
+
       Vector3D normal(ddx.eval(t), ddy.eval(t), ddz.eval(t));
       normal.normalize();
 
       // Figure out the uv.
-      const Point3D pt = eye + t * ray;
-      const double theta = atan(-safe_div(pt[2], pt[0]));
-      const double y = pt[1];
-      const Point2D uv(0.5 + theta/M_PI, 0.5 + y * 0.5);
-      Vector3D u(pt[1], -pt[0], 0);
-      u.normalize();
-      const Vector3D v(normal.cross(u));
+      Point2D uv;
+      Vector3D u, v;
+      get_uv(pt, normal, uv, u, v);
+
       if(!fn(ts[i], normal, uv, u, v))
 	return false;
     }
@@ -56,21 +58,206 @@ bool Quadric::intersect(const Point3D &eye, const Point3D &_ray, const Intersect
   return true;
 }
 
+void Sphere::get_uv(const Point3D &pt, const Vector3D &normal,
+		    Point2D &uv, Vector3D &u, Vector3D &v) const
+{
+  const double theta = atan(-safe_div(pt[2], pt[0]));
+  const double y = pt[1];
+  uv[0] = 0.5 + theta/M_PI;
+  uv[1] = 0.5 + y * 0.5;
+  u = Vector3D(pt[1], -pt[0], 0);
+  u.normalize();
+  v = normal.cross(u);
+}
+
 Matrix4x4 NonhierSphere::get_transform()
 {
   return Matrix4x4::translate(m_pos - Point3D()) *
     Matrix4x4::scale(Vector3D(m_radius, m_radius, m_radius));
 }
 
-bool Cube::intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const
+void cube_uv(int facenum, const Point3D &p, Point2D &uv, Vector3D &u, Vector3D &v)
 {
+  double cu = 1/4.;
+  double cv = 1/3.;
+
+  const struct
+  {
+    Point3D base;
+    Vector3D u, v;
+    int facex, facey;
+    int cu;
+    double ucoef;
+    int cv;
+    double vcoef;
+  } faces[] = {
+    { {1, 1, 1}, {0, -1, 0}, {0, 0, -1}, 2, 1, 1, -1, 2, -1 },
+    { {0, 0, 1}, {0, 1, 0}, {0, 0, -1}, 0, 1, 1, 1, 2, -1 },
+    { {0, 1, 1}, {1, 0, 0}, {0, 0, -1}, 1, 1, 0, 1, 2, -1 },
+    { {1, 0, 1}, {-1, 0, 0}, {0, 0, -1}, 3, 1, 0, -1, 2, -1 },
+    { {0, 0, 1}, {1, 0, 0}, {0, 1, 0}, 1, 0, 0, 1, 1, 1 },
+    { {0, 1, 0}, {1, 0, 0}, {0, -1, 0}, 1, 2, 0, 1, 1, -1 },
+  };
+
+  auto &face = faces[facenum];
+  const Vector3D delta = p - face.base;
+  uv = Point2D(cu * (face.facex + face.ucoef * delta[face.cu]),
+	       cv * (face.facey + face.vcoef * delta[face.cv]));
+
+  u = face.u;
+  v = face.v;
+}
+
+bool Cube::intersect(const Point3D &eye, const Point3D &ray_end, const IntersectFn &fn) const
+{
+  const Vector3D ray = ray_end - eye;
   const Point3D mins(0, 0, 0);
   const Point3D maxes(1, 1, 1);
-  return axis_aligned_box_check(eye, ray, mins, maxes, fn);
+
+  for(int i = 0; i < 6; i++)
+  {
+    const int axis = i / 2;
+    const double offset = i % 2 == 0 ? 1 : 0;
+    const double t = axis_aligned_plane_intersect(eye, ray, i/2, offset);
+    if(t < numeric_limits<double>::max())
+    {
+      const Point3D p = eye + t * ray;
+      if(axis_aligned_square_contains(p, i, mins, maxes))
+      {
+	Vector3D normal;
+	normal[axis] = i % 2 == 0 ? 1 : -1;
+	Point2D uv;
+	Vector3D u, v;
+	cube_uv(i, p, uv, u, v);
+	if(!fn(t, normal, uv, u, v))
+	  return false;
+      }
+    }
+  }
+  return true;
 }
 
 Matrix4x4 NonhierBox::get_transform()
 {
   return Matrix4x4::translate(m_pos - Point3D()) *
     Matrix4x4::scale(Vector3D(m_size, m_size, m_size));
+}
+
+bool Cylinder::intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const
+{
+  if(!Quadric::intersect(eye, ray, fn))
+    return false;
+
+  const Vector3D _ray = ray - eye;
+  const int circles[] = {AAFACE_PZ, AAFACE_NZ};
+  const double offsets[] = {1., -1.};
+
+  for(int i = 0; i < NUMELMS(circles); i++)
+  {
+    const int face = circles[i];
+    const int axis = face / 2;
+    const double offset = offsets[i];
+    const double t = axis_aligned_plane_intersect(eye, _ray, axis, offset);
+    if(t < numeric_limits<double>::max())
+    {
+      const Point3D p = eye + t * _ray;
+      if(axis_aligned_circle_contains(p, face, 1.))
+      {
+	Vector3D normal;
+	normal[axis] = offset;
+	const double _u = 0.25 * ((face == AAFACE_PZ ? 1 : 3) + p[0]);
+	const double _v = 0.25 * (3 + p[1]);
+	Point2D uv(_u, _v);
+	Vector3D u(1, 0, 0);
+	Vector3D v(0, 1, 0);
+	if(!fn(t, normal, uv, u, v))
+	  return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+bool Cylinder::predicate(const Point3D &pt) const
+{
+  return inrange(pt[2], -1., 1.);
+}
+
+void Cylinder::get_uv(const Point3D &pt, const Vector3D &normal,
+		      Point2D &uv, Vector3D &u, Vector3D &v) const
+{
+  // This function handles uvs on the non-planar part.
+  // Find theta, translate it into a coordinate from 0 to 1.
+  const double theta = atan(-safe_div(pt[2], pt[0]));
+  const double y = pt[1];
+  uv[0] = 0.5 + theta / M_PI;
+  uv[1] = 0.25 + y * 0.25;
+  u = Vector3D(pt[1], -pt[0], 0);
+  u.normalize();
+  v = Vector3D(0, 1, 0);
+}
+
+Matrix4x4 Cylinder::get_transform()
+{
+  return Matrix4x4::scale(Vector3D(0.5, 0.5, 0.5)) * Matrix4x4::rotate('x', 90);
+}
+
+bool Cone::intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const
+{
+  if(!Quadric::intersect(eye, ray, fn))
+    return false;
+
+  const Vector3D _ray = ray - eye;
+  const int circles[] = {AAFACE_PZ};
+  const double offsets[] = {1.};
+
+  for(int i = 0; i < NUMELMS(circles); i++)
+  {
+    const int face = circles[i];
+    const int axis = face / 2;
+    const double offset = offsets[i];
+    const double t = axis_aligned_plane_intersect(eye, _ray, axis, offset);
+    if(t < numeric_limits<double>::max())
+    {
+      const Point3D p = eye + t * _ray;
+      if(axis_aligned_circle_contains(p, face, 1.))
+      {
+	Vector3D normal;
+	normal[axis] = offset;
+	const double _u = 0.5 * (1 + p[0]);
+	const double _v = 0.25 * (3 + p[1]);
+	Point2D uv(_u, _v);
+	Vector3D u(1, 0, 0);
+	Vector3D v(0, 1, 0);
+	if(!fn(t, normal, uv, u, v))
+	  return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+bool Cone::predicate(const Point3D &pt) const
+{
+  return inrange(pt[2], 0., 1.);
+}
+
+void Cone::get_uv(const Point3D &pt, const Vector3D &normal,
+		  Point2D &uv, Vector3D &u, Vector3D &v) const
+{
+  const double theta = atan(-safe_div(pt[2], pt[0]));
+  const double y = pt[1];
+  uv[0] = 0.5 + theta / M_PI;
+  uv[1] = 0.25 + y * 0.25;
+  u = Vector3D(pt[1], -pt[0], 0);
+  u.normalize();
+  v = normal.cross(u);
+}
+
+// Translate it so that it's centered at 0.
+Matrix4x4 Cone::get_transform()
+{
+  return Matrix4x4::rotate('x', 90) * Matrix4x4::translate(Vector3D(0, 0, -0.5));
 }

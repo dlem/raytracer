@@ -19,18 +19,52 @@ public:
   virtual Matrix4x4 get_transform() { return Matrix4x4(); }
 };
 
+class Circle : public Primitive
+{
+public:
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const;
+};
+
 class Quadric : public Primitive
 {
 public:
   Quadric() { memset(this, 0, sizeof(*this)); }
   virtual bool intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const;
+  virtual bool predicate(const Point3D &pt) const { return true; }
+  virtual void get_uv(const Point3D &pt, const Vector3D &normal,
+		      Point2D &uv, Vector3D &u, Vector3D &v) const = 0;
 protected:
+  // Ax2 + Bxy + Cxz + Dy2 + Eyz + Fz2 + Gx + Hy + Jz + K;
   double A, B, C, D, E, F, G, H, J, K;
 };
 
 class Sphere : public Quadric {
 public:
   Sphere() { A = D = F = 1; K = -1; };
+  virtual void get_uv(const Point3D &pt, const Vector3D &normal, Point2D &uv,
+		      Vector3D &u, Vector3D &v) const;
+};
+
+class Cylinder : public Quadric
+{
+public:
+  Cylinder() { A = D = 1; K = -1; }
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const; 
+  virtual bool predicate(const Point3D &pt) const;
+  virtual void get_uv(const Point3D &pt, const Vector3D &normal, Point2D &uv,
+		      Vector3D &u, Vector3D &v) const;
+  virtual Matrix4x4 get_transform();
+};
+
+class Cone : public Quadric
+{
+public:
+  Cone() { A = D = 1; F = -1; }
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const;
+  virtual bool predicate(const Point3D &pt) const;
+  virtual void get_uv(const Point3D &pt, const Vector3D &normal, Point2D &uv,
+		      Vector3D &u, Vector3D &v) const;
+  virtual Matrix4x4 get_transform();
 };
 
 class NonhierSphere : public Sphere {

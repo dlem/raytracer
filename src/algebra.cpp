@@ -14,6 +14,9 @@
 //
 //---------------------------------------------------------------------------
 
+#ifndef __ALGEBRA_HPP__
+#define __ALGEBRA_HPP__
+
 #include "algebra.hpp"
 #include <cassert>
 #include <limits>
@@ -219,94 +222,4 @@ std::ostream &operator<<(std::ostream &os, Polynomial<2> &p)
   return os << p[2] << "t^2 + " << p[1] << "t + " << p[0];
 }
 
-template<int Face>
-double t_for_face(const Point3D &eye, const Vector3D &ray, const Point3D &mins, const Point3D &maxes)
-{
-  const int coord = Face / 2;
-  const double goal = Face % 2 == 0 ? maxes[coord] : mins[coord];
-  const double at = eye[coord];
-  const double dir = ray[coord];
-
-  if(dir == 0)
-    return numeric_limits<double>::max();
-
-  return (goal - at) / dir;
-}
-
-template<int FACE>
-bool is_inside(const Point3D &p, const Point3D &mins, const Point3D &maxes)
-{
-  const int coord = FACE / 2;
-  const int c1 = (coord + 1) % 3;
-  const int c2 = (coord + 2) % 3;
-  return p[c1] >= mins[c1] && p[c1] <= maxes[c1]
-      && p[c2] >= mins[c2] && p[c2] <= maxes[c2];
-}
-
-void cube_uv(int facenum, const Point3D &p, Point2D &uv, Vector3D &u, Vector3D &v)
-{
-  double cu = 1/4.;
-  double cv = 1/3.;
-
-  const struct
-  {
-    Point3D base;
-    Vector3D u, v;
-    int facex, facey;
-    int cu;
-    double ucoef;
-    int cv;
-    double vcoef;
-  } faces[] = {
-    { {1, 1, 1}, {0, -1, 0}, {0, 0, -1}, 2, 1, 1, -1, 2, -1 },
-    { {0, 0, 1}, {0, 1, 0}, {0, 0, -1}, 0, 1, 1, 1, 2, -1 },
-    { {0, 1, 1}, {1, 0, 0}, {0, 0, -1}, 1, 1, 0, 1, 2, -1 },
-    { {1, 0, 1}, {-1, 0, 0}, {0, 0, -1}, 3, 1, 0, -1, 2, -1 },
-    { {0, 0, 1}, {1, 0, 0}, {0, 1, 0}, 1, 0, 0, 1, 1, 1 },
-    { {0, 1, 0}, {1, 0, 0}, {0, -1, 0}, 1, 2, 0, 1, 1, -1 },
-  };
-
-  auto &face = faces[facenum];
-  const Vector3D delta = p - face.base;
-  uv = Point2D(cu * (face.facex + face.ucoef * delta[face.cu]),
-	       cv * (face.facey + face.vcoef * delta[face.cv]));
-
-  u = face.u;
-  v = face.v;
-}
-
-bool axis_aligned_box_check(const Point3D &eye, const Point3D &ray_end,
-			    const Point3D &mins, const Point3D &maxes,
-			    const std::function<bool(double t, const Vector3D &normal,
-                                                     const Point2D &uv, const Vector3D &u,
-                                                     const Vector3D &v)> &fn)
-{
-  const Vector3D ray = ray_end - eye;
-  double t;
-
-#define FACE_IMPL(FACE) \
-  t = t_for_face<FACE>(eye, ray, mins, maxes); \
-  if(t > 0.01 && t < numeric_limits<double>::max()) \
-  { \
-    const Point3D p = eye + t * ray;  \
-    if(is_inside<FACE>(p, mins, maxes)) \
-    { \
-      Vector3D normal; \
-      normal[FACE/2] = FACE % 2 == 0 ? 1 : -1; \
-      Point2D uv; \
-      Vector3D u, v; \
-      cube_uv(FACE, p, uv, u, v); \
-      if(!fn(t, normal, uv, u, v)) \
-	return false; \
-    } \
-  }
-
-  FACE_IMPL(0)
-  FACE_IMPL(1)
-  FACE_IMPL(2)
-  FACE_IMPL(3)
-  FACE_IMPL(4)
-  FACE_IMPL(5)
-
-  return true;
-}
+#endif

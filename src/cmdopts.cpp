@@ -57,7 +57,6 @@ void parse_args(int argc, char **argv)
   ADD_EN_DIS_FEATURE("anti-aliasing", aa);
   ADD_EN_DIS_FEATURE("bounding-volumes", bv);
   ADD_EN_DIS_FEATURE("aa-jitter", aa_jitter);
-  ADD_EN_DIS_FEATURE("draw-bv", draw_bv);
   ADD_EN_DIS_FEATURE("draw-aa", draw_aa);
 
   add_opt("aa-grid", required_argument, [opts](const char *num)

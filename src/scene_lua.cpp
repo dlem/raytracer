@@ -182,6 +182,42 @@ int gr_cube_cmd(lua_State* L)
   return 1;
 }
 
+extern "C"
+int gr_cylinder_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  
+  gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+  data->node = 0;
+  
+  const char* name = luaL_checkstring(L, 1);
+  data->node = new GeometryNode(name, new Cylinder());
+
+  luaL_getmetatable(L, "gr.node");
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
+extern "C"
+int gr_cone_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  
+  gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+  data->node = 0;
+  
+  const char* name = luaL_checkstring(L, 1);
+  data->node = new GeometryNode(name, new Cone());
+
+  luaL_getmetatable(L, "gr.node");
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
+
+
 // Create a non-hierarchical sphere node
 extern "C"
 int gr_nh_sphere_cmd(lua_State* L)
@@ -558,6 +594,7 @@ static const luaL_reg grlib_functions[] = {
   {"sphere", gr_sphere_cmd},
   {"joint", gr_joint_cmd},
   {"material", gr_material_cmd},
+
   // New for assignment 4
   {"cube", gr_cube_cmd},
   {"nh_sphere", gr_nh_sphere_cmd},
@@ -565,6 +602,11 @@ static const luaL_reg grlib_functions[] = {
   {"mesh", gr_mesh_cmd},
   {"light", gr_light_cmd},
   {"render", gr_render_cmd},
+
+  // New for assignment 5
+  {"cylinder", gr_cylinder_cmd},
+  {"cone", gr_cone_cmd},
+
   {0, 0}
 };
 
