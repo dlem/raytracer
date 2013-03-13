@@ -5,7 +5,7 @@ root = gr.node('root')
 
 mat = gr.material({1, 1, 1}, {0.5, 0.5, 0.5}, 10)
 mat:set_texture('../earthmap1k.png')
---mat:set_bumpmap('earthbump1k.png')
+mat:set_bumpmap('earthbump1k.png')
 
 earth = gr.sphere('earth')
 earth:scale(100, 100, 100)

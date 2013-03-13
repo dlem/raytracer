@@ -24,9 +24,9 @@ public:
 
   virtual Point2D operator()(const Point2D &uv)
   {
-    const int u = clamp<double>(uv[0] * m_bumpmap.width(), 0, m_bumpmap.width());
+    const int u = clamp<double>(uv[0] * m_bumpmap.width(), 0, m_bumpmap.width() - 1);
     // Make sure we invert the y coordinate for PNGs!
-    const int v = clamp<double>((1 - uv[1]) * m_bumpmap.height(), 0, m_bumpmap.height());
+    const int v = clamp<double>((1 - uv[1]) * m_bumpmap.height(), 0, m_bumpmap.height() - 1);
     return Point2D(5 * m_bumpmap(u, v, 0), 5 * m_bumpmap(u, v, 1));
   }
 
@@ -44,9 +44,9 @@ public:
 
   virtual Colour operator()(const Point2D &uv)
   {
-    const int u = clamp<double>(uv[0] * m_texture.width(), 0, m_texture.width());
+    const int u = clamp<double>(uv[0] * m_texture.width(), 0, m_texture.width() - 1);
     // Make sure we invert the y coordinate for PNGs!
-    const int v = clamp<double>((1 - uv[1]) * m_texture.height(), 0, m_texture.height());
+    const int v = clamp<double>((1 - uv[1]) * m_texture.height(), 0, m_texture.height() - 1);
     return Colour(m_texture(u, v, 0), m_texture(u, v, 1), m_texture(u, v, 2));
   }
 

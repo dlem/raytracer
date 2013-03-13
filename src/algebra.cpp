@@ -243,54 +243,36 @@ bool is_inside(const Point3D &p, const Point3D &mins, const Point3D &maxes)
       && p[c2] >= mins[c2] && p[c2] <= maxes[c2];
 }
 
-void cube_uv(int face, const Point3D &p, Point2D &uv, Vector3D &u, Vector3D &v)
+void cube_uv(int facenum, const Point3D &p, Point2D &uv, Vector3D &u, Vector3D &v)
 {
-  const int coord = face / 2;
-  const int c1 = (coord + 1) % 3;
-  const int c2 = (coord + 2) % 3;
-  Point3D base;
-  switch(face)
+  double cu = 1/4.;
+  double cv = 1/3.;
+
+  const struct
   {
-    case 0:
-      uv = Point2D(2/4., 1/3.);
-      u = Vector3D(0, -1, 0);
-      v = Vector3D(0, 0, -1);
-      base = Point3D(1, 1, 1);
-      break;
-    case 1:
-      uv = Point2D(0, 1/3.);
-      u = Vector3D(0, 1, 0);
-      v = Vector3D(0, 0, -1);
-      base = Point3D(0, 0, 1)
-      break;
-    case 2:
-      uv = Point2D(1/3., 1/4.);
-      u = Vector3D(1, 0, 0);
-      v = Vector3D(0, 0, -1);
-      base = Point3D(0, 1, 1);
-      break;
-    case 3:
-      uv = Point2D(3/4., 1/3.);
-      u = Vector3D(-1, 0, 0);
-      v = Vector3D(0, 0, -1);
-      base = Point3D(1, 0, 1);
-      break;
-    case 4:
-      uv = Point2D(1/4., 2/3.);
-      u = Vector3D(1, 0, 0);
-      v = Vector3D(0, -1, 0);
-      base = Point3D(0, 0, 1);
-      break;
-    case 5:
-      uv = Point2D(1/4., 0);
-      u = Vector3D(1, 0, 0);
-      v = Vector3D(0, -1, 0);
-      base = Point3D(0, 1, 0);
-      break;
-    default: assert(0); break;
-  }
-  const double dx = p[0] - base[0];
-  const double dy = p[1] - base[1];
+    Point3D base;
+    Vector3D u, v;
+    int facex, facey;
+    int cu;
+    double ucoef;
+    int cv;
+    double vcoef;
+  } faces[] = {
+    { {1, 1, 1}, {0, -1, 0}, {0, 0, -1}, 2, 1, 1, -1, 2, -1 },
+    { {0, 0, 1}, {0, 1, 0}, {0, 0, -1}, 0, 1, 1, 1, 2, -1 },
+    { {0, 1, 1}, {1, 0, 0}, {0, 0, -1}, 1, 1, 0, 1, 2, -1 },
+    { {1, 0, 1}, {-1, 0, 0}, {0, 0, -1}, 3, 1, 0, -1, 2, -1 },
+    { {0, 0, 1}, {1, 0, 0}, {0, 1, 0}, 1, 0, 0, 1, 1, 1 },
+    { {0, 1, 0}, {1, 0, 0}, {0, -1, 0}, 1, 2, 0, 1, 1, -1 },
+  };
+
+  auto &face = faces[facenum];
+  const Vector3D delta = p - face.base;
+  uv = Point2D(cu * (face.facex + face.ucoef * delta[face.cu]),
+	       cv * (face.facey + face.vcoef * delta[face.cv]));
+
+  u = face.u;
+  v = face.v;
 }
 
 bool axis_aligned_box_check(const Point3D &eye, const Point3D &ray_end,

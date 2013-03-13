@@ -15,11 +15,28 @@ for ry = 0, 4 do
   n = gr.node('')
   root:add_child(n)
   n:add_child(ccube)
-  n:translate(-150 + 100 * ry, 0, 0)
+  n:translate(-300 + 150 * ry, 100, 0)
   n:rotate('y', ry * 90)
 end
 
-gr.render(root, 'ccube.png', 1024, 1024,
+earthmat = gr.material({1, 1, 1}, {0.5, 0.5, 0.5}, 10)
+earthmat:set_texture('../earthmap1k.png')
+earthmat:set_bumpmap('../earthbump1k.png')
+
+earth = gr.sphere('earth')
+earth:scale(50, 50, 50)
+earth:set_material(earthmat)
+
+for ry = 0, 4 do
+  n = gr.node('')
+  root:add_child(n)
+  n:add_child(earth)
+  n:translate(-300 + 150 * ry, -100, 0)
+  n:rotate('y', ry * 90)
+end
+
+
+gr.render(root, 'combo.png', 1024, 1024,
           {0, 0, 800}, {0, 0, -1}, {0, 1, 0}, 50,
           {0.3, 0.3, 0.3}, {white_light})
 
