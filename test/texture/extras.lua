@@ -1,5 +1,6 @@
 cone_mat = gr.material({0/255, 72/255, 217/255}, {0.5, 0.5, 0.5}, 10)
 cyl_mat = gr.material({44/255, 242/255, 5/255}, {0, 0, 0}, 10)
+cone_mat:set_texture("../earthmap1k.png")
 cyl_mat:set_texture("../barrel.png")
 
 root = gr.node('root')
