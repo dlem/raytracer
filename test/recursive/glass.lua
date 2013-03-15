@@ -3,8 +3,7 @@ white_light = gr.light({100, 0, 100}, {0.9, 0.9, 0.9}, {1, 0, 0})
 root = gr.node('root')
 
 ccmat = gr.material({1, 1, 1}, {0.5, 0.5, 0.5}, 10)
-ccmat:set_texture('../companion_cube_tex.png')
-ccmat:set_bumpmap('../companion_cube_bm.png')
+ccmat:set_opacity(0.5, 1.5)
 
 ccube = gr.cube('ccube')
 ccube:scale(100, 100, 100)
@@ -12,8 +11,7 @@ ccube:set_material(ccmat)
 ccube:translate(-0.5, -0.5, -0.5)
 
 earthmat = gr.material({1, 1, 1}, {0.5, 0.5, 0.5}, 10)
-earthmat:set_texture('../earthmap1k.png')
-earthmat:set_bumpmap('../earthbump1k.png')
+earthmat:set_opacity(0.0, 1.5)
 
 barrelmat = gr.material({1, 1, 1}, {0.5, 0.5, 0.5}, 10)
 barrelmat:set_texture('../barrel.png')
@@ -67,7 +65,7 @@ for ry = 0, 4 do
   n:rotate('x', ry * 90)
 end
 
-gr.render(root, 'combo.png', 256, 256,
+gr.render(root, 'glass.png', 256, 256,
           {0, 0, 800}, {0, 0, -1}, {0, 1, 0}, 50,
           {0.3, 0.3, 0.3}, {white_light})
 

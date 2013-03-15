@@ -12,6 +12,34 @@
 #include "primitive.hpp"
 #include "material.hpp"
 
+struct FlatGeo
+{
+  FlatGeo() {}
+  FlatGeo(const Matrix4x4 &invtrans, const Matrix4x4 &trans_normal,
+	  const Primitive &prim, const Material &mat)
+    : invtrans(invtrans)
+    , trans_normal(trans_normal)
+    , prim(&prim)
+    , mat(&mat)
+  {}
+
+  const FlatGeo &operator=(const FlatGeo &other)
+  {
+    invtrans = other.invtrans;
+    trans_normal = other.trans_normal;
+    prim = other.prim;
+    mat = other.mat;
+    return *this;
+  }
+
+  Matrix4x4 invtrans, trans_normal;
+  const Primitive *prim;
+  const Material *mat;
+};
+
+typedef std::vector<FlatGeo> FlatList;
+
+
 class GeometryNode;
 
 class SceneNode {
@@ -55,32 +83,6 @@ public:
 
   const std::string &name() const { return m_name; }
 
-  struct FlatGeo
-  {
-    FlatGeo() {}
-    FlatGeo(const Matrix4x4 &invtrans, const Matrix4x4 &trans_normal,
-	    const Primitive &prim, const Material &mat)
-      : invtrans(invtrans)
-      , trans_normal(trans_normal)
-      , prim(&prim)
-      , mat(&mat)
-    {}
-
-    const FlatGeo &operator=(const FlatGeo &other)
-    {
-      invtrans = other.invtrans;
-      trans_normal = other.trans_normal;
-      prim = other.prim;
-      mat = other.mat;
-      return *this;
-    }
-
-    Matrix4x4 invtrans, trans_normal;
-    const Primitive *prim;
-    const Material *mat;
-  };
-
-  typedef std::vector<FlatGeo> FlatList;
   void flatten(FlatList &fl) { flatten(fl, Matrix4x4()); }
   
 protected:

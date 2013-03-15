@@ -520,6 +520,11 @@ public:
   { 
     return b_;
   }
+  double Y() const
+  {
+    // From Wikipedia.
+    return 0.299 * R() + 0.587 * G() + 0.114 * B();
+  }
 
 private:
   double r_;
@@ -540,6 +545,11 @@ inline Colour operator *(const Colour& a, const Colour& b)
 inline Colour operator +(const Colour& a, const Colour& b)
 {
   return Colour(a.R()+b.R(), a.G()+b.G(), a.B()+b.B());
+}
+
+inline Colour operator+=(Colour &a, const Colour &b)
+{
+  return (a = a + b);
 }
 
 inline std::ostream& operator <<(std::ostream& os, const Colour& c)
