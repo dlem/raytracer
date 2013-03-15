@@ -2,7 +2,7 @@
 #include "material.hpp"
 #include "rt.hpp"
 
-void PhongModel::compute_lighting(RayTracer &rt,
+Colour PhongModel::compute_lighting(RayTracer &rt,
 				  const Point3D &src,
 				  const Point3D &ray,
 				  const double t,
@@ -10,18 +10,9 @@ void PhongModel::compute_lighting(RayTracer &rt,
 				  const Vector3D &normal,
 				  const Point2D &uv,
 				  const Vector3D &u,
-				  const Vector3D &v,
-				  Colour &direct,
-				  Colour &transmitted,
-				  Colour &reflected) const
+				  const Vector3D &v
+				  ) const
 {
-  // In the phong lighting model, direct is calculated as the ambient light plus
-  // the sum for all of the lights. Reflected is given by the specular term.
-  // Ambient and diffuse are weighted inversely (linearly) to the transmission
-  // coefficient. The phong specularity is _not_, since it's part of the
-  // reflectivity.
-
-  const double opacity = geo.mat->opacity();
   Vector3D phong_n = normal;
   geo.mat->get_normal(phong_n, uv, u, v);
   const Colour &phong_kd = geo.mat->kd(uv);
@@ -31,19 +22,7 @@ void PhongModel::compute_lighting(RayTracer &rt,
   Vector3D phong_v = src - phong_P;
   phong_v.normalize();
 
-  // Reflected is just the specular term. I'm not sure how we can integrate
-  // phong shininess into this...
-  reflected = phong_ks;
-
-  // Transmitted is given by the diffuse colour and the transmission
-  // coefficient.
-  transmitted = (1 - opacity) * Colour(1);
-
-  // From here on down, we're doing the phong calculations in order to determine
-  // the direct term. It includes 
-
-  // Ambient term.
-  direct = opacity * m_ambient * phong_kd;
+  Colour rv = m_ambient * phong_kd;
 
   for(auto &light : m_lights)
   {
@@ -55,11 +34,12 @@ void PhongModel::compute_lighting(RayTracer &rt,
       continue;
 
     // This is the diffuse term.
-    Colour phong_ro = opacity * phong_kd;
+    Colour phong_ro = phong_kd;
 
     // Add the specular term, which is based on how close we are to the light's
     // reflection angle.
     Vector3D phong_r = 2 * phong_ell.dot(phong_n) * phong_n - phong_ell;
+    // We can maybe avoid this normalize?
     phong_r.normalize();
     const double refl = phong_r.dot(phong_v);
 
@@ -75,6 +55,8 @@ void PhongModel::compute_lighting(RayTracer &rt,
     // based on normal vs view vector.
     const Colour terms = phong_ro * (phong_ell.dot(phong_n) / attenuation);
 
-    direct += light->colour * terms;
+    rv += light->colour * terms;
   }
+
+  return rv;
 }

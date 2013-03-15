@@ -1,5 +1,5 @@
 white_light = gr.light({100, 0, 100}, {0.9, 0.9, 0.9}, {1, 0, 0})
-chrome = gr.material({0.5, 0.5, 0.5}, {0.9, 0.9, 0.9}, 20)
+chrome = gr.material({0.4, 0.4, 0.4}, {0.5, 0.5, 0.5}, 20)
 
 root = gr.node('root')
 

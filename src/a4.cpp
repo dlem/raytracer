@@ -58,6 +58,10 @@ void a4_render(// What to render
                const std::list<Light*>& lights
                )
 {
+  // TODO: have the phong module compute the specular effect normally but weigh
+  // the ambient and diffuse terms the way we want it to. There's no way to
+  // reproduce the phong specular effect with my fresnel stuff.
+
   Vector3D up(_up);
   Vector3D view(_view);
   up.normalize();

@@ -8,7 +8,7 @@ glass:set_opacity(0, 1.5)
 s = 100
 
 function msphere(x, y, z)
-  sp = gr.sphere('')
+  sp = gr.cylinder('')
   sp:translate(x, y, z)
   sp:scale(s, s, s)
   sp:set_material(glass)
@@ -16,8 +16,8 @@ function msphere(x, y, z)
 end
 
 msphere(0, -400, 0)
-msphere(-200, -400, -200)
-msphere(200, -400, -200)
-msphere(0, -400, -200)
+--msphere(-200, -400, -200)
+--msphere(200, -400, -200)
+--msphere(0, -400, -200)
 
-cbox.cbox(root, 1024, 1024, 'glass.png')
+cbox.cbox(root, 1024, 1024, 'cylglass.png')

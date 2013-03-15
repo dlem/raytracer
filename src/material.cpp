@@ -10,6 +10,7 @@ PhongMaterial::PhongMaterial(const Colour& kd, const Colour& ks, double shinines
   , m_bumpmap(0)
   , m_texture(0)
   , m_opacity(1)
+  , m_ri(0)
 {
 }
 

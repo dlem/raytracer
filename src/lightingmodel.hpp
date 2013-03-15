@@ -11,7 +11,7 @@ class LightingModel
 public:
   virtual ~LightingModel() {}
 
-  virtual void compute_lighting(RayTracer &rt,
+  virtual Colour compute_lighting(RayTracer &rt,
 				const Point3D &src,
 				const Point3D &ray,
 				const double t,
@@ -19,10 +19,7 @@ public:
 				const Vector3D &normal,
 				const Point2D &uv,
 				const Vector3D &u,
-				const Vector3D &v,
-				Colour &direct,
-				Colour &transmitted,
-				Colour &reflected
+				const Vector3D &v
 				) const = 0;
 };
 
@@ -35,7 +32,7 @@ public:
 
   virtual ~PhongModel () {}
 
-  virtual void compute_lighting(RayTracer &rt,
+  virtual Colour compute_lighting(RayTracer &rt,
 				const Point3D &src,
 				const Point3D &ray,
 				const double t,
@@ -43,10 +40,7 @@ public:
 				const Vector3D &normal,
 				const Point2D &uv,
 				const Vector3D &u,
-				const Vector3D &v,
-				Colour &direct,
-				Colour &transmitted,
-				Colour &reflected
+				const Vector3D &v
 				) const;
 
 private:
