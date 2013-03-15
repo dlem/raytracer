@@ -43,7 +43,7 @@ void PhongModel::compute_lighting(RayTracer &rt,
   // the direct term. It includes 
 
   // Ambient term.
-  direct = m_ambient * phong_kd;
+  direct = opacity * m_ambient * phong_kd;
 
   for(auto &light : m_lights)
   {

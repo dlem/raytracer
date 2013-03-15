@@ -2,20 +2,20 @@ white_light = gr.light({100, 0, 100}, {0.9, 0.9, 0.9}, {1, 0, 0})
 
 root = gr.node('root')
 
-ccmat = gr.material({1, 1, 1}, {0.5, 0.5, 0.5}, 10)
-ccmat:set_opacity(0.5, 1.5)
+glass = gr.material({1, 1, 1}, {0, 0, 0}, 0)
+glass:set_opacity(0, 1.5)
+
+ccmat = glass
 
 ccube = gr.cube('ccube')
 ccube:scale(100, 100, 100)
 ccube:set_material(ccmat)
 ccube:translate(-0.5, -0.5, -0.5)
 
-earthmat = gr.material({1, 1, 1}, {0.5, 0.5, 0.5}, 10)
+earthmat = glass
 earthmat:set_opacity(0.0, 1.5)
 
-barrelmat = gr.material({1, 1, 1}, {0.5, 0.5, 0.5}, 10)
-barrelmat:set_texture('../barrel.png')
-barrelmat:set_bumpmap('../barrel_bm.png')
+barrelmat = glass
 
 cyl = gr.cylinder('cyl')
 cyl:scale(100, 100, 100)

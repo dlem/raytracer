@@ -51,18 +51,52 @@ void a4_render(// What to render
                // Image size
                int width, int height,
                // Viewing parameters
-               const Point3D& eye, const Vector3D& view,
-               const Vector3D& up, double fov_deg,
+               const Point3D& eye, const Vector3D& _view,
+               const Vector3D& _up, double fov_deg,
                // Lighting parameters
                const Colour& ambient,
                const std::list<Light*>& lights
                )
 {
+  Vector3D up(_up);
+  Vector3D view(_view);
+  up.normalize();
+  view.normalize();
+  const Vector3D right(view.cross(up));
+
+  const double aspect = width/(double)max(height, 1);
+  const double fov_x = M_PI / 180 * fov_deg;
+  const double fov_y = fov_x / aspect;
+
   FlatList geometry;
   root->flatten(geometry);
 
-  RayTracer rt(geometry, [](const Point3D &src, const Point3D &dst)
-      { return Colour(0, 0, 0); });
+  RayTracer rt(geometry, [fov_x, fov_y, &right, &up, &view](const Point3D &src, const Point3D &dst)
+  {
+    const Colour darker(1., 0.29, 0);
+    const Colour lighter(1., 0.56, 0);
+    const int arcs = 28;
+    const double pupil_proportion = 0.1;
+    const double ray_proportion = 0.5;
+
+    Vector3D ray = dst - src;
+    ray.normalize();
+    
+    const double dtheta = acos(ray.dot(view));
+    if(dtheta <= pupil_proportion * fov_x)
+      return lighter;
+    else if(dtheta > ray_proportion * fov_x)
+      return darker;
+
+    const double x = ray.dot(right);
+    const double y = ray.dot(up);
+    double theta = atan(safe_div(y, x));
+    theta /= 2 * M_PI / arcs;
+    theta -= 0.5;
+
+    return (int)abs(floor(theta)) % 2 >= 1 ? lighter : darker;
+  });
+
   PhongModel phong(ambient, lights);
   Image img(width, height, 3);
 
@@ -71,9 +105,6 @@ void a4_render(// What to render
   // First build our inverse-projection matrix. All we're doing is changing the
   // range from [0, 16) to [-tan(fov/2), tan(fov/2).
   {
-    const double aspect = width/(double)max(height, 1);
-    const double fov_x = M_PI / 180 * fov_deg;
-    const double fov_y = fov_x / aspect;
 
     Matrix4x4 invproj = Matrix4x4::scale(Vector3D(2./width, 2./height, 1));
     invproj = Matrix4x4::translate(Vector3D(-1, -1, 0)) * invproj;

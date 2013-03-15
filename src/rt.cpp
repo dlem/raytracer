@@ -82,7 +82,6 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
 				     double acc,
 				     int depth)
 {
-  cerr << depth << endl;
   const double threshold = 0.02;
   const double tlo = 0.1;
   const FlatGeo *g;
@@ -127,14 +126,19 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
     const double ratio = kidotn < 0 ? ri / ri_air : ri_air / ri;
     const double sinti = sqrt(1 - kidotn * kidotn);
     const double sinto = sinti / ratio;
-    const double dtheta = asin(sinto) - asin(sinti);
-    Vector3D ell = normal - kidotn * ki;
-    ell.normalize();
 
-    Vector3D out = cos(dtheta) * ki + sin(dtheta) * ell;
+    if(sinto < 1)
+    {
+      const double thetai = asin(sinti), thetao = asin(sinto);
+      const double dtheta = thetao - thetai;
+      Vector3D ell = normal - kidotn * ki;
+      ell.normalize();
 
-    Colour transm = raytrace_recursive(model, p, p + out, acc_transmitted, depth + 1);
-    rv += transmitted * transm;
+      Vector3D out = cos(dtheta) * ki + sin(dtheta) * ell;
+
+      Colour transm = raytrace_recursive(model, p, p + out, acc_transmitted, depth + 1);
+      rv += transmitted * transm;
+    }
   }
 
   return rv;
