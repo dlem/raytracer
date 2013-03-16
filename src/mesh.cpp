@@ -112,9 +112,10 @@ no_hit: ;
   return true;
 }
 
-void Mesh::bounding_sphere(Point3D &c, double &rad)
+void Mesh::bounding_sphere(Point3D &c, double &rad) const
 {
-  c = 0.5 * (m_mins + m_maxes);
+  for(int i = 0; i < 3; i++)
+    c[i] = 0.5 * (m_mins[i] + m_maxes[i]);
   rad = 0.5 * (m_maxes - m_mins).length();
 }
 

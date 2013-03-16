@@ -5,12 +5,17 @@
 **/
 
 #include <iostream>
+#include <vector>
 #include "scene_lua.hpp"
 #include "cmdopts.hpp"
 
-int main(int argc, char** argv)
+using namespace std;
+
+extern CmdOpts g_the_opts;
+
+int main(int argc, const char** argv)
 {
-  parse_args(argc, argv);
+  const int trailing = g_the_opts.init(argc, argv);
 
   auto run = [](const std::string &filename)
   {
@@ -21,9 +26,9 @@ int main(int argc, char** argv)
     }
   };
 
-  if (optind >= argc)
+  if(trailing >= argc)
     run("scene.lua");
   else
-    for(int i = optind; i < argc; i++)
+    for(int i = trailing; i < argc; i++)
       run(argv[i]);
 }

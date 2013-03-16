@@ -61,7 +61,7 @@ bool Quadric::intersect(const Point3D &eye, const Point3D &_ray, const Intersect
 void Sphere::get_uv(const Point3D &pt, const Vector3D &normal,
 		    Point2D &uv, Vector3D &u, Vector3D &v) const
 {
-  const double theta = atan(-safe_div(pt[2], pt[0]));
+  const double theta = atan2(-pt[2], pt[0]);
   const double y = pt[1];
   uv[0] = 0.5 + theta/M_PI;
   uv[1] = 0.5 + y * 0.5;
@@ -76,7 +76,13 @@ Matrix4x4 NonhierSphere::get_transform()
     Matrix4x4::scale(Vector3D(m_radius, m_radius, m_radius));
 }
 
-void Sphere::bounding_sphere(Point3D &c, double &rad)
+void NonhierSphere::bounding_sphere(Point3D &c, double &rad) const
+{
+  c = Point3D();
+  rad = 1;
+}
+
+void Sphere::bounding_sphere(Point3D &c, double &rad) const
 {
   c = Point3D();
   rad = 1;
@@ -143,7 +149,7 @@ bool Cube::intersect(const Point3D &eye, const Point3D &ray_end, const Intersect
   return true;
 }
 
-void Cube::bounding_sphere(Point3D &c, double &rad)
+void Cube::bounding_sphere(Point3D &c, double &rad) const
 {
   c = Point3D(0.5, 0.5, 0.5);
   rad = (Point3D(1, 1, 1) - c).length();
@@ -155,7 +161,7 @@ Matrix4x4 NonhierBox::get_transform()
     Matrix4x4::scale(Vector3D(m_size, m_size, m_size));
 }
 
-void NonhierBox::bounding_sphere(Point3D &c, double &rad)
+void NonhierBox::bounding_sphere(Point3D &c, double &rad) const
 {
   c = Point3D(0.5, 0.5, 0.5);
   rad = (Point3D(1, 1, 1) - c).length();
@@ -197,10 +203,10 @@ bool Cylinder::intersect(const Point3D &eye, const Point3D &ray, const Intersect
   return true;
 }
 
-void Cylinder::bounding_sphere(Point3D &c, double &rad)
+void Cylinder::bounding_sphere(Point3D &c, double &rad) const
 {
   c = Point3D(0, 0, 0);
-  rad = (Point3D(1, 1, 0) - 1).length();
+  rad = (Point3D(1, 1, 0) - c).length();
 }
 
 bool Cylinder::predicate(const Point3D &pt) const
@@ -213,7 +219,7 @@ void Cylinder::get_uv(const Point3D &pt, const Vector3D &normal,
 {
   // This function handles uvs on the non-planar part.
   // Find theta, translate it into a coordinate from 0 to 1.
-  const double theta = atan(-safe_div(pt[2], pt[0]));
+  const double theta = atan2(-pt[2], pt[0]);
   const double y = pt[1];
   uv[0] = 0.5 + theta / M_PI;
   uv[1] = 0.25 + y * 0.25;
@@ -263,7 +269,7 @@ bool Cone::intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &
   return true;
 }
 
-void Cone::bounding_sphere(Poin3D &c, double &rad) const
+void Cone::bounding_sphere(Point3D &c, double &rad) const
 {
   c = Point3D(0, 0, 0.5);
   rad = 1;
@@ -277,7 +283,7 @@ bool Cone::predicate(const Point3D &pt) const
 void Cone::get_uv(const Point3D &pt, const Vector3D &normal,
 		  Point2D &uv, Vector3D &u, Vector3D &v) const
 {
-  const double theta = atan(-safe_div(pt[2], pt[0]));
+  const double theta = atan2(-pt[2], pt[0]);
   const double y = pt[1];
   uv[0] = 0.5 + theta / M_PI;
   uv[1] = 0.25 + y * 0.25;

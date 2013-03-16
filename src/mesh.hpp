@@ -19,7 +19,7 @@ public:
        const std::vector< std::vector<int> >& faces);
 
   virtual bool intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const;
-  virtual void bounding_sphere(Point3D &c, double &rad);
+  virtual void bounding_sphere(Point3D &c, double &rad) const;
 
   typedef std::vector<int> Face;
   

@@ -18,7 +18,7 @@ enum AAFACE
   AAFACE_NZ,
 };
 
-static double axis_aligned_plane_intersect(const Point3D &eye, const Vector3D &ray,
+static inline double axis_aligned_plane_intersect(const Point3D &eye, const Vector3D &ray,
 				    int axis, double offset)
 {
   const double at = eye[axis];
@@ -30,7 +30,7 @@ static double axis_aligned_plane_intersect(const Point3D &eye, const Vector3D &r
   return (offset - at) / dir;
 }
 
-static bool axis_aligned_square_contains(const Point3D &p, int face,
+static inline bool axis_aligned_square_contains(const Point3D &p, int face,
 				const Point3D &mins, const Point3D &maxes)
 {
   const int coord = face / 2;
@@ -40,7 +40,7 @@ static bool axis_aligned_square_contains(const Point3D &p, int face,
 	 inrange(p[c2], mins[c2], maxes[c2]);
 }
 
-static bool axis_aligned_circle_contains(const Point3D &p, int face, double radius)
+static inline bool axis_aligned_circle_contains(const Point3D &p, int face, double radius)
 {
   const int coord = face / 2;
   const int c1 = (coord + 1) % 3;
@@ -48,7 +48,7 @@ static bool axis_aligned_circle_contains(const Point3D &p, int face, double radi
   return p[c1] * p[c1] + p[c2] * p[c2] <= radius;
 }
 
-static bool axis_aligned_box_check(const Point3D &eye, const Point3D &ray_end,
+static inline bool axis_aligned_box_check(const Point3D &eye, const Point3D &ray_end,
 			    const Point3D &mins, const Point3D &maxes)
 {
   const Vector3D ray = ray_end - eye;

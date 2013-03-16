@@ -45,7 +45,7 @@ public:
   template<typename TIt>
   void build(TIt start, TIt end)
   {
-    m_root = build(start, end, 0);
+    m_root = (TNode *)build(start, end, 0);
   }
 
   TNode *find(const Point3D &pt)

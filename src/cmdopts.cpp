@@ -14,109 +14,104 @@
 
 using namespace std;
 
-const CmdOpts *g_opts = 0;
+CmdOpts g_the_opts;
+const CmdOpts *g_opts = &g_the_opts;
 
-void parse_args(int argc, char **argv)
+int CmdOptsBase::init(int argc, const char **argv)
 {
-  if(g_opts)
-    return;
-
-  vector<option> options;
-  vector<const char *> help;
-  vector<function<void(const char *)>> fns;
-
-  auto add_opt = [&options, &fns](const char *name, int has_arg, function<void(const char *)> fn)
+  int i;
+  for(i = 1; i < argc; i++)
   {
-    fns.push_back(fn);
-    options.resize(options.size() + 1);
-    option &opt = options.back();
-    opt.name = name;
-    opt.has_arg = has_arg;
-    opt.flag = 0;
-    opt.val = options.size() - 1;
-  };
-
-  CmdOpts *opts = new CmdOpts;
-
-#define ADD_EN_DIS_FEATURE(feature, opt) \
-  add_opt("enable-" feature, no_argument, [opts] \
-      (const char *) { opts->opt = true;}); \
-  add_opt("disable-" feature, no_argument, [opts] \
-      (const char *) {opts->opt = false;})
-
-  add_opt("help", no_argument, [&options, &help](const char *)
-      {
-        cerr << "Valid arguments:" << endl;
-        for(auto &opt : options)
-        {
-          cerr << "  --" << opt.name << endl;
-        }
-        exit(0);
-      });
-
-  ADD_EN_DIS_FEATURE("anti-aliasing", aa);
-  ADD_EN_DIS_FEATURE("bounding-volumes", bv);
-  ADD_EN_DIS_FEATURE("aa-jitter", aa_jitter);
-  ADD_EN_DIS_FEATURE("draw-aa", draw_aa);
-
-  add_opt("aa-grid", required_argument, [opts](const char *num)
-      {
-        const int n = strtol(num, 0, 0);
-        if(n <= 0)
-        {
-          cerr << "Invalid positive integer argument passed to aa-grid" << endl;
-          exit(1);
-        }
-        opts->aa_grid = n;
-      });
-
-  add_opt("threads", required_argument, [opts](const char *num)
-      {
-        const int n = strtol(num, 0, 0);
-        if(n <= 0)
-        {
-          cerr << "Invalid positive integer argument passed to threads" << endl;
-          exit(1);
-        }
-        opts->threads = n;
-      });
-
-  add_opt("aa-threshold", required_argument, [opts](const char *num)
-      {
-        const double n = strtof(num, 0);
-        if(n <= 0)
-        {
-          cerr << "Invalid positive double argument passed to aa-threshold" << endl;
-          exit(1);
-        }
-        opts->aa_threshold = n;
-      });
-
-  add_opt("aa-jitter", required_argument, [opts](const char *num)
-      {
-        const double n = strtof(num, 0);
-        if(n <= 0)
-        {
-          cerr << "Invalid positive double argument passed to aa-jitter" << endl;
-          exit(1);
-        }
-        opts->aa_jitter = n;
-      });
-
-  while(1)
-  {
-    int option_index = -1;
-    const char c = getopt_long(argc, argv, "", options.data(), &option_index);
-    if(c == -1)
+    auto it = m_opts.find(argv[i]);
+    if(it == m_opts.end())
       break;
-    if(option_index == -1)
-    {
-      cerr << "Malformed command line arguments? Aborting..." << endl;
-      abort();
-    }
-    else
-      fns[option_index](optarg);
+    i += it->second(argv + i + 1);
   }
-
-  g_opts = opts;
+  return i;
 }
+
+CmdOptsBase::CmdOptsBase()
+{
+  add_flag("help", [=]()
+  {
+    cerr << "Ray tracer. Usage: rt [ options ] [ lua-scene-file ]" << endl;
+    cerr << endl;
+    cerr << "Valid command-line arguments:" << endl;
+    for(auto &opt : m_opts)
+    {
+      if(opt.first[1] == '-')
+	cerr << "  " << opt.first << endl;
+    }
+  });
+}
+
+void CmdOptsBase::add_flag(const char *name, const function<void()> &cb, char shrt)
+{
+  add_parameter(name, shrt, [cb](const char **) { cb(); return 0; });
+}
+
+template<>
+void CmdOptsBase::add_parameter<const char *>(const char *name, const function<void(const char *)> &cb, char shrt)
+{
+  add_parameter(name, shrt, [cb](const char **args) { cb(args[0]); return 1; });
+}
+
+template<>
+void CmdOptsBase::add_parameter<int>(const char *name, const function<void(int)> &cb, char shrt)
+{
+  add_parameter(name, shrt, [cb](const char **args)
+  {
+    cb(atoi(args[0]));
+    return 1;
+  });
+}
+
+template<>
+void CmdOptsBase::add_parameter<double>(const char *name, const function<void(double)> &cb, char shrt)
+{
+  add_parameter(name, shrt, [cb](const char **args)
+  {
+    cb(strtof(args[0], 0));
+    return 1;
+  });
+}
+
+void CmdOptsBase::add_parameter(const char *name, char shrt, const function<int(const char **)> &cb)
+{
+  m_opts.insert(OptMap::value_type(string("--") + name, cb));
+  if(shrt != '\0')
+    m_opts.insert(OptMap::value_type(string("-") + shrt, cb));
+}
+
+CmdOpts::CmdOpts()
+{
+  aa = bv = true;
+  aa_jitter = 0;
+  aa_grid = 3;
+  draw_aa = false;
+  threads = 4;
+  aa_threshold = 0.5;
+  aa_jitter = 0.;
+  caustic_num_photons = 1000000;
+  caustic_pm_gran = 180;
+
+  outs = &cout;
+  errs = &cerr;
+  dbgs = &clog;
+  clog.clear(ios_base::badbit);
+
+  add_flag("disable-aa", [=]() { aa = false; });
+  add_flag("disable-bv", [=]() { bv = false; });
+  add_flag("draw-aa", [=]() { draw_aa = true; });
+  add_flag("timing", [=]() { timing = true; }, 't');
+  add_flag("silent", [=]() { outs = &clog; }, 's');
+  add_flag("stats", [=]() { stats = true; }, 'S');
+  add_flag("verbose", [=]() { clog.clear(ios_base::goodbit); });
+  add_parameter<int>("aa-grid", [=](int g) { aa_grid = check_range(g, 1, "Invalid postive integer argument to aa-grid"); });
+  add_parameter<int>("threads", [=](int t) { threads = check_range(t, 1, "Invalid positive integer argument to threads"); }, 'j');
+  add_parameter<double>("aa-threshold", [=](double t) { aa_threshold = check_range(t, 0., "Jitter value must be non-negative double"); });
+  add_parameter<int>("caustic-num-photons", [=](int n) { caustic_num_photons = check_range(n, 0, "# caustic photons must be non-negative"); });
+  add_parameter<int>("caustic-pm-gran", [=](int n) { caustic_pm_gran = check_range(n, 1, "Caustic granularity must be postive"); });
+}
+
+

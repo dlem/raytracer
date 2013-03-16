@@ -12,6 +12,8 @@
 #include "rt.hpp"
 #include "textures.hpp"
 #include "lightingmodel.hpp"
+#include "timer.hpp"
+#include "stats.hpp"
 
 using namespace std;
 
@@ -29,10 +31,6 @@ void a4_render(// What to render
                const std::list<Light*>& lights
                )
 {
-  // TODO: have the phong module compute the specular effect normally but weigh
-  // the ambient and diffuse terms the way we want it to. There's no way to
-  // reproduce the phong specular effect with my fresnel stuff.
-
   Vector3D up(_up);
   Vector3D view(_view);
   up.normalize();
@@ -66,7 +64,7 @@ void a4_render(// What to render
 
     const double x = ray.dot(right);
     const double y = ray.dot(up);
-    double theta = atan(safe_div(y, x));
+    double theta = atan2(y, x);
     theta /= 2 * M_PI / arcs;
     theta -= 0.5;
 
@@ -221,12 +219,21 @@ void a4_render(// What to render
   auto it = count.begin();
   auto pf = parfor<decltype(it), int>(it, count.end(), trace_row);
 
-  pf.go(GETOPT(threads), true, [height](int i)
-      {
-	cout << "Done " << height - i << "/" << height << " rows..." << endl;
-      });
+  {
+    SCOPED_TIMER("rendering");
+    pf.go(GETOPT(threads), true, [height](int i)
+	{
+	  outs() << "Done " << height - i << "/" << height << " rows..." << endl;
+	});
+  }
 
-  cout << "Done!" << endl;
+  outs() << "Done!" << endl;
 
   img.savePng(filename);
+
+  if(GETOPT(timing))
+    Timer::dump_timings();
+
+  if(GETOPT(stats))
+    dump_stats();
 }

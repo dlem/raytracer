@@ -12,12 +12,12 @@ void kdtree_test()
   vector<KDNode *> nodes;
   for(int i = 0; i < num; i++)
   {
-    KDNode *node = new KDNode;
-    node->pt = Point3D(r(), r(), r());
+    KDNode *node = new KDNode(Point3D(r(), r(), r()));
     nodes.push_back(node);
   }
 
-  KDTree<KDNode> tree(nodes.begin(), nodes.end());
+  KDTree<KDNode> tree;
+  tree.build(nodes.begin(), nodes.end());
 
   for(int i = 0; i < 100; i++)
   {

@@ -87,6 +87,7 @@ private:
 class Cube : public Primitive {
 public:
   virtual bool intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const;
+  virtual void bounding_sphere(Point3D &c, double &rad) const;
 };
 
 class NonhierBox : public Cube {
@@ -95,7 +96,7 @@ public:
     : m_pos(pos), m_size(size)
   {
   }
-  virtual vodi boinding_box(Point3D box[4]) const;
+  virtual void bounding_sphere(Point3D &c, double &rad) const;
   virtual Matrix4x4 get_transform();
 private:
   Point3D m_pos;
