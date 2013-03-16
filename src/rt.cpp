@@ -86,76 +86,38 @@ double fresnel(double n1, double n2, double cosi, double cost)
   return (rpar + rperp) / 2;
 }
 
-#if 0
-static bool raytrace_common(const LightingModel &model,
-			    const Point3D &src,
-			    const Point3D &dst,
-			    const FlatGeo *&g,
-			    Colour &ctransmitted,
-			    Colour &creflected,
-			    Vector3D &normal,
-			    Point2D &uv,
-			    Vector3D &u,
-			    Vector3D &v,
-			    Vector3D &ray_reflected,
-			    Vector3D &ray_transmitted,
-			    )
+// Returns the proportion of specular power that should go to reflection. The
+// rest should go to refraction.
+double compute_specular(const Vector3D &incident,     // Must be unit.
+			const FlatGeo &geo,
+			const Vector3D &_n,	      // The normal.
+			Vector3D &ray_reflected,
+			Vector3D &ray_transmitted)
 {
-  const double tlo = 0.1;
-  const double t = raytrace_min(src, dst, tlo, &g, normal, uv, u, v);
-
-  if(t >= numeric_limits<double>::max())
-    return false;
-
   const double ri_air = 1;
-  const double ri = g->mat->ri();
-  const double opacity = g->mat->opacity();
+  const double ri = geo.mat->ri();
+  const bool penetrating = incident.dot(_n) < 0;
+  const Vector3D n = penetrating ? _n : -_n;
+  ray_reflected = incident - 2 * incident.dot(n) * n;
 
-  double direct, transmitted, reflected;
-  Vector3D ray = dst - src;
-  ray.normalize();
-  const bool penetrating = ray.dot(normal) < 0;
-  const Vector3D n = penetrating ? normal : -normal;
-  ray_reflected = ray - 2 * ray.dot(n) * n;
+  if(ri >= numeric_limits<double>::max())
+    // Only reflective.
+    return 1;
 
-  if(ri == 0)
-  {
-    // If this material has an ri of zero, just use phong calculations, as it
-    // has no reflection or refraction.
-    direct = reflected = 1;
-    transmitted = 0;
-  }
-  else
-  {
-    const double n1 = penetrating ? ri_air : ri;
-    const double n2 = penetrating ? ri : ri_air;
-    const double cosi = ray.dot(-n);
-    const double sini = sqrt(1 - cosi * cosi);
-    const double sint = n1 / n2 * sini;
-    double r;
+  const double n1 = penetrating ? ri_air : ri;
+  const double n2 = penetrating ? ri : ri_air;
+  const double cosi = incident.dot(-n);
+  const double sini = sqrt(1 - cosi * cosi);
+  const double sint = n1 / n2 * sini;
 
-    if(sint >= 1)
-    {
-      // Total internal reflection.
-      r = 1;
-    }
-    else
-    {
-      const double cost = sqrt(1 - sint * sint);
-      r = fresnel(n1, n2, cosi, cost);
-      // Calculate the rafracted ray.
-      ray_transmitted = n1/n2 * ray + (n1/n2 * cosi - cost) * n;
-    }
+  if(sint >= 1)
+    // Total internal reflection.
+    return 1;
 
-    direct = opacity;
-    transmitted = (1 - r) * (1 - opacity);
-    reflected = r;
-  }
-
-  ctransmitted = transmitted * g->mat->ks(uv);
-  creflected = reflected * g->mat->ks(uv);
+  const double cost = sqrt(1 - sint * sint);
+  ray_transmitted = n1/n2 * incident + (n1/n2 * cosi - cost) * n;
+  return fresnel(n1, n2, cosi, cost);
 }
-#endif
 
 Colour RayTracer::raytrace_recursive(const LightingModel &model,
 				     const Point3D &src,
@@ -166,93 +128,114 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
   const double threshold = 0.02;
   const double tlo = 0.1;
   const FlatGeo *g;
-  Vector3D normal;
+  Vector3D normal, u, v;
   Point2D uv;
-  Vector3D u, v;
-  const double t = raytrace_min(src, dst, tlo, &g, normal, uv, u, v);
+
+  const double t = raytrace_min(src, dst, tlo, &g, normal, uv, u, v); 
 
   if(t >= numeric_limits<double>::max())
     return m_miss_colour(src, dst);
 
   if(depth > 12)
   {
-    // This can happen with in certain situations (eg. perfect mirrors or
+    // This can happen in certain situations (eg. perfect mirrors or
     // repeated total internal reflection on the _inside_ of certain
     // primitives). The best thing we can do in this situations is just
     // calculate the phong lighting.
-    return model.compute_lighting(*this, src, dst, t, *g, normal, uv, u, v);
+    return model.compute_lighting(*this, src, dst, t, *g, normal, uv, u, v, 1);
   }
 
-  const double ri_air = 1;
-  const double ri = g->mat->ri();
-  const double opacity = g->mat->opacity();
-
-  double direct, transmitted, reflected;
-  Vector3D ray = dst - src;
-  ray.normalize();
-  const bool penetrating = ray.dot(normal) < 0;
-  const Vector3D n = penetrating ? normal : -normal;
-  const Vector3D ray_reflected = ray - 2 * ray.dot(n) * n;
-  Vector3D ray_transmitted;
-
-  if(ri == 0)
-  {
-    // If this material has an ri of zero, just use phong calculations, as it
-    // has no reflection or refraction.
-    direct = reflected = 1;
-    transmitted = 0;
-  }
-  else
-  {
-    const double n1 = penetrating ? ri_air : ri;
-    const double n2 = penetrating ? ri : ri_air;
-    const double cosi = ray.dot(-n);
-    const double sini = sqrt(1 - cosi * cosi);
-    const double sint = n1 / n2 * sini;
-    double r;
-
-    if(sint >= 1)
-    {
-      // Total internal reflection.
-      r = 1;
-    }
-    else
-    {
-      const double cost = sqrt(1 - sint * sint);
-      r = fresnel(n1, n2, cosi, cost);
-      // Calculate the rafracted ray.
-      ray_transmitted = n1/n2 * ray + (n1/n2 * cosi - cost) * n;
-    }
-
-    direct = opacity;
-    transmitted = (1 - r) * (1 - opacity);
-    reflected = r;
-  }
-
-  const Point3D p = src + t * (dst - src);
-  Colour ctransmitted = transmitted * g->mat->ks(uv);
-  Colour creflected = reflected * g->mat->ks(uv);
-  const double acc_transmitted = acc * ctransmitted.Y();
-  const double acc_reflected = acc * creflected.Y();
+  Vector3D incident = dst - src;
+  const Point3D p = src + t * incident;
+  // Do we need this normalize, or is it already unit?
+  incident.normalize();
+  Vector3D ray_reflected, ray_transmitted;
+  const double r = compute_specular(incident, *g, normal, ray_reflected, ray_transmitted);
 
   Colour rv(0);
 
-  Colour cdirect = model.compute_lighting(*this, src, dst, t, *g, normal, uv, u, v);
-  rv += direct * cdirect;
+  Colour cdirect = model.compute_lighting(*this, src, dst, t, *g, normal, uv, u, v, r);
+  rv += cdirect;
+
+  const Colour cspecular = g->mat->ks(uv);
+  const Colour creflected = r * cspecular;
+  const Colour ctransmitted = (1 - r) * cspecular;
+  const double acc_reflected = acc * creflected.Y();
+  const double acc_transmitted = acc * ctransmitted.Y();
 
   if(acc_reflected > threshold)
   {
     const Point3D dst_refl = p + ray_reflected;
-    creflected = creflected * raytrace_recursive(model, p, dst_refl, acc_reflected, depth + 1);
-    rv += creflected;
+    rv += creflected * raytrace_recursive(model, p, dst_refl, acc_reflected, depth + 1);
   }
 
   if(acc_transmitted > threshold)
   {
     const Point3D dst_trans = p + ray_transmitted;
-    Colour ctransmitted = raytrace_recursive(model, p, dst_trans, acc_transmitted, depth + 1);
-    rv += transmitted * ctransmitted;
+    rv += ctransmitted * raytrace_recursive(model, p, dst_trans, acc_transmitted, depth + 1);
   }
 
   return rv;
+}
+
+void RayTracer::raytrace_russian(const Point3D &src,
+		      const Point3D &dst, const Colour &acc,
+		      const RussianFn &fn, int depth)
+{
+  const double tlo = 0.1;
+  const FlatGeo *g;
+  Vector3D normal, u, v;
+  Point2D uv;
+
+  const double t = raytrace_min(src, dst, tlo, &g, normal, uv, u, v);
+
+  if(t >= numeric_limits<double>::max())
+    return;
+
+  if(depth > 12)
+    // We've no use for information about photons hitting spec surfaces, so...
+    return;
+
+  Vector3D incident = dst - src;
+  const Point3D p = src + t * incident;
+  // Do we need this, or is it already unit?
+  incident.normalize();
+  const Colour cdiffuse = acc * g->mat->kd(uv);
+  const Colour cspecular = acc * g->mat->ks(uv);
+
+  double prs[RT_ACTION_COUNT];
+  prs[RT_DIFFUSE] = cdiffuse.Y();
+  prs[RT_SPECULAR] = cspecular.Y();
+
+  for(int i = 1; i < RT_ACTION_COUNT - 1; i++)
+    prs[i] += prs[i - 1];
+
+  static_assert(RT_ABSORB == RT_ACTION_COUNT - 1, "");
+  prs[RT_ABSORB] = 1;
+
+  const RT_ACTION action = fn(p, incident, cdiffuse, prs);
+
+  if(action == RT_ABSORB)
+    return;
+
+  if(action == RT_SPECULAR)
+  {
+    Vector3D ray_reflected;
+    Vector3D ray_transmitted;
+    const double r = compute_specular(incident, *g, normal, ray_reflected, ray_transmitted);
+    if((rand() % 101) * 0.01 > r)
+    {
+      // Refraction.
+      raytrace_russian(p, p + ray_transmitted, (1 - r) * cspecular, fn, depth + 1);
+    }
+    else
+      // Reflection.
+      raytrace_russian(p, p + ray_reflected, r * cspecular, fn, depth + 1);
+  }
+  else
+  {
+    assert(action == RT_DIFFUSE);
+    // Only required for GI.
+    assert(0 && "Not implemented!");
+  }
 }

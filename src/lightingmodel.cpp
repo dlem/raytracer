@@ -10,13 +10,14 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
 				  const Vector3D &normal,
 				  const Point2D &uv,
 				  const Vector3D &u,
-				  const Vector3D &v
+				  const Vector3D &v,
+				  const double refl_attn
 				  ) const
 {
   Vector3D phong_n = normal;
   geo.mat->get_normal(phong_n, uv, u, v);
   const Colour &phong_kd = geo.mat->kd(uv);
-  const Colour &phong_ks = geo.mat->ks(uv);
+  const Colour &phong_ks = refl_attn * geo.mat->ks(uv);
   const double phong_p = geo.mat->shininess(uv);
   const Point3D phong_P = src + t * (ray - src);
   Vector3D phong_v = src - phong_P;

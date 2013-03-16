@@ -425,6 +425,7 @@ int gr_material_set_bumpmap_cmd(lua_State *L)
   return 0;
 }
 
+#if 0
 extern "C"
 int gr_material_set_opacity_cmd(lua_State *L)
 {
@@ -438,6 +439,21 @@ int gr_material_set_opacity_cmd(lua_State *L)
   selfdata->material->set_opacity(opacity, ri);
   return 0;
 }
+#endif
+
+extern "C"
+int gr_material_set_ri_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+  gr_material_ud* selfdata = (gr_material_ud*)luaL_checkudata(L, 1, "gr.material");
+  luaL_argcheck(L, selfdata != 0, 1, "Material expected");
+  
+  const double ri = luaL_checknumber(L, 2);
+
+  selfdata->material->set_ri(ri);
+  return 0;
+}
+
 
 // Create a material
 extern "C"
@@ -650,7 +666,7 @@ static const luaL_reg grlib_node_methods[] = {
 static const luaL_reg grlib_material_methods[] = {
   {"set_texture", gr_material_set_texture_cmd},
   {"set_bumpmap", gr_material_set_bumpmap_cmd},
-  {"set_opacity", gr_material_set_opacity_cmd},
+  {"set_ri", gr_material_set_ri_cmd},
 };
 
 // This function calls the lua interpreter to define the scene and

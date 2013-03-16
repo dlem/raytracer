@@ -19,7 +19,8 @@ public:
 				const Vector3D &normal,
 				const Point2D &uv,
 				const Vector3D &u,
-				const Vector3D &v
+				const Vector3D &v,
+				const double refl_attn
 				) const = 0;
 };
 
@@ -40,7 +41,8 @@ public:
 				const Vector3D &normal,
 				const Point2D &uv,
 				const Vector3D &u,
-				const Vector3D &v
+				const Vector3D &v,
+				const double refl_attn
 				) const;
 
 private:

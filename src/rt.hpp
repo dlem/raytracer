@@ -22,9 +22,21 @@ typedef std::function<bool(const FlatGeo &geo, double t,
                            const Vector3D &v)>
         RaytraceFn;
 
-
 typedef std::function<Colour(const Point3D &, const Point3D &)> MissColourFn;
 
+enum RT_ACTION
+{
+  RT_DIFFUSE=0,
+  RT_SPECULAR,
+  RT_ABSORB,
+  RT_ACTION_COUNT
+};
+
+typedef std::function<RT_ACTION(const Point3D &p,
+			   const Vector3D &incident,
+			   const Colour &photon,
+			   double *prs)>
+	RussianFn;
 
 
 // Stores ray tracing "context" -- ie, anything I might need and don't want to
@@ -39,6 +51,11 @@ public:
 
   Colour raytrace_recursive(const LightingModel &model, const Point3D &src,
 			    const Point3D &ray, double acc = 1, int depth = 0);
+
+  void raytrace_russian(const Point3D &src,
+			const Point3D &ray, const Colour &acc,
+			const RussianFn &fn, int depth = 0);
+
 
   // Returns true if any primitive hit yields a t-value in [tlo, thi].
   bool raytrace_within(const Point3D &src,

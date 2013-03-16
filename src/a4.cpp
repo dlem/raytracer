@@ -15,35 +15,6 @@
 
 using namespace std;
 
-// Generates a sunny background with rising-sun-style rays. I think it looks
-// nice.
-Colour ray_pupil_background(int width, int height,
-                            const Point3D &,
-                            const Point3D &projected)
-{
-  const Colour darker(1., 0.29, 0);
-  const Colour lighter(1., 0.56, 0);
-  const int arcs = 28;
-  const double pupil_proportion = 0.1;
-  bool in_pupil = false;
-
-  const double offset_x = 2 * projected[0] / width - 1;
-  const double offset_y = 2 * projected[1] / height - 1;
-  const double radius = sqr(offset_x) + sqr(offset_y);
-
-  in_pupil |= radius <= pupil_proportion;
-
-  if(!in_pupil)
-  {
-    double theta = atan(safe_div(offset_y, offset_x));
-    theta /= 2 * M_PI / arcs;
-    theta -= 0.5;
-    in_pupil |= (int)abs(floor(theta)) % 2 >= 1;
-  }
-
-  return in_pupil ? darker : lighter;
-}
-
 void a4_render(// What to render
                SceneNode* root,
                // Where to output the image
@@ -75,7 +46,8 @@ void a4_render(// What to render
   FlatList geometry;
   root->flatten(geometry);
 
-  RayTracer rt(geometry, [fov_x, fov_y, &right, &up, &view](const Point3D &src, const Point3D &dst)
+#if 0
+  auto ray_pupil_background = [fov_x, fov_y, &right, &up, &view](const Point3D &src, const Point3D &dst)
   {
     const Colour darker(1., 0.29, 0);
     const Colour lighter(1., 0.56, 0);
@@ -99,7 +71,10 @@ void a4_render(// What to render
     theta -= 0.5;
 
     return (int)abs(floor(theta)) % 2 >= 1 ? lighter : darker;
-  });
+  };
+#endif
+
+  RayTracer rt(geometry, [](const Point3D &, const Point3D &) { return Colour(0); });
 
   PhongModel phong(ambient, lights);
   Image img(width, height, 3);

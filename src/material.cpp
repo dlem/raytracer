@@ -1,5 +1,6 @@
 #include "material.hpp"
 #include <iostream>
+#include <limits>
 #include "image.hpp"
 #include "textures.hpp"
 
@@ -9,8 +10,7 @@ PhongMaterial::PhongMaterial(const Colour& kd, const Colour& ks, double shinines
   : m_kd(kd), m_ks(ks), m_shininess(shininess)
   , m_bumpmap(0)
   , m_texture(0)
-  , m_opacity(1)
-  , m_ri(0)
+  , m_ri(numeric_limits<double>::max())
 {
 }
 

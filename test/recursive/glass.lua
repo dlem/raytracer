@@ -2,8 +2,8 @@ require 'cbox'
 
 root = gr.node('root')
 
-glass = gr.material({0.3, 0.3, 0.3}, {1, 1, 1}, 20)
-glass:set_opacity(0, 1.5)
+glass = gr.material({0.0, 0.0, 0.0}, {0.7, 1, 1}, 20)
+glass:set_ri(1.5)
 
 s = 100
 
