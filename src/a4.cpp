@@ -74,7 +74,7 @@ void a4_render(// What to render
   };
 #endif
 
-  RayTracer rt(geometry, [](const Point3D &, const Point3D &) { return Colour(0); });
+  RayTracer rt(geometry, [](const Point3D &, const Vector3D &) { return Colour(0); });
 
   PhongModel phong(ambient, lights);
   Image img(width, height, 3);
@@ -139,7 +139,9 @@ void a4_render(// What to render
     const Vector3D vjitter(jitter * (-0.5 + (1 + rand() % 98) * 0.01),
                            jitter * (-0.5 + (1 + rand() % 98) * 0.01), 0);
     const Point3D projected = pt + vjitter;
-    const Point3D ray = viewport2world * projected;
+    const Point3D dst = viewport2world * projected;
+    Vector3D ray = dst - eye;
+    ray.normalize();
     return rt.raytrace_recursive(phong, eye, ray);
   };
 

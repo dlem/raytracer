@@ -13,7 +13,7 @@ public:
 
   virtual Colour compute_lighting(RayTracer &rt,
 				const Point3D &src,
-				const Point3D &ray,
+				const Vector3D &ray,
 				const double t,
 				const FlatGeo &geo,
 				const Vector3D &normal,
@@ -35,7 +35,7 @@ public:
 
   virtual Colour compute_lighting(RayTracer &rt,
 				const Point3D &src,
-				const Point3D &ray,
+				const Vector3D &ray,
 				const double t,
 				const FlatGeo &geo,
 				const Vector3D &normal,

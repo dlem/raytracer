@@ -76,6 +76,12 @@ Matrix4x4 NonhierSphere::get_transform()
     Matrix4x4::scale(Vector3D(m_radius, m_radius, m_radius));
 }
 
+void Sphere::bounding_sphere(Point3D &c, double &rad)
+{
+  c = Point3D();
+  rad = 1;
+}
+
 void cube_uv(int facenum, const Point3D &p, Point2D &uv, Vector3D &u, Vector3D &v)
 {
   double cu = 1/4.;
@@ -137,10 +143,22 @@ bool Cube::intersect(const Point3D &eye, const Point3D &ray_end, const Intersect
   return true;
 }
 
+void Cube::bounding_sphere(Point3D &c, double &rad)
+{
+  c = Point3D(0.5, 0.5, 0.5);
+  rad = (Point3D(1, 1, 1) - c).length();
+}
+
 Matrix4x4 NonhierBox::get_transform()
 {
   return Matrix4x4::translate(m_pos - Point3D()) *
     Matrix4x4::scale(Vector3D(m_size, m_size, m_size));
+}
+
+void NonhierBox::bounding_sphere(Point3D &c, double &rad)
+{
+  c = Point3D(0.5, 0.5, 0.5);
+  rad = (Point3D(1, 1, 1) - c).length();
 }
 
 bool Cylinder::intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const
@@ -177,6 +195,12 @@ bool Cylinder::intersect(const Point3D &eye, const Point3D &ray, const Intersect
   }
 
   return true;
+}
+
+void Cylinder::bounding_sphere(Point3D &c, double &rad)
+{
+  c = Point3D(0, 0, 0);
+  rad = (Point3D(1, 1, 0) - 1).length();
 }
 
 bool Cylinder::predicate(const Point3D &pt) const
@@ -237,6 +261,12 @@ bool Cone::intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &
   }
 
   return true;
+}
+
+void Cone::bounding_sphere(Poin3D &c, double &rad) const
+{
+  c = Point3D(0, 0, 0.5);
+  rad = 1;
 }
 
 bool Cone::predicate(const Point3D &pt) const

@@ -12,7 +12,7 @@
 
 struct KDNode
 {
-  KDNode() : lchild(0), rchild(0) {}
+  KDNode(const Point3D &pt) : pt(pt), lchild(0), rchild(0) {}
   Point3D pt;
   KDNode *lchild;
   KDNode *rchild;
@@ -40,8 +40,10 @@ private:
 
 public:
 
+  KDTree() : m_root(0) {}
+
   template<typename TIt>
-  KDTree(TIt start, TIt end)
+  void build(TIt start, TIt end)
   {
     m_root = build(start, end, 0);
   }

@@ -112,6 +112,12 @@ no_hit: ;
   return true;
 }
 
+void Mesh::bounding_sphere(Point3D &c, double &rad)
+{
+  c = 0.5 * (m_mins + m_maxes);
+  rad = 0.5 * (m_maxes - m_mins).length();
+}
+
 std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
 {
   std::cerr << "mesh({";

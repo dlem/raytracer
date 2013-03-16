@@ -22,7 +22,7 @@ typedef std::function<bool(const FlatGeo &geo, double t,
                            const Vector3D &v)>
         RaytraceFn;
 
-typedef std::function<Colour(const Point3D &, const Point3D &)> MissColourFn;
+typedef std::function<Colour(const Point3D &, const Vector3D &)> MissColourFn;
 
 enum RT_ACTION
 {
@@ -50,22 +50,22 @@ public:
   {}
 
   Colour raytrace_recursive(const LightingModel &model, const Point3D &src,
-			    const Point3D &ray, double acc = 1, int depth = 0);
+			    const Vector3D &ray, double acc = 1, int depth = 0);
 
   void raytrace_russian(const Point3D &src,
-			const Point3D &ray, const Colour &acc,
+			const Vector3D &ray, const Colour &acc,
 			const RussianFn &fn, int depth = 0);
 
 
   // Returns true if any primitive hit yields a t-value in [tlo, thi].
   bool raytrace_within(const Point3D &src,
-		       const Point3D &ray,
+		       const Vector3D &ray,
 		       double tlo, double thi);
 
   // Finds the hit with the smallest t-value greater or equal to tlo and returns
   // the relevant information.
   double raytrace_min(const Point3D &src,
-		      const Point3D &ray,
+		      const Vector3D &ray,
 		      double tlo,
 		      const FlatGeo **pg,
 		      Vector3D &normal,
@@ -73,8 +73,10 @@ public:
 		      Vector3D &u,
 		      Vector3D &v);
 
+  const FlatList &geo() { return m_geo; }
+
 private:
-  bool raytrace(const Point3D &src, const Point3D &ray, const RaytraceFn &fn);
+  bool raytrace(const Point3D &src, const Vector3D &ray, const RaytraceFn &fn);
 
   const FlatList &m_geo;
   const MissColourFn m_miss_colour;

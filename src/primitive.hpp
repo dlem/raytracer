@@ -16,6 +16,7 @@ public:
                              const Point2D &uv, const Vector3D &u,
                              const Vector3D &v)> IntersectFn;
   virtual bool intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const = 0;
+  virtual void bounding_sphere(Point3D &c, double &rad) const = 0;
   virtual Matrix4x4 get_transform() { return Matrix4x4(); }
 };
 
@@ -43,6 +44,7 @@ public:
   Sphere() { A = D = F = 1; K = -1; };
   virtual void get_uv(const Point3D &pt, const Vector3D &normal, Point2D &uv,
 		      Vector3D &u, Vector3D &v) const;
+  virtual void bounding_sphere(Point3D &c, double &rad) const;
 };
 
 class Cylinder : public Quadric
@@ -53,6 +55,7 @@ public:
   virtual bool predicate(const Point3D &pt) const;
   virtual void get_uv(const Point3D &pt, const Vector3D &normal, Point2D &uv,
 		      Vector3D &u, Vector3D &v) const;
+  virtual void bounding_sphere(Point3D &c, double &rad) const;
   virtual Matrix4x4 get_transform();
 };
 
@@ -64,6 +67,7 @@ public:
   virtual bool predicate(const Point3D &pt) const;
   virtual void get_uv(const Point3D &pt, const Vector3D &normal, Point2D &uv,
 		      Vector3D &u, Vector3D &v) const;
+  virtual void bounding_sphere(Point3D &c, double &rad) const;
   virtual Matrix4x4 get_transform();
 };
 
@@ -73,6 +77,7 @@ public:
     : m_pos(pos), m_radius(radius)
   {
   }
+  virtual void bounding_sphere(Point3D &c, double &rad) const;
   virtual Matrix4x4 get_transform();
 private:
   Point3D m_pos;
@@ -90,6 +95,7 @@ public:
     : m_pos(pos), m_size(size)
   {
   }
+  virtual vodi boinding_box(Point3D box[4]) const;
   virtual Matrix4x4 get_transform();
 private:
   Point3D m_pos;

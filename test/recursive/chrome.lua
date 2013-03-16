@@ -1,5 +1,6 @@
 white_light = gr.light({100, 0, 100}, {0.9, 0.9, 0.9}, {1, 0, 0})
-chrome = gr.material({0.4, 0.4, 0.4}, {0.5, 0.5, 0.5}, 20)
+chrome = gr.material({0.0, 0.0, 0.0}, {1,1,1}, 20)
+white = gr.material({1, 1, 1}, {0, 0, 0}, 20)
 
 root = gr.node('root')
 
@@ -7,7 +8,7 @@ ccmat = chrome
 
 ccube = gr.cube('ccube')
 ccube:scale(100, 100, 100)
-ccube:set_material(ccmat)
+ccube:set_material(white)
 ccube:translate(-0.5, -0.5, -0.5)
 
 earthmat = chrome
@@ -20,7 +21,7 @@ cyl:set_material(barrelmat)
 
 earth = gr.sphere('earth')
 earth:scale(50, 50, 50)
-earth:set_material(earthmat)
+earth:set_material(chrome)
 
 cone = gr.cone('cone')
 cone:scale(50, 100, 50)

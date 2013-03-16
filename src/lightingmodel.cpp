@@ -4,7 +4,7 @@
 
 Colour PhongModel::compute_lighting(RayTracer &rt,
 				  const Point3D &src,
-				  const Point3D &ray,
+				  const Vector3D &ray,
 				  const double t,
 				  const FlatGeo &geo,
 				  const Vector3D &normal,
@@ -19,7 +19,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
   const Colour &phong_kd = geo.mat->kd(uv);
   const Colour &phong_ks = refl_attn * geo.mat->ks(uv);
   const double phong_p = geo.mat->shininess(uv);
-  const Point3D phong_P = src + t * (ray - src);
+  const Point3D phong_P = src + t * ray;
   Vector3D phong_v = src - phong_P;
   phong_v.normalize();
 
@@ -30,7 +30,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
     Vector3D phong_ell = light->position - phong_P;
     const double dist = phong_ell.normalize();
 
-    if(rt.raytrace_within(phong_P, phong_P + phong_ell, 0.001, dist))
+    if(rt.raytrace_within(phong_P, phong_ell, 0.001, dist))
       // Skip this light. There's an obstacle => shadow.
       continue;
 
