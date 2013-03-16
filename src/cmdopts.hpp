@@ -43,7 +43,7 @@ public:
     {
       std::cerr << msg << std::endl;
       std::cerr << "Aborting" << std::endl;
-      abort();
+      exit(1);
     }
     return val;
   }
@@ -62,7 +62,8 @@ class CmdOpts : public CmdOptsBase
 public:
   CmdOpts();
   bool aa, bv, draw_aa, timing;
-  bool stats;
+  bool stats, use_caustic_map, draw_caustic_map;
+  bool draw_caustic_pm;
   unsigned aa_grid, threads;
   double aa_threshold, aa_jitter;
   unsigned caustic_num_photons;

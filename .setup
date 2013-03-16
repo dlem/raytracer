@@ -1,1 +1,1 @@
-alias rt=`pwd`/src/rt
+alias rt="`pwd`/src/rt -d"

@@ -57,16 +57,17 @@ public:
   {
     TPQueue q;
     find_nnn(pt, 1, m_root, q, 0);
-    return q.top().node;
+    return (TNode *)(q.top().node);
   }
 
-  TNode *find_nnn(const Point3D &pt, int n, std::vector<TNode *> &ns)
+  typedef std::vector<TNode *> NeighbourList;
+  void find_nnn(const Point3D &pt, int n, NeighbourList &ns)
   {
     TPQueue nns;
-    find_nnn(pt, n, nns); 
+    find_nnn(pt, n, m_root, nns, 0);
     while(!nns.empty())
     {
-      ns.push(nns.top().node);
+      ns.push_back((TNode *)(nns.top().node));
       nns.pop();
     }
   }

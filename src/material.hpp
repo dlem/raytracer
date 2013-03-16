@@ -7,7 +7,8 @@
 class Texture;
 class Bumpmap;
 
-class PhongMaterial {
+class PhongMaterial
+{
 public:
   PhongMaterial(const Colour& kd, const Colour& ks, double shininess);
   virtual ~PhongMaterial();

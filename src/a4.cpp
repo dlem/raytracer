@@ -14,6 +14,7 @@
 #include "lightingmodel.hpp"
 #include "timer.hpp"
 #include "stats.hpp"
+#include "photonmap.hpp"
 
 using namespace std;
 
@@ -74,7 +75,12 @@ void a4_render(// What to render
 
   RayTracer rt(geometry, [](const Point3D &, const Vector3D &) { return Colour(0); });
 
-  PhongModel phong(ambient, lights);
+  // Build the caustic photon map.
+  CausticMap caustic_map;
+  if(GETOPT(use_caustic_map))
+    caustic_map.build(rt, lights);
+
+  PhongModel phong(ambient, lights, caustic_map);
   Image img(width, height, 3);
 
   Matrix4x4 viewport2world;

@@ -10,7 +10,6 @@
  *	term.
  *
  * - Shadow rays: take light, simple boolean.
- * - 
 **/
 
 #include "rt.hpp"
@@ -204,6 +203,10 @@ void RayTracer::raytrace_russian(const Point3D &src,
   static_assert(RT_ABSORB == RT_ACTION_COUNT - 1, "");
   prs[RT_ABSORB] = 1;
 
+  Vector3D ray_reflected;
+  Vector3D ray_transmitted;
+  const double r = compute_specular(incident, *g, normal, ray_reflected, ray_transmitted);
+
   const RT_ACTION action = fn(p, incident, cdiffuse, prs);
 
   if(action == RT_ABSORB)
@@ -211,9 +214,6 @@ void RayTracer::raytrace_russian(const Point3D &src,
 
   if(action == RT_SPECULAR)
   {
-    Vector3D ray_reflected;
-    Vector3D ray_transmitted;
-    const double r = compute_specular(incident, *g, normal, ray_reflected, ray_transmitted);
     if((rand() % 101) * 0.01 > r)
     {
       // Refraction.

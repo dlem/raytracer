@@ -3,6 +3,7 @@
 #include "light.hpp"
 #include "algebra.hpp"
 #include "scene.hpp"
+#include "photonmap.hpp"
 
 class RayTracer;
 
@@ -27,8 +28,8 @@ public:
 class PhongModel : public LightingModel
 {
 public:
-  PhongModel(const Colour &ambient, const std::list<Light *> &lights)
-    : m_ambient(ambient), m_lights(lights)
+  PhongModel(const Colour &ambient, const std::list<Light *> &lights, CausticMap &caustics)
+    : m_ambient(ambient), m_lights(lights), m_caustics(caustics)
   {}
 
   virtual ~PhongModel () {}
@@ -48,4 +49,5 @@ public:
 private:
   const Colour &m_ambient;
   const std::list<Light *> &m_lights;
+  CausticMap &m_caustics;
 };

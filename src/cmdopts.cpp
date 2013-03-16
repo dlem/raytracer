@@ -22,9 +22,15 @@ int CmdOptsBase::init(int argc, const char **argv)
   int i;
   for(i = 1; i < argc; i++)
   {
+    if(argv[i][0] != '-')
+      break;
     auto it = m_opts.find(argv[i]);
     if(it == m_opts.end())
-      break;
+    {
+      cerr << "Invalid argument: " << argv[i] << endl; 
+      cerr << "Aborting" << endl;
+      exit(1);
+    }
     i += it->second(argv + i + 1);
   }
   return i;
@@ -42,7 +48,8 @@ CmdOptsBase::CmdOptsBase()
       if(opt.first[1] == '-')
 	cerr << "  " << opt.first << endl;
     }
-  });
+    exit(0);
+  }, 'h');
 }
 
 void CmdOptsBase::add_flag(const char *name, const function<void()> &cb, char shrt)
@@ -92,8 +99,11 @@ CmdOpts::CmdOpts()
   threads = 4;
   aa_threshold = 0.5;
   aa_jitter = 0.;
-  caustic_num_photons = 1000000;
+  caustic_num_photons = 1000;
   caustic_pm_gran = 180;
+  use_caustic_map = true;
+  draw_caustic_map = false;
+  draw_caustic_pm = false;
 
   outs = &cout;
   errs = &cerr;
@@ -106,12 +116,14 @@ CmdOpts::CmdOpts()
   add_flag("timing", [=]() { timing = true; }, 't');
   add_flag("silent", [=]() { outs = &clog; }, 's');
   add_flag("stats", [=]() { stats = true; }, 'S');
-  add_flag("verbose", [=]() { clog.clear(ios_base::goodbit); });
+  add_flag("verbose", [=]() { dbgs = &cout; }, 'v');
+  add_flag("no-caustic-map", [=]() { use_caustic_map = false; });
+  add_flag("draw-caustic-map", [=]() { draw_caustic_map = true; });
+  add_flag("draw-caustic-pm", [=]() { draw_caustic_pm = true; });
+  add_flag("debug", [=]() { dbgs = &cout; outs = &clog; }, 'd');
   add_parameter<int>("aa-grid", [=](int g) { aa_grid = check_range(g, 1, "Invalid postive integer argument to aa-grid"); });
   add_parameter<int>("threads", [=](int t) { threads = check_range(t, 1, "Invalid positive integer argument to threads"); }, 'j');
   add_parameter<double>("aa-threshold", [=](double t) { aa_threshold = check_range(t, 0., "Jitter value must be non-negative double"); });
   add_parameter<int>("caustic-num-photons", [=](int n) { caustic_num_photons = check_range(n, 0, "# caustic photons must be non-negative"); });
   add_parameter<int>("caustic-pm-gran", [=](int n) { caustic_pm_gran = check_range(n, 1, "Caustic granularity must be postive"); });
 }
-
-

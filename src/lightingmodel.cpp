@@ -1,6 +1,7 @@
 #include "lightingmodel.hpp"
 #include "material.hpp"
 #include "rt.hpp"
+#include "cmdopts.hpp"
 
 Colour PhongModel::compute_lighting(RayTracer &rt,
 				  const Point3D &src,
@@ -14,12 +15,18 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
 				  const double refl_attn
 				  ) const
 {
+  const Point3D phong_P = src + t * ray;
+
+  // Projection drawing stuff.
+  const Colour projc(1, 0, 0);
+  const bool use_proj = GETOPT(draw_caustic_pm) &&
+			m_caustics.test_pm(rt, phong_P, normal);
+  const Colour phong_kd = use_proj ? projc * geo.mat->kd(uv).Y() : geo.mat->kd(uv);
+
   Vector3D phong_n = normal;
   geo.mat->get_normal(phong_n, uv, u, v);
-  const Colour &phong_kd = geo.mat->kd(uv);
   const Colour &phong_ks = refl_attn * geo.mat->ks(uv);
   const double phong_p = geo.mat->shininess(uv);
-  const Point3D phong_P = src + t * ray;
   Vector3D phong_v = src - phong_P;
   phong_v.normalize();
 

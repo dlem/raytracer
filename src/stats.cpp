@@ -14,6 +14,7 @@ static vector<StatPair> s_stats;
 template<typename T>
 void add_stat(const char *name, const T &t)
 {
+  dbgs() << "New stat: [ " << name << " ] (" << t << ")" << endl;
   unique_lock<mutex> lk(s_mutex);
   s_stats.push_back(StatPair(name, [t](ostream &os)
   {
@@ -32,7 +33,7 @@ void dump_stats()
 {
   unique_lock<mutex> lk(s_mutex);
 
-  outs() << "Stats:";
+  outs() << "Stats:" << endl;
   for(auto &s : s_stats)
   {
     outs() << "  [ " << s.first << " ]";
