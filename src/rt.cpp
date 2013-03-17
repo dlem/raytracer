@@ -14,6 +14,7 @@
 
 #include "rt.hpp"
 #include "lightingmodel.hpp"
+#include "cmdopts.hpp"
 
 using namespace std;
 
@@ -190,8 +191,8 @@ void RayTracer::raytrace_russian(const Point3D &src,
     return;
 
   const Point3D p = src + t * incident;
-  const Colour cdiffuse = acc * g->mat->kd(uv);
-  const Colour cspecular = acc * g->mat->ks(uv);
+  const Colour cdiffuse = g->mat->kd(uv);
+  const Colour cspecular = g->mat->ks(uv);
 
   double prs[RT_ACTION_COUNT];
   prs[RT_DIFFUSE] = cdiffuse.Y();
@@ -203,11 +204,18 @@ void RayTracer::raytrace_russian(const Point3D &src,
   static_assert(RT_ABSORB == RT_ACTION_COUNT - 1, "");
   prs[RT_ABSORB] = 1;
 
+  if(prs[RT_SPECULAR] > 1.01)
+  {
+    errs() << "Warning: diffuse plus specular coefficients are greater than 1"
+	    << " -- theoreticall, this breaks photons mapping" << endl;
+    errs() << cdiffuse << ", " << cspecular << endl;
+  }
+
   Vector3D ray_reflected;
   Vector3D ray_transmitted;
   const double r = compute_specular(incident, *g, normal, ray_reflected, ray_transmitted);
 
-  const RT_ACTION action = fn(p, incident, cdiffuse, prs);
+  const RT_ACTION action = fn(p, incident, acc * cdiffuse, prs);
 
   if(action == RT_ABSORB)
     return;
@@ -217,16 +225,37 @@ void RayTracer::raytrace_russian(const Point3D &src,
     if((rand() % 101) * 0.01 > r)
     {
       // Refraction.
-      raytrace_russian(p, ray_transmitted, (1 - r) * cspecular, fn, depth + 1);
+      // Q: does this need to be multipled by 1) cspecular.Y() and 2) (1 - r)?
+      raytrace_russian(p, ray_transmitted, acc * cspecular, fn, depth + 1);
     }
     else
       // Reflection.
-      raytrace_russian(p, ray_reflected, r * cspecular, fn, depth + 1);
+      // Q: same as above, except r?
+      raytrace_russian(p, ray_reflected, acc * cspecular, fn, depth + 1);
   }
   else
   {
     assert(action == RT_DIFFUSE);
-    // Only required for GI.
-    assert(0 && "Not implemented!");
+    Vector3D outgoing;
+#if 0
+    do
+    {
+      // Cosine distribution.
+      const double phi = asin(-1 + rand() * 1. / RAND_MAX);
+      const double theta = 2 * M_PI * rand() * 1. / RAND_MAX;
+
+      const Vector3D p1(ray_reflected[1], -ray_reflected[0], ray_reflected[2]);
+      const Vector3D p2(ray_reflected.cross(p1));
+      const double cosphi = cos(phi), sinphi = sin(phi),
+		   costheta = cos(theta), sintheta = sin(theta);
+      outgoing = cosphi * ray_reflected + sinphi * costheta * p1 +
+					  sinphi * sintheta * p2;
+    }
+    while(outgoing.dot(normal) <= 0);
+#else
+    outgoing = ray_reflected;
+#endif
+
+    raytrace_russian(p, outgoing, acc * cdiffuse * (1./M_PI), fn, depth + 1);
   }
 }

@@ -161,7 +161,30 @@ private:
 void PhotonMap::build(RayTracer &rt, const list<Light *> &lights)
 {
   for(auto &light : lights)
-    build_light(rt, *light);
+  {
+    if(light->falloff[2] <= 0)
+      errs() << "Warning: light has no r^2 falloff term -- photon map won't work properly with it.";
+
+    // This is a spherical light. We want it to shoot one full-energy photon per
+    // unit area when the expanding light sphere has a radius such that the
+    // light's falloff coefficient is 1. Hence energy is 4PIr^2, where
+    // r is given by the falloff coefficient such that f r^2 = 1, ie. r =
+    // sqrt(1/f).
+    const double falloff = light->falloff[2] <= 0 ? 1 : light->falloff[2];
+    const double r = sqrt(1/falloff);
+    const Colour total_energy = 4 * M_PI * r * r * light->colour;
+
+    build_light(rt, *light, total_energy);
+  }
+
+  vector<Photon *> ptrs(m_photons.size());
+  for(int i = 0; i < m_photons.size(); i++)
+    ptrs[i] = &m_photons[i];
+
+  {
+    SCOPED_TIMER("build photon map kd-tree");
+    m_map.build(ptrs.begin(), ptrs.end());
+  }
 }
 
 ProjectionMap *s_caustic_pm = 0;
@@ -169,21 +192,27 @@ Point3D s_caustic_pm_centre;
 
 Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
 {
-  KDTree<Photon>::NeighbourList nl;
-  m_map.find_nnn(pt, 4, nl);
+  KDTree<Photon>::TPQueue nl;
+  // 18 works here for caustics.
+  m_map.find_nnn(pt, 200, nl);
   double maxdist = 0;
   Colour intensity(0);
 
-  for(auto &ph : nl)
+  while(!nl.empty())
   {
-    maxdist = max(maxdist, (ph->pt - pt).length());
-    const double fr = outgoing.dot(ph->outgoing);
-    intensity += fr * ph->colour;
-    // Fr = BDRF = dot product between outgoing and 
+    const KDTree<Photon>::PQNode &node = nl.top();
+    const Photon &ph = *static_cast<Photon *>(node.node);
+    maxdist = max(maxdist, node.dist);
+    nl.pop();
+    const double fr = outgoing.dot(ph.outgoing);
+    if(fr <= 0)
+      continue;
+    intensity += fr * ph.colour;
   }
 
   // Do an area average.
-  return intensity * (1 / (M_PI * maxdist * maxdist));
+  // 100 works here for caustics, 1 works for GI...
+  return intensity * (1 / (M_PI * maxdist * maxdist)) * 10;
 }
 
 Colour PhotonMap::query_photon(const Point3D &pt, Vector3D &pos_rel)
@@ -194,10 +223,8 @@ Colour PhotonMap::query_photon(const Point3D &pt, Vector3D &pos_rel)
   return p->colour;
 }
 
-void CausticMap::build_light(RayTracer &rt, const Light &light)
+void CausticMap::build_light(RayTracer &rt, const Light &light, const Colour &energy)
 {
-  const int nphotons = GETOPT(caustic_num_photons);
-
   ProjectionMap pm(GETOPT(caustic_pm_gran));
   double proportion;
 
@@ -211,12 +238,11 @@ void CausticMap::build_light(RayTracer &rt, const Light &light)
     });
   }
 
-  const double falloff = 1; // light.falloff[2];
-  const double dist = 1000;
-  const Colour total_energy = light.colour * falloff * dist * dist;
-  const Colour photon_energy = proportion * (1./nphotons) * total_energy;
+  const int nphotons = (int)(proportion * GETOPT(caustic_num_photons));
+  const Colour photon_energy = proportion * (1./nphotons) * energy;
 
   add_stat("occupied fraction of projection map", proportion);
+  add_stat("number of caustic photons being shot", nphotons);
 
   if(proportion <= 0)
     return;
@@ -246,9 +272,9 @@ void CausticMap::build_light(RayTracer &rt, const Light &light)
     rt.raytrace_russian(light.position, ray, photon_energy, [&seen_specular, this]
 	(const Point3D &p, const Vector3D &outgoing, const Colour &cdiffuse, double *prs)
 	{
-	  if(seen_specular && prs[RT_DIFFUSE] > 0.001)
+	  if(seen_specular && prs[RT_DIFFUSE] > 0)
 	    this->m_photons.push_back(Photon(p, cdiffuse, outgoing));
-	  const double pr = rand() * 1. / RAND_MAX;
+	  const double pr = rand() / (double)RAND_MAX;
 	  if(pr > prs[RT_DIFFUSE] && pr <= prs[RT_SPECULAR])
 	  {
 	    seen_specular = true;
@@ -260,15 +286,7 @@ void CausticMap::build_light(RayTracer &rt, const Light &light)
   }
   }
 
-  cerr << m_photons.size() << endl;
-  vector<Photon *> ptrs(m_photons.size());
-  for(int i = 0; i < m_photons.size(); i++)
-    ptrs[i] = &m_photons[i];
-
-  {
-    SCOPED_TIMER("build caustic photon map kd-tree");
-    m_map.build(ptrs.begin(), ptrs.end());
-  }
+  add_stat("caustic photon count", m_photons.size());
 
   if(GETOPT(draw_caustic_pm) && !s_caustic_pm)
   {
@@ -291,4 +309,43 @@ bool CausticMap::test_pm(RayTracer &rt, const Point3D &pt, const Vector3D &norma
     return false;
 
   return true;
+}
+
+void GIPhotonMap::build_light(RayTracer &rt, const Light &light, const Colour &energy)
+{
+  const int nphotons = GETOPT(caustic_num_photons);
+  const Colour photon_energy = energy * (1./nphotons);
+
+  {
+    SCOPED_TIMER("shoot gi photons");
+    for(int i = 0; i < nphotons; i++)
+    {
+      Vector3D ray;
+      do
+      {
+	ray[0] = -1 + rand() * 2. / RAND_MAX;
+	ray[1] = -1 + rand() * 2. / RAND_MAX;
+	ray[2] = -1 + rand() * 2. / RAND_MAX;
+      }
+      while(ray.length() > 1);
+      ray.normalize();
+
+      int depth = 0;
+      rt.raytrace_russian(light.position, ray, photon_energy, [&depth, this]
+	  (const Point3D &p, const Vector3D &outgoing, const Colour &cdiffuse, double *prs)
+	  {
+	    if(prs[RT_DIFFUSE] > 0 && depth > 0)
+	      this->m_photons.push_back(Photon(p, cdiffuse, outgoing));
+	    depth += 1;
+
+	    const double pr = rand() / (double)RAND_MAX;
+	    for(int i = 0; i < RT_ACTION_COUNT; i++)
+	      if(pr <= prs[i])
+		return (RT_ACTION)i;
+	    return RT_ABSORB;
+	  });
+    }
+  }
+
+  add_stat("gi photon count", m_photons.size());
 }

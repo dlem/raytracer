@@ -15,9 +15,9 @@ function msphere(x, y, z)
   root:add_child(sp)
 end
 
-msphere(0, -400, 0)
-msphere(-200, -400, -200)
-msphere(200, -400, -200)
-msphere(0, -400, -200)
+msphere(0, -370, 0)
+msphere(-200, -370, -200)
+msphere(200, -370, -200)
+msphere(0, -370, -200)
 
-cbox.cbox(root, 1024, 1024, 'glass.png')
+cbox.cbox(root, 256, 256, 'glass.png')

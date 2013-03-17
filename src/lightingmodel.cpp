@@ -30,7 +30,10 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
   Vector3D phong_v = src - phong_P;
   phong_v.normalize();
 
-  Colour rv = m_ambient * phong_kd;
+  const Colour ambient = m_gimap ?
+    m_gimap->query_radiance(phong_P, -ray) : m_ambient;
+
+  Colour rv = ambient * phong_kd;
 
   for(auto &light : m_lights)
   {
@@ -66,5 +69,61 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
     rv += light->colour * terms;
   }
 
+  if(m_caustics.size() > 50)
+  {
+    Colour c = m_caustics.query_radiance(phong_P, -ray);
+    rv += c;
+  }
+
   return rv;
+}
+
+Colour PhotonDrawModel::compute_lighting(RayTracer &rt,
+			      const Point3D &src,
+			      const Vector3D &ray,
+			      const double t,
+			      const FlatGeo &geo,
+			      const Vector3D &normal,
+			      const Point2D &uv,
+			      const Vector3D &u,
+			      const Vector3D &v,
+			      const double refl_attn
+			      ) const
+{
+#if 0
+  const Point3D p = src + t * ray;
+  Vector3D pos_rel;
+  m_map.query_photon(p, pos_rel);
+
+  if(pos_rel.length() <= 10)
+    return Colour(1, 1, 1);
+  else
+    return Colour(0, 0, 0);
+#endif
+  const Point3D p = src + t * ray;
+  Vector3D pos_rel;
+  Colour c = m_map.query_photon(p, pos_rel);
+
+  if(pos_rel.length() <= 10)
+    return c;
+  else
+    return Colour(0, 0, 0);
+
+}
+
+Colour PhotonsOnlyModel::compute_lighting(RayTracer &rt,
+			      const Point3D &src,
+			      const Vector3D &ray,
+			      const double t,
+			      const FlatGeo &geo,
+			      const Vector3D &normal,
+			      const Point2D &uv,
+			      const Vector3D &u,
+			      const Vector3D &v,
+			      const double refl_attn
+			      ) const
+{
+  const Point3D p = src + t * ray;
+  const Vector3D outgoing = -ray;
+  return m_map.query_radiance(p, outgoing);
 }

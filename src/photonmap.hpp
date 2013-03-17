@@ -20,7 +20,7 @@ public:
   int size() const { return m_photons.size(); }
 
 protected:
-  virtual void build_light(RayTracer &rt, const Light &light) = 0;
+  virtual void build_light(RayTracer &rt, const Light &light, const Colour &energy) = 0;
 
   struct Photon : public KDNode
   {
@@ -41,14 +41,14 @@ public:
   bool test_pm(RayTracer &rt, const Point3D &pt, const Vector3D &normal);
 
 protected:
-  virtual void build_light(RayTracer &rt, const Light &light);
+  virtual void build_light(RayTracer &rt, const Light &light, const Colour &energy);
 
 };
 
 class GIPhotonMap : public PhotonMap
 {
 public:
-  virtual void build_light(RayTracer &rt, const Light &light);
+  virtual void build_light(RayTracer &rt, const Light &light, const Colour &energy);
 };
 
 #endif

@@ -99,11 +99,15 @@ CmdOpts::CmdOpts()
   threads = 4;
   aa_threshold = 0.5;
   aa_jitter = 0.;
-  caustic_num_photons = 1000;
+  caustic_num_photons = 100000;
   caustic_pm_gran = 180;
   use_caustic_map = true;
   draw_caustic_map = false;
   draw_caustic_pm = false;
+  draw_caustics_only = false;
+  use_gi_map = false;
+  draw_gi_map = false;
+  draw_gi_only = false;
 
   outs = &cout;
   errs = &cerr;
@@ -120,7 +124,11 @@ CmdOpts::CmdOpts()
   add_flag("no-caustic-map", [=]() { use_caustic_map = false; });
   add_flag("draw-caustic-map", [=]() { draw_caustic_map = true; });
   add_flag("draw-caustic-pm", [=]() { draw_caustic_pm = true; });
+  add_flag("draw-caustics-only", [=]() { draw_caustics_only = true; });
   add_flag("debug", [=]() { dbgs = &cout; outs = &clog; }, 'd');
+  add_flag("gi", [=]() { use_gi_map = true; });
+  add_flag("draw-gi-only", [=]() { draw_gi_only = true; });
+  add_flag("draw-gi-map", [=]() {draw_gi_map = true; });
   add_parameter<int>("aa-grid", [=](int g) { aa_grid = check_range(g, 1, "Invalid postive integer argument to aa-grid"); });
   add_parameter<int>("threads", [=](int t) { threads = check_range(t, 1, "Invalid positive integer argument to threads"); }, 'j');
   add_parameter<double>("aa-threshold", [=](double t) { aa_threshold = check_range(t, 0., "Jitter value must be non-negative double"); });

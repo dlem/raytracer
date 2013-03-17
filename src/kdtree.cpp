@@ -47,5 +47,23 @@ void kdtree_test()
     assert(tree.find_nn(jittered) == node);
   }
 
+  for(int i = 0; i < 100; i++)
+  {
+    const int idx = rand() % num;
+    const KDNode *node = nodes[idx];
+    const Point3D &pt = node->pt;
+    Point3D jittered = pt;
+    jittered[rand() % 3] += -0.00001 + rand() % 1000 * 0.00000002;
+    KDTree<KDNode>::TPQueue q;
+    tree.find_nnn(jittered, 50, q);
+    while(q.size() > 1)
+    {
+      q.pop();
+    }
+    assert(q.top().node == node);
+    q.pop();
+  }
+
   cerr << "All tests passed." << endl;
+  exit(0);
 }

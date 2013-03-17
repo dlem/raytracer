@@ -82,4 +82,11 @@ private:
   const MissColourFn m_miss_colour;
 };
 
+static inline Vector3D generate_ray()
+{
+  return Vector3D(-1 + rand() * 2. / RAND_MAX,
+		  -1 + rand() * 2. / RAND_MAX,
+		  -1 + rand() * 2. / RAND_MAX);
+}
+
 #endif

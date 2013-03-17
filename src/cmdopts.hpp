@@ -64,6 +64,10 @@ public:
   bool aa, bv, draw_aa, timing;
   bool stats, use_caustic_map, draw_caustic_map;
   bool draw_caustic_pm;
+  bool draw_caustics_only;
+  bool draw_gi_map;
+  bool draw_gi_only;
+  bool use_gi_map;
   unsigned aa_grid, threads;
   double aa_threshold, aa_jitter;
   unsigned caustic_num_photons;

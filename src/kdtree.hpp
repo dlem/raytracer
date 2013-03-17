@@ -7,8 +7,8 @@
 #ifndef __KD_TREE_HPP__
 #define __KD_TREE_HPP__
 
-#include "algebra.hpp"
 #include <queue>
+#include "algebra.hpp"
 
 struct KDNode
 {
@@ -22,8 +22,14 @@ template<typename TNode>
 class KDTree
 {
 private:
+
+public:
+
+  KDTree() : m_root(0) {}
+
   struct PQNode
   {
+    PQNode() {}
     PQNode(const Point3D &pt, KDNode *node)
       : node(node)
       , dist((pt - node->pt).length())
@@ -36,11 +42,7 @@ private:
     }
   };
 
-  typedef std::priority_queue<PQNode> TPQueue;
-
-public:
-
-  KDTree() : m_root(0) {}
+  typedef std::priority_queue<PQNode, std::vector<PQNode>> TPQueue;
 
   template<typename TIt>
   void build(TIt start, TIt end)
@@ -60,16 +62,9 @@ public:
     return (TNode *)(q.top().node);
   }
 
-  typedef std::vector<TNode *> NeighbourList;
-  void find_nnn(const Point3D &pt, int n, NeighbourList &ns)
+  void find_nnn(const Point3D &pt, int n, TPQueue &q)
   {
-    TPQueue nns;
-    find_nnn(pt, n, m_root, nns, 0);
-    while(!nns.empty())
-    {
-      ns.push_back((TNode *)(nns.top().node));
-      nns.pop();
-    }
+    find_nnn(pt, n, m_root, q, 0);
   }
 
 private:

@@ -28,6 +28,7 @@ void add_stat(const char *name, const T &t)
 STATS_INSTANTIATE(int);
 STATS_INSTANTIATE(double);
 STATS_INSTANTIATE(unsigned);
+STATS_INSTANTIATE(size_t);
 
 void dump_stats()
 {

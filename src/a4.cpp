@@ -80,7 +80,36 @@ void a4_render(// What to render
   if(GETOPT(use_caustic_map))
     caustic_map.build(rt, lights);
 
-  PhongModel phong(ambient, lights, caustic_map);
+  GIPhotonMap *gimap = 0;
+  if(GETOPT(use_gi_map) || GETOPT(draw_gi_map) || GETOPT(draw_gi_only))
+  {
+    gimap = new GIPhotonMap;
+    gimap->build(rt, lights);
+  }
+
+  LightingModel *model;
+  
+  if(GETOPT(draw_caustics_only))
+  {
+    model = new PhotonsOnlyModel(caustic_map);
+  }
+  else if(GETOPT(draw_caustic_map))
+  {
+    model = new PhotonDrawModel(caustic_map);
+  }
+  else if(GETOPT(draw_gi_only))
+  {
+    model = new PhotonsOnlyModel(*gimap);
+  }
+  else if(GETOPT(draw_gi_map))
+  {
+    model = new PhotonDrawModel(*gimap);
+  }
+  else
+  {
+    model = new PhongModel(ambient, lights, caustic_map, gimap);
+  }
+
   Image img(width, height, 3);
 
   Matrix4x4 viewport2world;
@@ -137,7 +166,7 @@ void a4_render(// What to render
     swap(3, 0 + aa_grid - 1);
   }
 
-  auto do_lighting = [&phong, &eye, &rt, jitter, &viewport2world]
+  auto do_lighting = [model, &eye, &rt, jitter, &viewport2world]
     (const Point3D &pt)
   {
     const Vector3D vjitter(jitter * (-0.5 + (1 + rand() % 98) * 0.01),
@@ -146,7 +175,7 @@ void a4_render(// What to render
     const Point3D dst = viewport2world * projected;
     Vector3D ray = dst - eye;
     ray.normalize();
-    return rt.raytrace_recursive(phong, eye, ray);
+    return rt.raytrace_recursive(*model, eye, ray);
   };
 
   auto trace_row = [width, height, &do_lighting, aa_grid, &offs, &img]
