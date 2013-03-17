@@ -23,7 +23,7 @@ public:
     assert(GETOPT(draw_caustic_pm));
   }
 
-  void build(RayTracer &rt, const Point3D &centre,
+  double build(RayTracer &rt, const Point3D &centre,
 	     const std::function<bool(const FlatGeo &, const Point2D &)> &pred)
   {
     const int philimit = m_granularity;
@@ -62,6 +62,28 @@ public:
 	}
       }
     }
+
+    const double r = 1;
+    const double total_area = 4 * M_PI * r * r;
+    double sum = 0;
+    for(int i = 0; i < thetalimit; i++)
+    {
+      double s1 = 0;
+      for(int j = 0; j < philimit; j++)
+      {
+	if(get(j, i))
+	{
+	  // Surface element of a sphere: r * r * dtheta * dphi * sin(phi)
+	  double phi, theta;
+	  iitopt(j, i, phi, theta);
+	  s1 += sin(phi) * 2 * M_PI * M_PI / (double)(thetalimit * philimit);
+	}
+      }
+      sum += s1;
+    }
+
+    const double proportion = sum / total_area;
+    return proportion;
   }
 
   _Bit_reference operator()(double phi, double theta)
@@ -81,14 +103,6 @@ public:
     double phi, theta;
     vtopt(v, phi, theta);
     return (*this)(phi, theta);
-  }
-
-  double proportion()
-  {
-    int sum = 0;
-    for(int i = 0; i < m_map.size(); i++)
-      sum += m_map[i];
-    return sum / (double)m_map.size();
   }
 
 private:
@@ -185,10 +199,11 @@ void CausticMap::build_light(RayTracer &rt, const Light &light)
   const int nphotons = GETOPT(caustic_num_photons);
 
   ProjectionMap pm(GETOPT(caustic_pm_gran));
+  double proportion;
 
   {
     SCOPED_TIMER("build caustic projection map");
-    pm.build(rt, light.position, [](const FlatGeo &geo, const Point2D &uv)
+    proportion = pm.build(rt, light.position, [](const FlatGeo &geo, const Point2D &uv)
     {
       const Colour ks = geo.mat->ks(uv);
       const bool rv = ks.Y() > 0.2;
@@ -199,8 +214,7 @@ void CausticMap::build_light(RayTracer &rt, const Light &light)
   const double falloff = 1; // light.falloff[2];
   const double dist = 1000;
   const Colour total_energy = light.colour * falloff * dist * dist;
-  const double proportion = pm.proportion();
-  const Colour photon_energy = pm.proportion() * (1./nphotons) * total_energy;
+  const Colour photon_energy = proportion * (1./nphotons) * total_energy;
 
   add_stat("occupied fraction of projection map", proportion);
 

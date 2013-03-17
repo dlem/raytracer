@@ -33,7 +33,7 @@ function cbox(scene, w, h, name)
   root:add_child(scene)
   root:add_child(box)
 
-  light = gr.light({0, 300, 0}, {0.9, 0.9, 0.9}, {1, 0, 0})
+  light = gr.light({0, 300, 0}, {0.9, 0.9, 0.9}, {0, 0, 0.0000025})
 
   gr.render(root, name, w, h, {0, 0, 1550}, {0, 0, -1}, {0, 1, 0}, 50,
             {0.3, 0.3, 0.3}, {light})
