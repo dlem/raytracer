@@ -45,6 +45,7 @@
 #include "light.hpp"
 #include "a4.hpp"
 #include "mesh.hpp"
+#include "csg.hpp"
 
 // Uncomment the following line to enable debugging messages
 // #define GRLUA_ENABLE_DEBUG
@@ -594,6 +595,48 @@ int gr_node_rotate_cmd(lua_State* L)
   return 0;
 }
 
+// CSG stuff.
+template<typename TNode>
+int csg_cmd(lua_State *L)
+{
+  SceneNode *children[2];
+  for(int i = 0; i < 2; i++)
+  {
+    gr_node_ud *c = (gr_node_ud*)luaL_checkudata(L, i + 1, "gr.node");
+    luaL_argcheck(L, c != 0, i + 1, "Node expected");
+    children[i] = c->node;
+  }
+
+  gr_node_ud *csg = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
+  csg->node = new TNode(children[0], children[1]);;
+
+  luaL_getmetatable(L, "gr.node");
+  lua_setmetatable(L, -2);
+
+  return 0;
+}
+
+extern "C"
+int gr_union_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+  return csg_cmd<CSGUnionNode>(L);
+}
+
+extern "C"
+int gr_intersection_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+  return csg_cmd<CSGIntersectionNode>(L);
+}
+
+extern "C"
+int gr_difference_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+  return csg_cmd<CSGDifferenceNode>(L);
+}
+
 // Garbage collection function for lua.
 extern "C"
 int gr_node_gc_cmd(lua_State* L)
@@ -635,6 +678,10 @@ static const luaL_reg grlib_functions[] = {
   // New for assignment 5
   {"cylinder", gr_cylinder_cmd},
   {"cone", gr_cone_cmd},
+
+  {"union", gr_union_cmd},
+  {"intersection", gr_intersection_cmd},
+  {"difference", gr_difference_cmd},
 
   {0, 0}
 };
