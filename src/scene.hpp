@@ -84,9 +84,9 @@ public:
   const std::string &name() const { return m_name; }
 
   void flatten(FlatList &fl) { flatten(fl, Matrix4x4()); }
+  virtual void flatten(FlatList &fl, const Matrix4x4 &trans);
   
 protected:
-  virtual void flatten(FlatList &fl, const Matrix4x4 &trans);
 
   // Useful for picking
   int m_id;
@@ -114,7 +114,6 @@ public:
   struct JointRange {
     double min, init, max;
   };
-
   
 protected:
 
@@ -136,7 +135,6 @@ public:
     m_material = material;
   }
 
-protected:
   virtual void flatten(FlatList &fl, const Matrix4x4 &trans);
 
 private:

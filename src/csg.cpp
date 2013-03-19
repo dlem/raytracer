@@ -4,10 +4,10 @@
 
 using namespace std;
 
-CSGPrimitive::CSGPrimitive(SceneNode *lhs, SceneNode *rhs)
+CSGPrimitive::CSGPrimitive(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans)
 {
-  lhs->flatten(m_lhs_list);
-  rhs->flatten(m_rhs_list);
+  lhs->flatten(m_lhs_list, trans);
+  rhs->flatten(m_rhs_list, trans);
   if(m_lhs_list.size() > 1 || m_rhs_list.size() > 1)
   {
     errs() << "CSG object has more than one child!" << endl;
@@ -65,12 +65,12 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &eye, const Poin
 	    const bool do_set = first || t < ls.start;
 	    if(first)
 	    {
-	      ls.end = max(t, ls.start);
-	      ls.start = min(t, ls.start);
+	      ls.start = t;
 	    }
 	    else
 	    {
-	      ls.start = t;
+	      ls.end = max(t, ls.start);
+	      ls.start = min(t, ls.start);
 	    }
 	    if(do_set)
 	    {
@@ -84,7 +84,7 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &eye, const Poin
 
       if(n == 2)
       {
-	ls.normal = geo.trans_normal * ls.normal;
+	ls.geo = &geo;
 	l.push_back(ls);
       }
     }
@@ -104,15 +104,52 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &eye, const Poin
 void CSGUnion::adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const
 {
   auto i1 = c1.begin(), i2 = c2.begin();
-  while(i1 != c1.end() && i2 != c2.end())
+  auto done = [&i1, &i2, &c1, &c2] ()
+      { return i1 == c1.end() || i2 == c2.end(); };
+
+  while(!done())
   {
-    const double end = max(i1->end, i2->end);
-    out.push_back(i1->start < i2->start ? *i1 : *i2);
-    out.back().end = end;
-    while(i1 != c1.end() && i1->end <= end) i1++;
-    while(i2 != c2.end() && i2->end <= end) i2++;
+    // Assume the input lists are sorted, and assume that no overlaps occur in a
+    // single list. Our next output segment starts at whichever output segment
+    // comes first, and ends as soon as we stop being able to merge subsequent
+    // lines.
+    auto &merge2 = i1->start < i2->start ? i1 : i2;
+    auto &merge1 = i1->start < i2->start ? i2 : i1;
+    auto end2 = i1->start < i2->start ? c1.end() : c2.end();
+    auto end1 = i1->start < i2->start ? c2.end() : c1.end();
+    out.push_back(*merge2++);
+    Segment &segment = out.back();
+
+    for(;;)
+    {
+      // Increment merge1 while it's entirely contained in our current segment.
+      while(merge1 != end1 && merge1->end < segment.end)
+	merge1++;
+
+      if(merge1 == end1)
+	goto _done;
+
+      if(merge1->start > segment.end)
+	// The lines don't intersect.
+	break;
+
+      segment.end = (merge1++)->end;
+
+      while(merge2 != end2 && merge2->end < segment.end)
+	merge2++;
+
+      if(merge2 == end2)
+	goto _done;
+
+      if(merge2->start > segment.end)
+	// The lines don't intersect.
+	break;
+
+      segment.end = (merge2++)->end;
+    }
   }
 
+_done:
   while(i1 != c1.end())
     out.push_back(*i1++);
   while(i2 != c2.end())
@@ -121,12 +158,10 @@ void CSGUnion::adjust_segments(SegmentList &out, const SegmentList &c1, const Se
 
 void CSGIntersection::adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const
 {
-  static_assert(false, "Not implemented");
 }
 
 void CSGDifference::adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const
 {
-  static_assert(false, "Not implemented");
 }
 
 template<typename TPrim>
@@ -135,7 +170,7 @@ void CSGNode<TPrim>::flatten(FlatList &fl, const Matrix4x4 &trans)
   Matrix4x4 trans_prime = trans * m_trans;
   fl.push_back(FlatGen(trans_prime.invert(),
 	       trans_prime.linear().invert().transpose(),
-	       new TPrim(m_lhs, m_rhs),
+	       new TPrim(m_lhs, m_rhs, trans_prime),
 	       0));
   static_assert(false, "Still need material");
 }

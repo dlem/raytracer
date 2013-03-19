@@ -34,6 +34,7 @@ protected:
     Vector3D normal;
     Point2D uv;
     Vector3D u, v;
+    FlatGeo *geo;
   };
   typedef std::vector<LineSegment> SegmentList;
 
@@ -41,6 +42,8 @@ protected:
   virtual void adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const = 0;
 
 private:
+  void flatten(FlatList &fl, const Matrix4x4 &trans);
+
   FlatList m_lhs_list;
   FlatList m_rhs_list;
   FlatGeo *m_lhs;
