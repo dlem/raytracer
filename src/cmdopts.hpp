@@ -72,6 +72,7 @@ public:
   double aa_threshold, aa_jitter;
   unsigned caustic_num_photons;
   unsigned caustic_pm_gran;
+  unsigned caustic_num_neighbours;
   std::ostream *outs;
   std::ostream *dbgs;
   std::ostream *errs;

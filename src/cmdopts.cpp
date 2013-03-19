@@ -99,7 +99,8 @@ CmdOpts::CmdOpts()
   threads = 4;
   aa_threshold = 0.5;
   aa_jitter = 0.;
-  caustic_num_photons = 100000;
+  caustic_num_photons = 1000000;
+  caustic_num_neighbours = 5;
   caustic_pm_gran = 180;
   use_caustic_map = true;
   draw_caustic_map = false;
@@ -133,5 +134,6 @@ CmdOpts::CmdOpts()
   add_parameter<int>("threads", [=](int t) { threads = check_range(t, 1, "Invalid positive integer argument to threads"); }, 'j');
   add_parameter<double>("aa-threshold", [=](double t) { aa_threshold = check_range(t, 0., "Jitter value must be non-negative double"); });
   add_parameter<int>("caustic-num-photons", [=](int n) { caustic_num_photons = check_range(n, 0, "# caustic photons must be non-negative"); });
+  add_parameter<int>("caustic-num-neighbours", [=](int n) { caustic_num_neighbours = check_range(n, 0, "# caustic neighbours must be non-negative"); });
   add_parameter<int>("caustic-pm-gran", [=](int n) { caustic_pm_gran = check_range(n, 1, "Caustic granularity must be postive"); });
 }
