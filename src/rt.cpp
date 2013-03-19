@@ -33,11 +33,7 @@ bool RayTracer::raytrace(const Point3D &src, const Vector3D &ray, const Raytrace
 
   auto _cb = [&cap](double t, const Vector3D &normal, const Point2D &uv,
 		   const Vector3D &u, const Vector3D &v)
-      {
-	Vector3D normal_prime = cap._geo->trans_normal * normal;
-	normal_prime.normalize();
-	return cap._fn(*cap._geo, t, normal_prime, uv, u, v);
-      };
+      { return cap._fn(*cap._geo, t, normal, uv, u, v); };
 
   std::function<bool(double, const Vector3D &, const Point2D &,
 		     const Vector3D &, const Vector3D &)> cb(_cb);
@@ -89,6 +85,11 @@ double RayTracer::raytrace_min(const Point3D &src, const Vector3D &ray,
     }
     return true;
   });
+  if(*pg)
+  {
+    n = (*pg)->trans_normal * n;
+    n.normalize();
+  }
   return tmin;
 }
 

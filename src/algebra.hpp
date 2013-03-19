@@ -587,15 +587,7 @@ public:
     return out;
   }
 
-  Polynomial<N> operator*(const Polynomial<N> &xs2) const
-  {
-    Polynomial<N> out;
-    auto &xs1 = *this;
-    for(int n = 0; n < NUMELMS(m_coefs); n++)
-      for(int m = 0; m <= n; m++)
-	out[n] += xs1[m] * xs2[n - m];
-    return out;
-  }
+  inline Polynomial<N> operator*(const Polynomial<N> &xs2) const;
 
   Polynomial<N> operator*(double c) const
   {
@@ -641,6 +633,28 @@ private:
   // m_coefs[0] ~ coef for x^0.
   double m_coefs[N + 1];
 };
+
+template<>
+inline Polynomial<2> Polynomial<2>::operator *(const Polynomial<2> &other) const
+{
+  Polynomial<2> out;
+  out[0] = m_coefs[0] * other.m_coefs[0];
+  out[1] = m_coefs[0] * other.m_coefs[1] + m_coefs[1] * other.m_coefs[0];
+  out[2] = m_coefs[1] * other.m_coefs[1];
+  return out;
+}
+
+template<int N>
+inline Polynomial<N> Polynomial<N>::operator *(const Polynomial<N> &xs2) const
+{
+  Polynomial<N> out;
+  auto &xs1 = *this;
+  for(int n = 0; n < NUMELMS(m_coefs); n++)
+    for(int m = 0; m <= n; m++)
+      out[n] += xs1[m] * xs2[n - m];
+  return out;
+}
+
 
 template<int N>
 Polynomial<N> operator*(double c, const Polynomial<N> &p)

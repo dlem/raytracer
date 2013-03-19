@@ -127,7 +127,7 @@ void cube_uv(int facenum, const Point3D &p, Point2D &uv, Vector3D &u, Vector3D &
   double cu = 1/4.;
   double cv = 1/3.;
 
-  const struct
+  static const struct
   {
     Point3D base;
     Vector3D u, v;
