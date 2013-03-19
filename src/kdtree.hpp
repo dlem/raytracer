@@ -104,13 +104,24 @@ private:
 
     find_nnn(pt, n, tree1, nns, depth + 1);
 
-    const double mindist = abs(pt[split] - node->pt[split]);
-    if(nns.size() < n || mindist < nns.top().dist)
+    if(nns.size() < n)
     {
       nns.push(PQNode(pt, node));
-      if(nns.size() > n)
-	nns.pop();
       find_nnn(pt, n, tree2, nns, depth + 1);
+    }
+    else
+    {
+      const double mindist = abs(pt[split] - node->pt[split]);
+      if(mindist < nns.top().dist)
+      {
+	PQNode pqn(pt, node);
+	if(pqn.dist < nns.top().dist)
+	{
+	  nns.pop();
+	  nns.push(pqn);
+	}
+	find_nnn(pt, n, tree2, nns, depth + 1);
+      }
     }
   }
 
