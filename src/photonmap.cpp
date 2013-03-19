@@ -194,7 +194,7 @@ Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
 {
   KDTree<Photon>::TPQueue nl;
   // 18 works here for caustics.
-  m_map.find_nnn(pt, 200, nl);
+  m_map.find_nnn(pt, 18, nl);
   double maxdist = 0;
   Colour intensity(0);
 
@@ -212,7 +212,7 @@ Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
 
   // Do an area average.
   // 100 works here for caustics, 1 works for GI...
-  return intensity * (1 / (M_PI * maxdist * maxdist)) * 10;
+  return intensity * (1 / (M_PI * maxdist * maxdist)) * 100;
 }
 
 Colour PhotonMap::query_photon(const Point3D &pt, Vector3D &pos_rel)

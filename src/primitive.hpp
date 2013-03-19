@@ -39,12 +39,11 @@ protected:
   double A, B, C, D, E, F, G, H, J, K;
 };
 
-class Sphere : public Quadric {
+class Sphere : public Primitive {
 public:
-  Sphere() { A = D = F = 1; K = -1; };
-  virtual void get_uv(const Point3D &pt, const Vector3D &normal, Point2D &uv,
-		      Vector3D &u, Vector3D &v) const;
+  Sphere() {}
   virtual void bounding_sphere(Point3D &c, double &rad) const;
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const;
 };
 
 class Cylinder : public Quadric

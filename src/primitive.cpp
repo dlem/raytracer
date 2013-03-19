@@ -43,7 +43,6 @@ bool Quadric::intersect(const Point3D &eye, const Point3D &_ray, const Intersect
 	continue;
 
       Vector3D normal(ddx.eval(t), ddy.eval(t), ddz.eval(t));
-      normal.normalize();
 
       // Figure out the uv.
       Point2D uv;
@@ -58,16 +57,51 @@ bool Quadric::intersect(const Point3D &eye, const Point3D &_ray, const Intersect
   return true;
 }
 
-void Sphere::get_uv(const Point3D &pt, const Vector3D &normal,
-		    Point2D &uv, Vector3D &u, Vector3D &v) const
+// This is basically the same as Quadric::intersect, but Quadric::intersect is
+// too general to be fast, so we're reimplementing it here.
+bool Sphere::intersect(const Point3D &eye, const Point3D &dst, const IntersectFn &fn) const
 {
-  const double theta = atan2(-pt[2], pt[0]);
-  const double y = pt[1];
-  uv[0] = 0.5 + theta/M_PI;
-  uv[1] = 0.5 + y * 0.5;
-  u = Vector3D(pt[1], -pt[0], 0);
-  u.normalize();
-  v = normal.cross(u);
+  Polynomial<2> x, y, z;
+  const Vector3D ray = dst - eye;
+  x[0] = eye[0];
+  x[1] = ray[0];
+  y[0] = eye[1];
+  y[1] = ray[1];
+  z[0] = eye[2];
+  z[1] = ray[2];
+  
+  const Polynomial<2> eqn = x * x + y * y + z * z + (-1);
+
+  double ts[2];
+  auto nhits = eqn.solve(ts);
+
+  if(nhits > 0)
+  {
+    for(int i = 0; i < nhits; i++)
+    {
+      const double t = ts[i];
+      const Point3D pt = eye + t * ray;
+
+      // The normal is just the intersection point in the sphere's coordinate
+      // system. We can avoid the normalize since this is a unit sphere.
+      Vector3D normal(pt - Point3D());
+
+      // Figure out the uv.
+      const double theta = atan2(-pt[2], pt[0]);
+      const double y = pt[1];
+      const Point2D uv(0.5 + theta/M_PI, 0.5 + y * 0.5);
+      Vector3D u = Vector3D(pt[1], -pt[0], 0);
+      u.normalize();
+      const Vector3D v = normal.cross(u);
+
+      if(!fn(ts[i], normal, uv, u, v))
+	return false;
+    }
+  }
+
+  return true;
+
+
 }
 
 Matrix4x4 NonhierSphere::get_transform()

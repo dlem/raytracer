@@ -21,20 +21,35 @@ using namespace std;
 bool RayTracer::raytrace(const Point3D &src, const Vector3D &ray, const RaytraceFn &fn)
 {
   const Point3D dst = src + ray;
+
+  // This whole scheme is ugly, but it cuts down significantly on calls to
+  // operator new. Unfortunately, there's no way to prevent std::function from
+  // calling operator new when it's passed a lambda.
+  struct
+  {
+    const FlatGeo *_geo;
+    const RaytraceFn &_fn;
+  } cap = {0, fn};
+
+  auto _cb = [&cap](double t, const Vector3D &normal, const Point2D &uv,
+		   const Vector3D &u, const Vector3D &v)
+      {
+	Vector3D normal_prime = cap._geo->trans_normal * normal;
+	normal_prime.normalize();
+	return cap._fn(*cap._geo, t, normal_prime, uv, u, v);
+      };
+
+  std::function<bool(double, const Vector3D &, const Point2D &,
+		     const Vector3D &, const Vector3D &)> cb(_cb);
+
   for(auto &geo : m_geo)
   {
-    if(!geo.prim->intersect(geo.invtrans * src, geo.invtrans * dst,
-	  [&geo, &fn](double t, const Vector3D &normal, const Point2D &uv,
-                      const Vector3D &u, const Vector3D &v)
-	  {
-	    Vector3D normal_prime = geo.trans_normal * normal;
-	    normal_prime.normalize();
-	    return fn(geo, t, normal_prime, uv, u, v);
-	  }))
-    {
+    cap._geo = &geo;
+
+    if(!geo.prim->intersect(geo.invtrans * src, geo.invtrans * dst, cb))
       return false;
-    }
   }
+
   return true;
 }
 
