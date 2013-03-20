@@ -658,6 +658,20 @@ int gr_node_gc_cmd(lua_State* L)
   return 0;
 }
 
+extern "C"
+int gr_light_set_radius_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+  gr_light_ud *selfdata = (gr_light_ud *)luaL_checkudata(L, 1, "gr.light");
+  luaL_argcheck(L, selfdata != 0, 1, "Light expected");
+
+  const double radius = luaL_checknumber(L, 2);
+
+  selfdata->light->radius = radius;
+
+  return 0;
+}
+
 // This is where all the "global" functions in our library are
 // declared.
 // If you want to add a new non-member function, add it here.
@@ -716,6 +730,10 @@ static const luaL_reg grlib_material_methods[] = {
   {"set_ri", gr_material_set_ri_cmd},
 };
 
+static const luaL_reg grlib_light_methods[] = {
+  {"set_radius", gr_light_set_radius_cmd},
+};
+
 // This function calls the lua interpreter to define the scene and
 // raytrace it as appropriate.
 bool run_lua(const std::string& filename)
@@ -750,6 +768,14 @@ bool run_lua(const std::string& filename)
 
   // Add material methods.
   luaL_openlib(L, 0, grlib_material_methods, 0);
+
+  // And for light.
+  luaL_newmetatable(L, "gr.light");
+  lua_pushstring(L, "__index");
+  lua_pushvalue(L, -2);
+  lua_settable(L, -3);
+
+  luaL_openlib(L, 0, grlib_light_methods, 0);
 
   // Load the gr functions
   luaL_openlib(L, "gr", grlib_functions, 0);

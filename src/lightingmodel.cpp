@@ -3,6 +3,49 @@
 #include "rt.hpp"
 #include "cmdopts.hpp"
 
+static double occlusion(RayTracer &rt, Light *light, const Point3D &pt)
+{
+  const double epsilon = 0.001;
+  const int resolution = GETOPT(shadow_grid);
+  const double radius = light->radius;
+
+  Vector3D w = light->position - pt;
+  const double dist = w.normalize();
+
+  if(radius <= 0 || !GETOPT(soft_shadows) || resolution <= 1)
+  {
+    if(rt.raytrace_within(pt, w, epsilon, dist))
+      return 0;
+    return 1;
+  }
+
+  const double maxd = radius / dist;
+  double occ = 0;
+  int count = 0;
+  Vector3D u(w[1], -w[0], 0);
+  u.normalize();
+  const Vector3D v(w.cross(u));
+  for(int i = 0; i < resolution; i++)
+  {
+    const double du = maxd * (-1 + (i + 0.5) * 2. / resolution);
+    for(int j = 0; j < resolution; j++)
+    {
+      const double dv = maxd * (-1 + (j + 0.5) * 2. / resolution);
+
+      const double sumsqr = du * du + dv * dv;
+      if(sumsqr < 1)
+      {
+	const double dw = sqrt(1 - sumsqr);
+	const Vector3D ray = du * u + dv * v + dw * w;
+	if(!rt.raytrace_within(pt, ray, epsilon, dist))
+	  occ += 1;
+	count += 1;
+      }
+    }
+  }
+  return occ / count;
+}
+
 Colour PhongModel::compute_lighting(RayTracer &rt,
 				  const Point3D &src,
 				  const Vector3D &ray,
@@ -40,10 +83,8 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
     Vector3D phong_ell = light->position - phong_P;
     const double dist = phong_ell.normalize();
 
-    const bool shadow = phong_n.dot(phong_ell) < -0.01;
-
-    if(rt.raytrace_within(phong_P, phong_ell, 0.001, dist))
-      // Skip this light. There's an obstacle => shadow.
+    const double occ = occlusion(rt, light, phong_P);
+    if(occ < 0.01)
       continue;
 
     // This is the diffuse term.
@@ -68,7 +109,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
     // based on normal vs view vector.
     const Colour terms = phong_ro * (phong_ell.dot(phong_n) / attenuation);
 
-    rv += light->colour * terms;
+    rv += light->colour * occ * terms;
   }
 
   if(m_caustics.size() > 50)

@@ -2,8 +2,9 @@
 #include <iostream>
 
 Light::Light()
-  : colour(0.0, 0.0, 0.0),
-    position(0.0, 0.0, 0.0)
+  : colour(0.0, 0.0, 0.0)
+  , position(0.0, 0.0, 0.0)
+  , radius(0)
 {
   falloff[0] = 1.0;
   falloff[1] = 0.0;

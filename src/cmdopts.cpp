@@ -109,6 +109,8 @@ CmdOpts::CmdOpts()
   use_gi_map = false;
   draw_gi_map = false;
   draw_gi_only = false;
+  soft_shadows = true;
+  shadow_grid = 4;
 
   outs = &cout;
   errs = &cerr;
@@ -130,10 +132,12 @@ CmdOpts::CmdOpts()
   add_flag("gi", [=]() { use_gi_map = true; });
   add_flag("draw-gi-only", [=]() { draw_gi_only = true; });
   add_flag("draw-gi-map", [=]() {draw_gi_map = true; });
+  add_flag("no-soft-shadows", [=]() { soft_shadows = false; });
   add_parameter<int>("aa-grid", [=](int g) { aa_grid = check_range(g, 1, "Invalid postive integer argument to aa-grid"); });
   add_parameter<int>("threads", [=](int t) { threads = check_range(t, 1, "Invalid positive integer argument to threads"); }, 'j');
   add_parameter<double>("aa-threshold", [=](double t) { aa_threshold = check_range(t, 0., "Jitter value must be non-negative double"); });
   add_parameter<int>("caustic-num-photons", [=](int n) { caustic_num_photons = check_range(n, 0, "# caustic photons must be non-negative"); });
   add_parameter<int>("caustic-num-neighbours", [=](int n) { caustic_num_neighbours = check_range(n, 0, "# caustic neighbours must be non-negative"); });
   add_parameter<int>("caustic-pm-gran", [=](int n) { caustic_pm_gran = check_range(n, 1, "Caustic granularity must be postive"); });
+  add_parameter<int>("shadow-grid", [=](int n) { soft_shadows = true; shadow_grid = check_range(n, 1, "Shadow grid arg must be positive"); });
 }
