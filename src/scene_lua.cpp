@@ -613,7 +613,7 @@ int csg_cmd(lua_State *L)
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
 
-  return 0;
+  return 1;
 }
 
 extern "C"

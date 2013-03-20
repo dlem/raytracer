@@ -1,0 +1,7 @@
+Timer starting [ build caustic projection map ]
+Timer finished [ build caustic projection map ] (210ms)
+New stat: [ occupied fraction of projection map ] (0)
+New stat: [ number of caustic photons being shot ] (0)
+Timer starting [ build photon map kd-tree ]
+Timer finished [ build photon map kd-tree ] (0ms)
+Timer starting [ rendering ]

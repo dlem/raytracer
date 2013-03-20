@@ -100,8 +100,6 @@ bool Sphere::intersect(const Point3D &eye, const Point3D &dst, const IntersectFn
   }
 
   return true;
-
-
 }
 
 Matrix4x4 NonhierSphere::get_transform()

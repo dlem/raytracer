@@ -40,6 +40,8 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
     Vector3D phong_ell = light->position - phong_P;
     const double dist = phong_ell.normalize();
 
+    const bool shadow = phong_n.dot(phong_ell) < -0.01;
+
     if(rt.raytrace_within(phong_P, phong_ell, 0.001, dist))
       // Skip this light. There's an obstacle => shadow.
       continue;

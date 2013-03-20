@@ -4,7 +4,7 @@
 
 using namespace std;
 
-CSGPrimitive::CSGPrimitive(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans)
+void CSGPrimitive::init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans)
 {
   lhs->flatten(m_lhs_list, trans);
   rhs->flatten(m_rhs_list, trans);
@@ -18,28 +18,33 @@ CSGPrimitive::CSGPrimitive(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &tran
   m_rhs = &m_rhs_list[0];
 }
 
-bool CSGPrimitive::intersect(const Point3D &eye, const Point3D &dst, const IntersectFn &fn)
+// hack
+extern const FlatGeo *g_geo_override;
+bool CSGPrimitive::intersect(const Point3D &src, const Point3D &dst, const IntersectFn &fn) const
 {
+#if 0
   // This can take a while. Therefore, we'll test a bounding volume first.
-  if(!axis_aligned_box_check(eye, dst, m_mins, m_maxes))
+  if(!axis_aligned_box_check(src, dst, m_mins, m_maxes))
     return true;
+#endif
 
   SegmentList segments;
-  get_segments(segments, eye, dst);
+  get_segments(segments, src, dst);
 
   for(auto &seg : segments)
   {
-    // This isn't really correct -- two points should be reported per segment.
-    // But we're guaranteed that there's no CSG above us, so it should work
-    // anyway...
-    if(!fn(seg.start, seg.normal, seg.uv, seg.u, seg.v))
-      return false;
+    for(int i = 0; i < 2; i++)
+    {
+      const SegmentEnd &end = seg[i];
+      g_geo_override = end.geo;
+      if(!fn(end.t, end.normal, end.uv, end.u, end.v))
+	return false;
+    }
   }
-
   return true;
 }
 
-void CSGPrimitive::get_segments(SegmentList &out, const Point3D &eye, const Point3D &dst) const
+void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Point3D &dst) const
 {
   SegmentList lhs, rhs;
   SegmentList *lists[] = {&lhs, &rhs};
@@ -52,50 +57,40 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &eye, const Poin
 
     if(const CSGPrimitive *prim = dynamic_cast<const CSGPrimitive *>(geo.prim))
     {
-      prim->get_segments(l, eye, dst);
+      prim->get_segments(l, src, dst);
     }
     else
     {
-      // Assume everything is concave.
+      // Assume it's concave. This is a good assumption, since it's a non-csg
+      // primitive. Good thing torii aren't in my objectives.
       LineSegment ls;
       int n = 0;
-      geo.prim->intersect(eye, dst, [&n, &ls](double t, const Vector3D &normal, const Point2D &uv, const Vector3D &u, const Vector3D &v)
+      geo.prim->intersect(geo.invtrans * src, geo.invtrans * dst, [&n, &ls]
+	  (double t, const Vector3D &normal, const Point2D &uv, const Vector3D &u, const Vector3D &v)
 	  {
-	    const bool first = 0 == n++;
-	    const bool do_set = first || t < ls.start;
-	    if(first)
-	    {
-	      ls.start = t;
-	    }
-	    else
-	    {
-	      ls.end = max(t, ls.start);
-	      ls.start = min(t, ls.start);
-	    }
-	    if(do_set)
-	    {
-	      ls.normal = normal;
-	      ls.uv = uv;
-	      ls.u = u;
-	      ls.v = v;
-	    }
+	    ls[n].t = t; 
+	    ls[n].normal = normal;
+	    ls[n].uv = uv;
+	    ls[n].u = u;
+	    ls[n].v = v;
+	    n++;
 	    return n < 2;
 	  });
 
-      if(n == 2)
+      assert(n <= 2);
+      if(n >= 2)
       {
-	ls.geo = &geo;
+	if(ls[0].t > ls[1].t)
+	{
+	  const SegmentEnd tmp = ls[0];
+	  ls[0] = ls[1];
+	  ls[1] = tmp;
+	}
+
+	ls[0].geo = ls[1].geo = &geo;
 	l.push_back(ls);
       }
     }
-
-    struct SortCriteria
-    {
-      bool operator()(const LineSegment &s1, const LineSegment &s2) const
-      { return s1.start < s2.start; }
-    };
-
-    sort(l.begin(), l.end(), SortCriteria());
   }
 
   adjust_segments(out, *lists[0], *lists[1]);
@@ -113,39 +108,39 @@ void CSGUnion::adjust_segments(SegmentList &out, const SegmentList &c1, const Se
     // single list. Our next output segment starts at whichever output segment
     // comes first, and ends as soon as we stop being able to merge subsequent
     // lines.
-    auto &merge2 = i1->start < i2->start ? i1 : i2;
-    auto &merge1 = i1->start < i2->start ? i2 : i1;
-    auto end2 = i1->start < i2->start ? c1.end() : c2.end();
-    auto end1 = i1->start < i2->start ? c2.end() : c1.end();
+    auto &merge2 = i1->t0() < i2->t0() ? i1 : i2;
+    auto &merge1 = i1->t0() < i2->t0() ? i2 : i1;
+    auto end2 = i1->t0() < i2->t0() ? c1.end() : c2.end();
+    auto end1 = i1->t0() < i2->t0() ? c2.end() : c1.end();
     out.push_back(*merge2++);
-    Segment &segment = out.back();
+    LineSegment &segment = out.back();
 
     for(;;)
     {
       // Increment merge1 while it's entirely contained in our current segment.
-      while(merge1 != end1 && merge1->end < segment.end)
+      while(merge1 != end1 && merge1->t1() < segment.t1())
 	merge1++;
 
       if(merge1 == end1)
 	goto _done;
 
-      if(merge1->start > segment.end)
+      if(merge1->t0() > segment.t1())
 	// The lines don't intersect.
 	break;
 
       segment.end = (merge1++)->end;
 
-      while(merge2 != end2 && merge2->end < segment.end)
+      while(merge2 != end2 && merge2->t1() < segment.t1())
 	merge2++;
 
       if(merge2 == end2)
 	goto _done;
 
-      if(merge2->start > segment.end)
+      if(merge2->t0() > segment.t1())
 	// The lines don't intersect.
 	break;
 
-      segment.end = (merge2++)->end;
+      segment.t1() = (merge2++)->t1();
     }
   }
 
@@ -162,15 +157,4 @@ void CSGIntersection::adjust_segments(SegmentList &out, const SegmentList &c1, c
 
 void CSGDifference::adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const
 {
-}
-
-template<typename TPrim>
-void CSGNode<TPrim>::flatten(FlatList &fl, const Matrix4x4 &trans)
-{
-  Matrix4x4 trans_prime = trans * m_trans;
-  fl.push_back(FlatGen(trans_prime.invert(),
-	       trans_prime.linear().invert().transpose(),
-	       new TPrim(m_lhs, m_rhs, trans_prime),
-	       0));
-  static_assert(false, "Still need material");
 }
