@@ -18,32 +18,16 @@
 
 using namespace std;
 
-// hack
-const FlatGeo *g_geo_override = 0;
 bool RayTracer::raytrace(const Point3D &src, const Vector3D &ray, const RaytraceFn &fn)
 {
   const Point3D dst = src + ray;
 
-  // This whole scheme is ugly, but it cuts down significantly on calls to
-  // operator new. Unfortunately, there's no way to prevent std::function from
-  // calling operator new when it's passed a lambda.
-  struct
-  {
-    const FlatGeo *_geo;
-    const RaytraceFn &_fn;
-  } cap = {0, fn};
-
-  auto _cb = [&cap](double t, const Vector3D &normal, const Point2D &uv,
-		   const Vector3D &u, const Vector3D &v)
-      { return cap._fn(*cap._geo, t, normal, uv, u, v); };
-
-  std::function<bool(double, const Vector3D &, const Point2D &,
-		     const Vector3D &, const Vector3D &)> cb(_cb);
+  HitInfo hi(fn);
 
   for(auto &geo : m_geo)
   {
-    cap._geo = &geo;
-    if(!geo.prim->intersect(geo.invtrans * src, geo.invtrans * dst, cb))
+    hi.geo = &geo;
+    if(!geo.prim->intersect(geo.invtrans * src, geo.invtrans * dst, hi))
       return false;
   }
 
@@ -71,7 +55,6 @@ double RayTracer::raytrace_min(const Point3D &src, const Vector3D &ray,
 {
   *pg = 0;
   double tmin = numeric_limits<double>::max();
-  g_geo_override = 0;
   raytrace(src, ray, [tlo, &tmin, pg, &n, &uv, &u, &v]
       (const FlatGeo &g, double tcur, const Vector3D &_n,
        const Point2D &_uv, const Vector3D &_u, const Vector3D &_v)
@@ -79,10 +62,7 @@ double RayTracer::raytrace_min(const Point3D &src, const Vector3D &ray,
     if(tcur < tmin && tcur >= tlo)
     {
       tmin = tcur;
-      // hack
-      *pg = g_geo_override ? g_geo_override : &g;
-      if(g_geo_override)
-	g_geo_override = 0;
+      *pg = &g;
       n = _n;
       uv = _uv;
       u = _u;

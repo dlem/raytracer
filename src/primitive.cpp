@@ -8,10 +8,11 @@
 #include <iostream>
 #include "mesh.hpp"
 #include "intersection.hpp"
+#include "rt.hpp"
 
 using namespace std;
 
-bool Quadric::intersect(const Point3D &eye, const Point3D &_ray, const IntersectFn &fn) const
+bool Quadric::intersect(const Point3D &eye, const Point3D &_ray, HitInfo &hi) const
 {
   Polynomial<2> x, y, z;
   const Vector3D ray = _ray - eye;
@@ -49,7 +50,7 @@ bool Quadric::intersect(const Point3D &eye, const Point3D &_ray, const Intersect
       Vector3D u, v;
       get_uv(pt, normal, uv, u, v);
 
-      if(!fn(ts[i], normal, uv, u, v))
+      if(!hi.report(ts[i], normal, uv, u, v))
 	return false;
     }
   }
@@ -59,7 +60,7 @@ bool Quadric::intersect(const Point3D &eye, const Point3D &_ray, const Intersect
 
 // This is basically the same as Quadric::intersect, but Quadric::intersect is
 // too general to be fast, so we're reimplementing it here.
-bool Sphere::intersect(const Point3D &eye, const Point3D &dst, const IntersectFn &fn) const
+bool Sphere::intersect(const Point3D &eye, const Point3D &dst, HitInfo &hi) const
 {
   Polynomial<2> x, y, z;
   const Vector3D ray = dst - eye;
@@ -94,7 +95,7 @@ bool Sphere::intersect(const Point3D &eye, const Point3D &dst, const IntersectFn
       u.normalize();
       const Vector3D v = normal.cross(u);
 
-      if(!fn(ts[i], normal, uv, u, v))
+      if(!hi.report(ts[i], normal, uv, u, v))
 	return false;
     }
   }
@@ -152,7 +153,7 @@ void cube_uv(int facenum, const Point3D &p, Point2D &uv, Vector3D &u, Vector3D &
   v = face.v;
 }
 
-bool Cube::intersect(const Point3D &eye, const Point3D &ray_end, const IntersectFn &fn) const
+bool Cube::intersect(const Point3D &eye, const Point3D &ray_end, HitInfo &hi) const
 {
   const Vector3D ray = ray_end - eye;
   const Point3D mins(0, 0, 0);
@@ -173,7 +174,7 @@ bool Cube::intersect(const Point3D &eye, const Point3D &ray_end, const Intersect
 	Point2D uv;
 	Vector3D u, v;
 	cube_uv(i, p, uv, u, v);
-	if(!fn(t, normal, uv, u, v))
+	if(!hi.report(t, normal, uv, u, v))
 	  return false;
       }
     }
@@ -199,9 +200,9 @@ void NonhierBox::bounding_sphere(Point3D &c, double &rad) const
   rad = (Point3D(1, 1, 1) - c).length();
 }
 
-bool Cylinder::intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const
+bool Cylinder::intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const
 {
-  if(!Quadric::intersect(eye, ray, fn))
+  if(!Quadric::intersect(eye, ray, hi))
     return false;
 
   const Vector3D _ray = ray - eye;
@@ -226,7 +227,7 @@ bool Cylinder::intersect(const Point3D &eye, const Point3D &ray, const Intersect
 	Point2D uv(_u, _v);
 	Vector3D u(1, 0, 0);
 	Vector3D v(0, 1, 0);
-	if(!fn(t, normal, uv, u, v))
+	if(!hi.report(t, normal, uv, u, v))
 	  return false;
       }
     }
@@ -265,9 +266,9 @@ Matrix4x4 Cylinder::get_transform()
   return Matrix4x4::scale(Vector3D(0.5, 0.5, 0.5)) * Matrix4x4::rotate('x', 90);
 }
 
-bool Cone::intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &fn) const
+bool Cone::intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const
 {
-  if(!Quadric::intersect(eye, ray, fn))
+  if(!Quadric::intersect(eye, ray, hi))
     return false;
 
   const Vector3D _ray = ray - eye;
@@ -292,7 +293,7 @@ bool Cone::intersect(const Point3D &eye, const Point3D &ray, const IntersectFn &
 	Point2D uv(_u, _v);
 	Vector3D u(1, 0, 0);
 	Vector3D v(0, 1, 0);
-	if(!fn(t, normal, uv, u, v))
+	if(!hi.report(t, normal, uv, u, v))
 	  return false;
       }
     }

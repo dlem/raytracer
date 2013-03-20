@@ -22,6 +22,24 @@ typedef std::function<bool(const FlatGeo &geo, double t,
                            const Vector3D &v)>
         RaytraceFn;
 
+
+class HitInfo
+{
+public:
+  HitInfo(const RaytraceFn &fn)
+    : geo(0)
+    , fn(fn)
+  {}
+
+  bool report(double t, const Vector3D &normal, const Point2D &uv,
+	      const Vector3D &u, const Vector3D &v)
+  { return fn(*geo, t, normal, uv, u, v); }
+
+  const FlatGeo *geo;
+  const RaytraceFn &fn;
+};
+
+
 typedef std::function<Colour(const Point3D &, const Vector3D &)> MissColourFn;
 
 enum RT_ACTION

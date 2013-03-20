@@ -1,6 +1,7 @@
 #include "csg.hpp"
 #include "cmdopts.hpp"
 #include "intersection.hpp"
+#include "rt.hpp"
 
 using namespace std;
 
@@ -18,9 +19,7 @@ void CSGPrimitive::init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans)
   m_rhs = &m_rhs_list[0];
 }
 
-// hack
-extern const FlatGeo *g_geo_override;
-bool CSGPrimitive::intersect(const Point3D &src, const Point3D &dst, const IntersectFn &fn) const
+bool CSGPrimitive::intersect(const Point3D &src, const Point3D &dst, HitInfo &hi) const
 {
 #if 0
   // This can take a while. Therefore, we'll test a bounding volume first.
@@ -36,8 +35,8 @@ bool CSGPrimitive::intersect(const Point3D &src, const Point3D &dst, const Inter
     for(int i = 0; i < 2; i++)
     {
       const SegmentEnd &end = seg[i];
-      g_geo_override = end.geo;
-      if(!fn(end.t, end.normal, end.uv, end.u, end.v))
+      hi.geo = end.geo;
+      if(!hi.report(end.t, end.normal, end.uv, end.u, end.v))
 	return false;
     }
   }
@@ -63,10 +62,13 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
     {
       // Assume it's concave. This is a good assumption, since it's a non-csg
       // primitive. Good thing torii aren't in my objectives.
+
       LineSegment ls;
       int n = 0;
-      geo.prim->intersect(geo.invtrans * src, geo.invtrans * dst, [&n, &ls]
-	  (double t, const Vector3D &normal, const Point2D &uv, const Vector3D &u, const Vector3D &v)
+
+      RaytraceFn fn([&n, &ls]
+	  (const FlatGeo &, double t, const Vector3D &normal,
+	   const Point2D &uv, const Vector3D &u, const Vector3D &v)
 	  {
 	    ls[n].t = t; 
 	    ls[n].normal = normal;
@@ -77,6 +79,8 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
 	    return n < 2;
 	  });
 
+      HitInfo hi(fn);
+      geo.prim->intersect(geo.invtrans * src, geo.invtrans * dst, hi);
       assert(n <= 2);
       if(n >= 2)
       {
@@ -96,7 +100,7 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
   adjust_segments(out, *lists[0], *lists[1]);
 }
 
-void CSGUnion::adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const
+void CSGUnion::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const
 {
   auto i1 = c1.begin(), i2 = c2.begin();
   auto done = [&i1, &i2, &c1, &c2] ()
@@ -151,10 +155,62 @@ _done:
     out.push_back(*i2++);
 }
 
-void CSGIntersection::adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const
+void CSGIntersection::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const
 {
+  auto i1 = c1.begin(), i2 = c2.begin();
+  while(i1 != c1.end() && i2 != c2.end())
+  {
+    if(i1->t1() < i2->t0())
+      i1++;
+    else if(i2->t1() < i1->t0())
+      i2++;
+    else
+    {
+      LineSegment ls;
+      ls.start = i1->t0() > i2->t0() ? i1->start : i2->start;
+      ls.end = i1->t1() > i2->t1() ? i2->end : i1->end;
+      (i1->t1() > i2->t1() ? i2 : i1)++;
+      out.push_back(ls);
+    }
+  }
 }
 
-void CSGDifference::adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const
+void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const
 {
+  auto i1 = c1.begin(), i2 = c2.begin();
+  while(i1 != c1.end() && i2 != c2.end())
+  {
+    if(i1->t1() < i2->t0())
+    {
+      out.push_back(*i1++);
+    }
+    else if(i2->t1() < i1->t0())
+    {
+      i2++;
+    }
+    else
+    {
+      if(i1->t0() < i2->t0())
+      {
+	LineSegment ls;
+	ls.start = i1->start;
+	ls.end = i2->start;
+	ls.end.normal = -ls.end.normal;
+	out.push_back(ls);
+      }
+      if(i1->t1() < i2->t1())
+      {
+	i1++;
+      }
+      else
+      {
+	i1->start = i2->end;
+	i1->start.normal = -i1->start.normal;
+	i2++;
+      }
+    }
+  }
+
+  while(i1 != c1.end())
+    out.push_back(*i1++);
 }

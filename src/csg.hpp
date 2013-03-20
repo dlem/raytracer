@@ -14,7 +14,7 @@ public:
 
   void init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans);
 
-  virtual bool intersect(const Point3D &eye, const Point3D &dst, const IntersectFn &fn) const;
+  virtual bool intersect(const Point3D &eye, const Point3D &dst, HitInfo &hi) const;
 
 protected:
 
@@ -40,7 +40,7 @@ protected:
   typedef std::vector<LineSegment> SegmentList;
 
   void get_segments(SegmentList &out, const Point3D &eye, const Point3D &dst) const;
-  virtual void adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const = 0;
+  virtual void adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const = 0;
   virtual void bounding_sphere(Point3D &c, double &rad) const
   {
   }
@@ -57,19 +57,19 @@ private:
 class CSGUnion : public CSGPrimitive
 {
 protected:
-  virtual void adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const;
+  virtual void adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const;
 };
 
 class CSGIntersection : public CSGPrimitive
 {
 protected:
-  virtual void adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const;
+  virtual void adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const;
 };
 
 class CSGDifference : public CSGPrimitive
 {
 protected:
-  virtual void adjust_segments(SegmentList &out, const SegmentList &c1, const SegmentList &c2) const;
+  virtual void adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const;
 };
 
 template<typename TPrim>

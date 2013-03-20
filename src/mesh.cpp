@@ -9,6 +9,7 @@
 #include <algorithm>
 #include "cmdopts.hpp"
 #include "intersection.hpp"
+#include "rt.hpp"
 
 using namespace std;
 
@@ -33,7 +34,7 @@ Mesh::Mesh(const std::vector<Point3D>& verts,
   }
 }
 
-bool Mesh::intersect(const Point3D &eye, const Point3D &_ray, const IntersectFn &fn) const
+bool Mesh::intersect(const Point3D &eye, const Point3D &_ray, HitInfo &hi) const
 {
   if(GETOPT(bv))
     if(!axis_aligned_box_check(eye, _ray, m_mins, m_maxes))
@@ -103,7 +104,7 @@ bool Mesh::intersect(const Point3D &eye, const Point3D &_ray, const IntersectFn 
 	goto no_hit;
     }
 
-    if(!fn(t, normal, Point2D(0, 0), Vector3D(0, 0, 0), Vector3D(0, 0, 0)))
+    if(!hi.report(t, normal, Point2D(0, 0), Vector3D(0, 0, 0), Vector3D(0, 0, 0)))
       return false;
 
 no_hit: ;
