@@ -2,25 +2,24 @@ white_light = gr.light({100, 0, 100}, {0.9, 0.9, 0.9}, {1, 0, 0})
 
 root = gr.node('root')
 
-ccmat = gr.material({1, 1, 1}, {0.5, 0.5, 0.5}, 10)
+ccmat = gr.material({1, 1, 1}, {0, 0, 0}, 10)
 ccmat:set_texture('../companion_cube_tex.png')
 ccmat:set_bumpmap('../companion_cube_bm.png')
 
 ccube = gr.cube('ccube')
-ccube:scale(100, 100, 100)
+ccube:scale(50, 50, 50)
 ccube:set_material(ccmat)
-ccube:translate(-0.5, -0.5, -0.5)
 
-earthmat = gr.material({1, 1, 1}, {0.5, 0.5, 0.5}, 10)
+earthmat = gr.material({1, 1, 1}, {0, 0, 0}, 10)
 earthmat:set_texture('../earthmap1k.png')
 earthmat:set_bumpmap('../earthbump1k.png')
 
-barrelmat = gr.material({1, 1, 1}, {0.5, 0.5, 0.5}, 10)
+barrelmat = gr.material({1, 1, 1}, {0, 0, 0}, 10)
 barrelmat:set_texture('../barrel.png')
 barrelmat:set_bumpmap('../barrel_bm.png')
 
 cyl = gr.cylinder('cyl')
-cyl:scale(100, 100, 100)
+cyl:scale(50, 50, 50)
 cyl:set_material(barrelmat)
 
 earth = gr.sphere('earth')

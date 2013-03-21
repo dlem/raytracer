@@ -15,6 +15,14 @@ void CSGPrimitive::init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans)
     errs() << "Aborting" << endl;
     exit(1);
   }
+
+  if(m_lhs_list.size() == 0 || m_rhs_list.size() == 0)
+  {
+    errs() << "CSG object has empty node as child!" << endl
+	   << "Aborting" << endl;
+    exit(1);
+  }
+
   m_lhs = &m_lhs_list[0];
   m_rhs = &m_rhs_list[0];
 }

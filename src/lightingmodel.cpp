@@ -87,6 +87,11 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
     if(occ < 0.01)
       continue;
 
+    if(phong_ell.dot(phong_n) <= 0)
+      // This can happen even with +if occlusion due to area lights.
+      // It'll cause a darkening artifact if we continue.
+      continue;
+
     // This is the diffuse term.
     Colour phong_ro = phong_kd;
 

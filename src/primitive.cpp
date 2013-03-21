@@ -153,6 +153,11 @@ void cube_uv(int facenum, const Point3D &p, Point2D &uv, Vector3D &u, Vector3D &
   v = face.v;
 }
 
+Matrix4x4 Cube::get_transform()
+{
+  return Matrix4x4::scale(Vector3D(2, 2, 2)) * Matrix4x4::translate(Vector3D(-0.5, -0.5, -0.5));
+}
+
 bool Cube::intersect(const Point3D &eye, const Point3D &ray_end, HitInfo &hi) const
 {
   const Vector3D ray = ray_end - eye;
@@ -263,7 +268,7 @@ void Cylinder::get_uv(const Point3D &pt, const Vector3D &normal,
 
 Matrix4x4 Cylinder::get_transform()
 {
-  return Matrix4x4::scale(Vector3D(0.5, 0.5, 0.5)) * Matrix4x4::rotate('x', 90);
+  return Matrix4x4::rotate('x', 90);
 }
 
 bool Cone::intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const

@@ -89,6 +89,7 @@ class Cube : public Primitive {
 public:
   virtual bool intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const;
   virtual void bounding_sphere(Point3D &c, double &rad) const;
+  virtual Matrix4x4 get_transform();
 };
 
 class NonhierBox : public Cube {
