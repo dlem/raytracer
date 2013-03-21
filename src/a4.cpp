@@ -32,6 +32,7 @@ void a4_render(// What to render
                const std::list<Light*>& lights
                )
 {
+  outs() << "\033]?25l";
   Vector3D up(_up);
   Vector3D view(_view);
   up.normalize();
@@ -255,11 +256,12 @@ void a4_render(// What to render
   auto pf = parfor<decltype(it), int>(it, count.end(), trace_row);
 
   {
-    SCOPED_TIMER("rendering");
-    pf.go(GETOPT(threads), true, [height](int i)
+    ProgressTimer timer("rendering", height);
+    pf.go(GETOPT(threads), true, [height, &timer](int i)
 	{
-	  outs() << "Done " << height - i << "/" << height << " rows..." << endl;
+	  timer.set_progress(height - i);
 	});
+    timer.set_progress(height);
   }
 
   outs() << "Done!" << endl;

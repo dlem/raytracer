@@ -1,1 +1,2 @@
-alias rt="`pwd`/src/rt -d"
+alias rt="`pwd`/src/rt"
+export LUA_PATH="`pwd`/test/assets/?.lua"

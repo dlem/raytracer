@@ -2,10 +2,10 @@ require 'cbox'
 
 root = gr.node('root')
 
-glass = gr.material({0.0, 0.0, 0.0}, {0.7, 1, 1}, 20)
+glass = gr.material({0.0, 0.0, 0.0}, {1, 1, 1}, 20)
 glass:set_ri(1.5)
 
-s = 100
+s = 0.6
 
 function msphere(x, y, z)
   sp = gr.sphere('')
@@ -15,9 +15,6 @@ function msphere(x, y, z)
   root:add_child(sp)
 end
 
-msphere(0, -370, 0)
---msphere(-200, -370, -200)
---msphere(200, -370, -200)
---msphere(0, -370, -200)
+msphere(1.2, -2, 0.8)
 
 cbox.cbox(root, 256, 256, 'glass.png')

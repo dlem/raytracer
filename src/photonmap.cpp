@@ -170,9 +170,8 @@ void PhotonMap::build(RayTracer &rt, const list<Light *> &lights)
     // light's falloff coefficient is 1. Hence energy is 4PIr^2, where
     // r is given by the falloff coefficient such that f r^2 = 1, ie. r =
     // sqrt(1/f).
-    const double falloff = light->falloff[2] <= 0 ? 1 : light->falloff[2];
-    const double r = sqrt(1/falloff);
-    const Colour total_energy = 4 * M_PI * r * r * light->colour;
+    const double energy_fudge = 100;
+    const Colour total_energy = energy_fudge * light->colour;
 
     build_light(rt, *light, total_energy);
   }
@@ -211,7 +210,7 @@ Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
 
   // Do an area average.
   // 100 works here for caustics, 1 works for GI...
-  return intensity * (1 / (M_PI * maxdist * maxdist)) * 100;
+  return intensity * (1 / (M_PI * maxdist * maxdist));
 }
 
 Colour PhotonMap::query_photon(const Point3D &pt, Vector3D &pos_rel)
@@ -247,7 +246,7 @@ void CausticMap::build_light(RayTracer &rt, const Light &light, const Colour &en
     return;
 
   {
-  SCOPED_TIMER("shoot caustic photons");
+  ProgressTimer timer("shoot caustic photons", nphotons);
   for(int i = 0; i < nphotons; i++)
   {
     Vector3D ray;
@@ -282,6 +281,7 @@ void CausticMap::build_light(RayTracer &rt, const Light &light, const Colour &en
 	  else
 	    return RT_ABSORB;
 	});
+    timer.increment();
   }
   }
 
