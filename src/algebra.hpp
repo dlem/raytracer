@@ -195,6 +195,20 @@ private:
   double v_[3];
 };
 
+inline Point3D cw_max(const Point3D &p1, const Point3D &p2)
+{
+  return Point3D(std::max(p1[0], p2[0]),
+		 std::max(p1[1], p2[1]),
+		 std::max(p1[2], p2[2]));
+}
+
+inline Point3D cw_min(const Point3D &p1, const Point3D &p2)
+{
+  return Point3D(std::min(p1[0], p2[0]),
+		 std::min(p1[1], p2[1]),
+		 std::min(p1[2], p2[2]));
+}
+
 inline Vector3D operator *(double s, const Vector3D& v)
 {
   return Vector3D(s*v[0], s*v[1], s*v[2]);
@@ -654,7 +668,6 @@ inline Polynomial<N> Polynomial<N>::operator *(const Polynomial<N> &xs2) const
       out[n] += xs1[m] * xs2[n - m];
   return out;
 }
-
 
 template<int N>
 Polynomial<N> operator*(double c, const Polynomial<N> &p)

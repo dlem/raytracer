@@ -15,10 +15,11 @@
 struct FlatGeo
 {
   FlatGeo() {}
-  FlatGeo(const Matrix4x4 &invtrans, const Matrix4x4 &trans_normal,
+  FlatGeo(const Matrix4x4 &trans,
 	  const Primitive &prim, const Material &mat)
-    : invtrans(invtrans)
-    , trans_normal(trans_normal)
+    : trans(trans)
+    , invtrans(trans.invert())
+    , trans_normal(trans.linear().invert().transpose())
     , prim(&prim)
     , mat(&mat)
   {}
@@ -32,7 +33,7 @@ struct FlatGeo
     return *this;
   }
 
-  Matrix4x4 invtrans, trans_normal;
+  Matrix4x4 trans, invtrans, trans_normal;
   const Primitive *prim;
   const Material *mat;
 };

@@ -113,11 +113,9 @@ no_hit: ;
   return true;
 }
 
-void Mesh::bounding_sphere(Point3D &c, double &rad) const
+void Mesh::bounding_box(Box &b) const
 {
-  for(int i = 0; i < 3; i++)
-    c[i] = 0.5 * (m_mins[i] + m_maxes[i]);
-  rad = 0.5 * (m_maxes - m_mins).length();
+  b.set(m_mins, m_maxes);
 }
 
 std::ostream& operator<<(std::ostream& out, const Mesh& mesh)

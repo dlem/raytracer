@@ -15,6 +15,7 @@ public:
   void init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans);
 
   virtual bool intersect(const Point3D &eye, const Point3D &dst, HitInfo &hi) const;
+  virtual void bounding_box(Box &b) const { b.set(m_mins, m_maxes); }
 
 protected:
 
@@ -41,9 +42,7 @@ protected:
 
   void get_segments(SegmentList &out, const Point3D &eye, const Point3D &dst) const;
   virtual void adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const = 0;
-  virtual void bounding_sphere(Point3D &c, double &rad) const
-  {
-  }
+  virtual void combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const = 0;
 
 private:
   FlatList m_lhs_list;
@@ -52,24 +51,28 @@ private:
   FlatGeo *m_rhs;
   Point3D m_mins;
   Point3D m_maxes;
+  Box m_box;
 };
 
 class CSGUnion : public CSGPrimitive
 {
 protected:
   virtual void adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const;
+  virtual void combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const;
 };
 
 class CSGIntersection : public CSGPrimitive
 {
 protected:
   virtual void adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const;
+  virtual void combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const;
 };
 
 class CSGDifference : public CSGPrimitive
 {
 protected:
   virtual void adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const;
+  virtual void combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const;
 };
 
 template<typename TPrim>
@@ -88,9 +91,7 @@ public:
     Matrix4x4 trans_prime = trans * m_trans;
     CSGPrimitive *prim = new TPrim();
     prim->init(m_lhs, m_rhs, trans_prime);
-    fl.push_back(FlatGeo(Matrix4x4(),
-		 Matrix4x4(),
-		 *prim,
+    fl.push_back(FlatGeo(Matrix4x4(), *prim,
 		 *new PhongMaterial(Colour(1), Colour(0), 0)));
   }
 

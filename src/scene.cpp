@@ -88,7 +88,5 @@ void GeometryNode::flatten(FlatList &fl, const Matrix4x4 &trans)
     return;
 
   Matrix4x4 trans_prime = trans * m_trans * m_primitive->get_transform();
-  fl.push_back(FlatGeo(trans_prime.invert(),
-	trans_prime.linear().invert().transpose(),
-	*m_primitive, *m_material));
+  fl.push_back(FlatGeo(trans_prime, *m_primitive, *m_material));
 }

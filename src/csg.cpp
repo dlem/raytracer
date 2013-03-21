@@ -9,31 +9,34 @@ void CSGPrimitive::init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans)
 {
   lhs->flatten(m_lhs_list, trans);
   rhs->flatten(m_rhs_list, trans);
-  if(m_lhs_list.size() > 1 || m_rhs_list.size() > 1)
+  if(m_lhs_list.size() != 1 || m_rhs_list.size() != 1)
   {
-    errs() << "CSG object has more than one child!" << endl;
+    errs() << "CSG object doesn't have exactly one child!" << endl;
     errs() << "Aborting" << endl;
-    exit(1);
-  }
-
-  if(m_lhs_list.size() == 0 || m_rhs_list.size() == 0)
-  {
-    errs() << "CSG object has empty node as child!" << endl
-	   << "Aborting" << endl;
     exit(1);
   }
 
   m_lhs = &m_lhs_list[0];
   m_rhs = &m_rhs_list[0];
+
+  // Now compute the bounding box.
+  Box box, bl, br;
+  m_lhs->prim->bounding_box(bl);
+  m_rhs->prim->bounding_box(br);
+  bl.apply(m_lhs->trans);
+  br.apply(m_rhs->trans);
+
+  combine_bounding_boxes(box, bl, br);
+
+  m_mins = box.mins();
+  m_maxes = box.maxes();
 }
 
 bool CSGPrimitive::intersect(const Point3D &src, const Point3D &dst, HitInfo &hi) const
 {
-#if 0
   // This can take a while. Therefore, we'll test a bounding volume first.
   if(!axis_aligned_box_check(src, dst, m_mins, m_maxes))
     return true;
-#endif
 
   SegmentList segments;
   get_segments(segments, src, dst);
@@ -161,6 +164,21 @@ _done:
     out.push_back(*i1++);
   while(i2 != c2.end())
     out.push_back(*i2++);
+}
+
+void CSGUnion::combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const
+{
+  out.set(cw_min(bl.mins(), br.mins()), cw_max(bl.maxes(), br.maxes()));
+}
+
+void CSGIntersection::combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const
+{
+  out.set(cw_max(bl.mins(), br.mins()), cw_min(bl.maxes(), br.maxes())); 
+}
+
+void CSGDifference::combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const
+{
+  out = bl;
 }
 
 void CSGIntersection::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const
