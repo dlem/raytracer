@@ -65,8 +65,9 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
     SegmentList &l = *lists[i];
     FlatGeo &geo = *geos[i];
 
-    if(const CSGPrimitive *prim = dynamic_cast<const CSGPrimitive *>(geo.prim))
+    if(geo.prim->is_csg())
     {
+      auto prim = static_cast<const CSGPrimitive *>(geo.prim);
       prim->get_segments(l, src, dst);
     }
     else

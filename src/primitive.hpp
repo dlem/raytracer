@@ -75,6 +75,7 @@ public:
                              const Vector3D &v)> IntersectFn;
   virtual bool intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const = 0;
   virtual void bounding_box(Box &b) const = 0;
+  virtual bool is_csg() const { return false; }
   virtual Matrix4x4 get_transform() { return Matrix4x4(); }
 };
 

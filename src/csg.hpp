@@ -16,6 +16,7 @@ public:
 
   virtual bool intersect(const Point3D &eye, const Point3D &dst, HitInfo &hi) const;
   virtual void bounding_box(Box &b) const { b.set(m_mins, m_maxes); }
+  virtual bool is_csg() const { return true; }
 
 protected:
 
