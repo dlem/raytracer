@@ -10,7 +10,8 @@ class Bumpmap;
 class PhongMaterial
 {
 public:
-  PhongMaterial(const Colour& kd, const Colour& ks, double shininess);
+  PhongMaterial(const Colour& kd, const Colour& ks, double shininess,
+		double ri = std::numeric_limits<double>::max());
   virtual ~PhongMaterial();
   Colour ks(const Point2D &uv) const { return m_ks; }
   Colour kd(const Point2D &uv) const;
@@ -22,6 +23,8 @@ public:
   void set_bumpmap(const std::string &bumpmap);
   void set_texture(const std::string &texture);
   void set_ri(double ri) { m_ri = ri; }
+
+  static PhongMaterial air;
 
 private:
   Colour m_kd;

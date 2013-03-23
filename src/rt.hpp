@@ -15,7 +15,8 @@
 class LightingModel;
 
 // Callback type that gets passed to my main raytracing function.
-typedef std::function<bool(const FlatGeo &geo, double t,
+typedef std::function<bool(const FlatGeo &geo, const Material &med,
+			   double t,
                            const Vector3D &normal,
                            const Point2D &uv,
                            const Vector3D &u,
@@ -28,14 +29,16 @@ class HitInfo
 public:
   HitInfo(const RaytraceFn &fn)
     : geo(0)
+    , med(0)
     , fn(fn)
   {}
 
   bool report(double t, const Vector3D &normal, const Point2D &uv,
 	      const Vector3D &u, const Vector3D &v)
-  { return fn(*geo, t, normal, uv, u, v); }
+  { return fn(*geo, *med, t, normal, uv, u, v); }
 
   const FlatGeo *geo;
+  const Material *med;
   const RaytraceFn &fn;
 };
 
@@ -86,6 +89,7 @@ public:
 		      const Vector3D &ray,
 		      double tlo,
 		      const FlatGeo **pg,
+		      const Material **med,
 		      Vector3D &normal,
 		      Point2D &uv,
 		      Vector3D &u,

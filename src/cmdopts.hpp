@@ -69,12 +69,14 @@ public:
   bool draw_gi_only;
   bool use_gi_map;
   bool soft_shadows;
+  bool hires;
   unsigned aa_grid, threads;
   double aa_threshold, aa_jitter;
   unsigned caustic_num_photons;
   unsigned caustic_pm_gran;
   unsigned caustic_num_neighbours;
   unsigned shadow_grid;
+  unsigned height, width;
   std::ostream *outs;
   std::ostream *dbgs;
   std::ostream *errs;

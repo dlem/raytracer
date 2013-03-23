@@ -32,6 +32,11 @@ void a4_render(// What to render
                const std::list<Light*>& lights
                )
 {
+  if(GETOPT(height) != 0)
+    height = GETOPT(height);
+  if(GETOPT(width) != 0)
+    width = GETOPT(width);
+
   outs() << "\033]?25l";
   Vector3D up(_up);
   Vector3D view(_view);

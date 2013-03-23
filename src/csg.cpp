@@ -79,7 +79,7 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
       int n = 0;
 
       RaytraceFn fn([&n, &ls]
-	  (const FlatGeo &, double t, const Vector3D &normal,
+	  (const FlatGeo &, const Material &, double t, const Vector3D &normal,
 	   const Point2D &uv, const Vector3D &u, const Vector3D &v)
 	  {
 	    ls[n].t = t; 
@@ -92,6 +92,7 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
 	  });
 
       HitInfo hi(fn);
+      hi.med = &PhongMaterial::air;
       geo.prim->intersect(geo.invtrans * src, geo.invtrans * dst, hi);
       assert(n <= 2);
       if(n >= 2)

@@ -50,7 +50,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
 				  const Point3D &src,
 				  const Vector3D &ray,
 				  const double t,
-				  const FlatGeo &geo,
+				  const Material &mat,
 				  const Vector3D &normal,
 				  const Point2D &uv,
 				  const Vector3D &u,
@@ -64,12 +64,12 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
   const Colour projc(1, 0, 0);
   const bool use_proj = GETOPT(draw_caustic_pm) &&
 			m_caustics.test_pm(rt, phong_P, normal);
-  const Colour phong_kd = use_proj ? projc * geo.mat->kd(uv).Y() : geo.mat->kd(uv);
+  const Colour phong_kd = use_proj ? projc * mat.kd(uv).Y() : mat.kd(uv);
 
   Vector3D phong_n = normal;
-  geo.mat->get_normal(phong_n, uv, u, v);
-  const Colour &phong_ks = refl_attn * geo.mat->ks(uv);
-  const double phong_p = geo.mat->shininess(uv);
+  mat.get_normal(phong_n, uv, u, v);
+  const Colour &phong_ks = refl_attn * mat.ks(uv);
+  const double phong_p = mat.shininess(uv);
   Vector3D phong_v = src - phong_P;
   phong_v.normalize();
 
@@ -130,7 +130,7 @@ Colour PhotonDrawModel::compute_lighting(RayTracer &rt,
 			      const Point3D &src,
 			      const Vector3D &ray,
 			      const double t,
-			      const FlatGeo &geo,
+			      const Material &mat,
 			      const Vector3D &normal,
 			      const Point2D &uv,
 			      const Vector3D &u,
@@ -163,7 +163,7 @@ Colour PhotonsOnlyModel::compute_lighting(RayTracer &rt,
 			      const Point3D &src,
 			      const Vector3D &ray,
 			      const double t,
-			      const FlatGeo &geo,
+			      const Material &mat,
 			      const Vector3D &normal,
 			      const Point2D &uv,
 			      const Vector3D &u,

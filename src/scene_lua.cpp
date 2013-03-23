@@ -481,6 +481,19 @@ int gr_material_cmd(lua_State* L)
   return 1;
 }
 
+extern "C"
+int gr_air_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  gr_material_ud* data = (gr_material_ud*)lua_newuserdata(L, sizeof(gr_material_ud));
+  data->material = &PhongMaterial::air;
+ 
+  luaL_getmetatable(L, "gr.material");
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
 // Add a child to a node
 extern "C"
 int gr_node_add_child_cmd(lua_State* L)
@@ -696,6 +709,8 @@ static const luaL_reg grlib_functions[] = {
   {"union", gr_union_cmd},
   {"intersection", gr_intersection_cmd},
   {"difference", gr_difference_cmd},
+
+  {"air", gr_air_cmd},
 
   {0, 0}
 };

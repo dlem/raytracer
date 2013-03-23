@@ -40,10 +40,11 @@ public:
 
 	const double tlo = 0.1;
 	const FlatGeo *g;
+	const Material *med;
 	Vector3D n, u, v;
 	Point2D uv;
 	
-	if(rt.raytrace_min(centre, ray, tlo, &g, n, uv, u, v) <
+	if(rt.raytrace_min(centre, ray, tlo, &g, &med, n, uv, u, v) <
 	    numeric_limits<double>::max())
 	{
 	  if(pred(*g, uv))

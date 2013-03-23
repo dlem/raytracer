@@ -254,7 +254,11 @@ void Cylinder::get_uv(const Point3D &pt, const Vector3D &normal,
 
 Matrix4x4 Cylinder::get_transform()
 {
+#if 1
   return Matrix4x4::rotate('x', 90);
+#else
+  return Matrix4x4();
+#endif
 }
 
 bool Cone::intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const

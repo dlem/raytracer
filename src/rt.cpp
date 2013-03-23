@@ -23,6 +23,7 @@ bool RayTracer::raytrace(const Point3D &src, const Vector3D &ray, const Raytrace
   const Point3D dst = src + ray;
 
   HitInfo hi(fn);
+  hi.med = &PhongMaterial::air;
 
   for(auto &geo : m_geo)
   {
@@ -39,7 +40,7 @@ bool RayTracer::raytrace_within(const Point3D &src,
                      double tlo, double thi)
 {
   return !raytrace(src , ray,
-    [tlo, thi](const FlatGeo &, double tcur, const Vector3D &,
+    [tlo, thi](const FlatGeo &, const Material &, double tcur, const Vector3D &,
                const Point2D &, const Vector3D &, const Vector3D &)
   {
     return tcur < tlo || tcur > thi;
@@ -47,7 +48,7 @@ bool RayTracer::raytrace_within(const Point3D &src,
 }
 
 double RayTracer::raytrace_min(const Point3D &src, const Vector3D &ray,
-    double tlo, const FlatGeo **pg,
+    double tlo, const FlatGeo **pg, const Material **med,
     Vector3D &n,
     Point2D &uv,
     Vector3D &u,
@@ -55,14 +56,15 @@ double RayTracer::raytrace_min(const Point3D &src, const Vector3D &ray,
 {
   *pg = 0;
   double tmin = numeric_limits<double>::max();
-  raytrace(src, ray, [tlo, &tmin, pg, &n, &uv, &u, &v]
-      (const FlatGeo &g, double tcur, const Vector3D &_n,
+  raytrace(src, ray, [tlo, &tmin, pg, &n, &uv, &u, &v, med]
+      (const FlatGeo &g, const Material &_med, double tcur, const Vector3D &_n,
        const Point2D &_uv, const Vector3D &_u, const Vector3D &_v)
   {
     if(tcur < tmin && tcur >= tlo)
     {
       tmin = tcur;
       *pg = &g;
+      *med = &_med;
       n = _n;
       uv = _uv;
       u = _u;
@@ -91,24 +93,25 @@ double fresnel(double n1, double n2, double cosi, double cost)
 // Returns the proportion of specular power that should go to reflection. The
 // rest should go to refraction.
 double compute_specular(const Vector3D &incident,     // Must be unit.
-			const FlatGeo &geo,
+			const Material &obj,
+			const Material &medium,
 			const Vector3D &_n,	      // The normal.
 			Vector3D &ray_reflected,
 			Vector3D &ray_transmitted)
 {
-  const double ri_air = 1;
-  const double ri = geo.mat->ri();
+  const double ri_medium = medium.ri();
+  const double ri_obj = obj.ri();
   const bool penetrating = incident.dot(_n) < 0;
   const Vector3D n = penetrating ? _n : -_n;
   ray_reflected = incident - 2 * incident.dot(n) * n;
   ray_reflected.normalize();
 
-  if(ri >= numeric_limits<double>::max())
-    // Only reflective.
+  if(ri_obj >= numeric_limits<double>::max())
+    // Only reflective. This applies to both sides, by edict.
     return 1;
 
-  const double n1 = penetrating ? ri_air : ri;
-  const double n2 = penetrating ? ri : ri_air;
+  const double n1 = penetrating ? ri_medium : ri_obj;
+  const double n2 = penetrating ? ri_obj : ri_medium;
   const double cosi = incident.dot(-n);
   const double sini = sqrt(1 - cosi * cosi);
   const double sint = n1 / n2 * sini;
@@ -132,13 +135,17 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
   const double threshold = 0.02;
   const double tlo = 0.1;
   const FlatGeo *g;
+  const Material *medium;
   Vector3D normal, u, v;
   Point2D uv;
 
-  const double t = raytrace_min(src, incident, tlo, &g, normal, uv, u, v); 
+  const double t = raytrace_min(src, incident, tlo, &g, &medium, normal, uv, u, v); 
 
   if(t >= numeric_limits<double>::max())
     return m_miss_colour(src, incident);
+
+  const bool penetrating = incident.dot(normal) < 0;
+  const Material &mat = penetrating ? *g->mat : *medium;
 
   if(depth > 12)
   {
@@ -146,19 +153,19 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
     // repeated total internal reflection on the _inside_ of certain
     // primitives). The best thing we can do in this situations is just
     // calculate the phong lighting.
-    return model.compute_lighting(*this, src, incident, t, *g, normal, uv, u, v, 1);
+    return model.compute_lighting(*this, src, incident, t, mat, normal, uv, u, v, 1);
   }
 
   const Point3D p = src + t * incident;
   Vector3D ray_reflected, ray_transmitted;
-  const double r = compute_specular(incident, *g, normal, ray_reflected, ray_transmitted);
+  const double r = compute_specular(incident, *g->mat, *medium, normal, ray_reflected, ray_transmitted);
 
   Colour rv(0);
 
-  Colour cdirect = model.compute_lighting(*this, src, incident, t, *g, normal, uv, u, v, r);
+  Colour cdirect = model.compute_lighting(*this, src, incident, t, mat, normal, uv, u, v, r);
   rv += cdirect;
 
-  const Colour cspecular = g->mat->ks(uv);
+  const Colour cspecular = mat.ks(uv);
   const Colour creflected = r * cspecular;
   const Colour ctransmitted = (1 - r) * cspecular;
   const double acc_reflected = acc * creflected.Y();
@@ -179,10 +186,11 @@ void RayTracer::raytrace_russian(const Point3D &src,
 {
   const double tlo = 0.1;
   const FlatGeo *g;
+  const PhongMaterial *medium;
   Vector3D normal, u, v;
   Point2D uv;
 
-  const double t = raytrace_min(src, incident, tlo, &g, normal, uv, u, v);
+  const double t = raytrace_min(src, incident, tlo, &g, &medium, normal, uv, u, v);
 
   if(t >= numeric_limits<double>::max())
     return;
@@ -191,9 +199,18 @@ void RayTracer::raytrace_russian(const Point3D &src,
     // We've no use for information about photons hitting spec surfaces, so...
     return;
 
+  const bool penetrating = incident.dot(normal) < 0;
+
+  Vector3D ray_reflected;
+  Vector3D ray_transmitted;
+  const double r = compute_specular(incident, *g->mat, *medium, normal,
+				    ray_reflected, ray_transmitted);
+
+  const Material &mat = penetrating ? *g->mat : *medium;
   const Point3D p = src + t * incident;
-  const Colour cdiffuse = g->mat->kd(uv);
-  const Colour cspecular = g->mat->ks(uv);
+  // Giving incorrect uv coordinates to a medium won't hurt...
+  const Colour cdiffuse = mat.kd(uv);
+  const Colour cspecular = mat.ks(uv);
 
   double prs[RT_ACTION_COUNT];
   prs[RT_DIFFUSE] = cdiffuse.Y();
@@ -212,9 +229,6 @@ void RayTracer::raytrace_russian(const Point3D &src,
     errs() << cdiffuse << ", " << cspecular << endl;
   }
 
-  Vector3D ray_reflected;
-  Vector3D ray_transmitted;
-  const double r = compute_specular(incident, *g, normal, ray_reflected, ray_transmitted);
 
   const RT_ACTION action = fn(p, incident, acc * cdiffuse, prs);
 
