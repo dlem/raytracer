@@ -201,64 +201,108 @@ void CSGDifference::combine_bounding_boxes(Box &out, const Box &bl, const Box &b
 
 void CSGIntersection::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const
 {
-#if 0
   auto i1 = c1.begin(), i2 = c2.begin();
+  bool inside_i1 = false, inside_i2 = false;
+
   while(i1 != c1.end() && i2 != c2.end())
   {
-    if(i1->t1() < i2->t0())
+    if(i1->t < i2->t)
+    {
+      if(!i1->from && i1->to)
+      {
+	inside_i1 = true;
+	if(inside_i2)
+	{
+	  out.push_back(*i1);
+	}
+      }
+      else if(i1->from && !i1->to)
+      {
+	inside_i1 = false;
+	if(inside_i2)
+	{
+	  out.push_back(*i1);
+	}
+      }
       i1++;
-    else if(i2->t1() < i1->t0())
-      i2++;
+    }
     else
     {
-      LineSegment ls;
-      ls.start = i1->t0() > i2->t0() ? i1->start : i2->start;
-      ls.end = i1->t1() > i2->t1() ? i2->end : i1->end;
-      (i1->t1() > i2->t1() ? i2 : i1)++;
-      out.push_back(ls);
+      if(!i2->from && i2->to)
+      {
+	inside_i2 = true;
+	if(inside_i1)
+	{
+	  out.push_back(*i2);
+	}
+      }
+      else if(i2->from && !i2->to)
+      {
+	inside_i2 = false;
+	if(inside_i1)
+	{
+	  out.push_back(*i2);
+	}
+      }
+      i2++;
     }
   }
-#endif
 }
 
 void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const
 {
-#if 0
   auto i1 = c1.begin(), i2 = c2.begin();
-  while(i1 != c1.end() && i2 != c2.end())
+  bool inside_i1 = false, inside_i2 = false;
+
+  while(i1 != c1.end() || i2 != c2.end())
   {
-    if(i1->t1() < i2->t0())
+    if(i1 != c1.end() && (i2 == c2.end() || i1->t < i2->t))
     {
-      out.push_back(*i1++);
-    }
-    else if(i2->t1() < i1->t0())
-    {
-      i2++;
+      if(!i1->from && i1->to)
+      {
+	inside_i1 = true;
+	if(!inside_i2)
+	{
+	  out.push_back(*i1);
+	}
+      }
+      else if(i1->from && !i1->to)
+      {
+	inside_i1 = false;
+	if(!inside_i2)
+	{
+	  out.push_back(*i1);
+	}
+      }
+      i1++;
     }
     else
     {
-      if(i1->t0() < i2->t0())
+      if(!i2->from && i2->to)
       {
-	LineSegment ls;
-	ls.start = i1->start;
-	ls.end = i2->start;
-	ls.end.normal = -ls.end.normal;
-	out.push_back(ls);
+	inside_i2 = true;
+	if(inside_i1)
+	{
+	  out.push_back(*i2);
+	  out.back().from = out.back().to;
+	  out.back().to = 0;
+	  out.back().penetrating = !out.back().penetrating;
+	  out.back().normal = -out.back().normal;
+	}
       }
-      if(i1->t1() < i2->t1())
+      else if(i2->from && !i2->to)
       {
-	i1++;
+	inside_i2 = false;
+	if(inside_i1)
+	{
+	  out.push_back(*i2);
+	  out.back().to = out.back().from;
+	  out.back().from = 0;
+	  out.back().penetrating = !out.back().penetrating;
+	  out.back().normal = -out.back().normal;
+	}
       }
-      else
-      {
-	i1->start = i2->end;
-	i1->start.normal = -i1->start.normal;
-	i2++;
-      }
+      i2++;
     }
   }
-
-  while(i1 != c1.end())
-    out.push_back(*i1++);
-#endif
 }
