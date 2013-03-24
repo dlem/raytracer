@@ -37,22 +37,18 @@ bool RayTracer::raytrace(const Point3D &src, const Vector3D &ray, const Raytrace
 
 bool RayTracer::raytrace_within(const Point3D &src,
                      const Vector3D &ray,
-                     double tlo, const FlatGeo *avoid, double thi)
+                     double tlo, double thi)
 {
   return !raytrace(src , ray,
-    [tlo, thi, avoid](const FlatGeo &g, const Material &, double tcur, const Vector3D &,
+    [tlo, thi](const FlatGeo &g, const Material &, double tcur, const Vector3D &,
                const Point2D &, const Vector3D &, const Vector3D &)
   {
-    if(tcur > thi)
-      return true;
-    if(tcur > 0 && &g != avoid)
-      return false;
-    return tcur < tlo;
+    return tcur < tlo || tcur > thi;
   });
 }
 
 double RayTracer::raytrace_min(const Point3D &src, const Vector3D &ray,
-    double tlo, const FlatGeo *avoid, const FlatGeo **pg, const Material **med,
+    double tlo, const FlatGeo **pg, const Material **med,
     Vector3D &n,
     Point2D &uv,
     Vector3D &u,
@@ -60,11 +56,11 @@ double RayTracer::raytrace_min(const Point3D &src, const Vector3D &ray,
 {
   *pg = 0;
   double tmin = numeric_limits<double>::max();
-  raytrace(src, ray, [tlo, &tmin, avoid, pg, &n, &uv, &u, &v, med]
+  raytrace(src, ray, [tlo, &tmin, pg, &n, &uv, &u, &v, med]
       (const FlatGeo &g, const Material &_med, double tcur, const Vector3D &_n,
        const Point2D &_uv, const Vector3D &_u, const Vector3D &_v)
   {
-    if(tcur < tmin && (tcur >= tlo || (tcur > 0 && &g != avoid)))
+    if(tcur < tmin && tcur >= tlo)
     {
       tmin = tcur;
       *pg = &g;
@@ -134,17 +130,15 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
 				     const Point3D &src,
 				     const Vector3D &incident,
 				     double acc,
-				     int depth,
-				     const FlatGeo *avoid)
+				     int depth)
 {
   const double threshold = 0.02;
-  const double tlo = 0.1;
   const FlatGeo *g;
   const Material *medium;
   Vector3D normal, u, v;
   Point2D uv;
 
-  const double t = raytrace_min(src, incident, tlo, avoid, &g, &medium, normal, uv, u, v); 
+  const double t = raytrace_min(src, incident, RT_EPSILON, &g, &medium, normal, uv, u, v); 
 
   if(t >= numeric_limits<double>::max())
     return m_miss_colour(src, incident);
@@ -176,15 +170,14 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
   const double acc_reflected = acc * creflected.Y();
   const double acc_transmitted = acc * ctransmitted.Y();
 
-  if(acc_reflected > threshold && false)
+  if(acc_reflected > threshold)
   {
-    errs() << "Recursively transmitting" << endl;
-    rv += creflected * raytrace_recursive(model, p, ray_reflected, acc_reflected, depth + 1, g);
+    rv += creflected * raytrace_recursive(model, p, ray_reflected, acc_reflected, depth + 1);
   }
 
   if(acc_transmitted > threshold)
   {
-    rv += ctransmitted * raytrace_recursive(model, p, ray_transmitted, acc_transmitted, depth + 1, g);
+    rv += ctransmitted * raytrace_recursive(model, p, ray_transmitted, acc_transmitted, depth + 1);
   }
 
   return rv;
@@ -192,15 +185,14 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
 
 void RayTracer::raytrace_russian(const Point3D &src,
 		      const Vector3D &incident, const Colour &acc,
-		      const RussianFn &fn, int depth, const FlatGeo *avoid)
+		      const RussianFn &fn, int depth)
 {
-  const double tlo = 0.1;
   const FlatGeo *g;
   const PhongMaterial *medium;
   Vector3D normal, u, v;
   Point2D uv;
 
-  const double t = raytrace_min(src, incident, tlo, avoid, &g, &medium, normal, uv, u, v);
+  const double t = raytrace_min(src, incident, RT_EPSILON, &g, &medium, normal, uv, u, v);
 
   if(t >= numeric_limits<double>::max())
     return;
@@ -251,12 +243,12 @@ void RayTracer::raytrace_russian(const Point3D &src,
     {
       // Refraction.
       // Q: does this need to be multipled by 1) cspecular.Y() and 2) (1 - r)?
-      raytrace_russian(p, ray_transmitted, acc * cspecular, fn, depth + 1, g);
+      raytrace_russian(p, ray_transmitted, acc * cspecular, fn, depth + 1);
     }
     else
       // Reflection.
       // Q: same as above, except r?
-      raytrace_russian(p, ray_reflected, acc * cspecular, fn, depth + 1, g);
+      raytrace_russian(p, ray_reflected, acc * cspecular, fn, depth + 1);
   }
   else
   {
@@ -281,6 +273,6 @@ void RayTracer::raytrace_russian(const Point3D &src,
     outgoing = ray_reflected;
 #endif
 
-    raytrace_russian(p, outgoing, acc * cdiffuse * (1./M_PI), fn, depth + 1, g);
+    raytrace_russian(p, outgoing, acc * cdiffuse * (1./M_PI), fn, depth + 1);
   }
 }

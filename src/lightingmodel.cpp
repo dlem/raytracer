@@ -3,9 +3,8 @@
 #include "rt.hpp"
 #include "cmdopts.hpp"
 
-static double occlusion(RayTracer &rt, Light *light, const FlatGeo &geo, const Point3D &pt)
+static double occlusion(RayTracer &rt, Light *light, const Point3D &pt)
 {
-  const double epsilon = 0.001;
   const int resolution = GETOPT(shadow_grid);
   const double radius = light->radius;
 
@@ -14,7 +13,7 @@ static double occlusion(RayTracer &rt, Light *light, const FlatGeo &geo, const P
 
   if(radius <= 0 || !GETOPT(soft_shadows) || resolution <= 1)
   {
-    if(rt.raytrace_within(pt, w, epsilon, &geo, dist))
+    if(rt.raytrace_within(pt, w, RT_EPSILON, dist))
       return 0;
     return 1;
   }
@@ -37,7 +36,7 @@ static double occlusion(RayTracer &rt, Light *light, const FlatGeo &geo, const P
       {
 	const double dw = sqrt(1 - sumsqr);
 	const Vector3D ray = du * u + dv * v + dw * w;
-	if(!rt.raytrace_within(pt, ray, epsilon, &geo, dist))
+	if(!rt.raytrace_within(pt, ray, RT_EPSILON, dist))
 	  occ += 1;
 	count += 1;
       }
@@ -84,7 +83,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
     Vector3D phong_ell = light->position - phong_P;
     const double dist = phong_ell.normalize();
 
-    const double occ = occlusion(rt, light, geo, phong_P);
+    const double occ = occlusion(rt, light, phong_P);
     if(occ < 0.01)
       continue;
 

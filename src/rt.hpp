@@ -12,6 +12,8 @@
 #include "scene.hpp"
 #include "light.hpp"
 
+#define RT_EPSILON (0.0001)
+
 class LightingModel;
 
 // Callback type that gets passed to my main raytracing function.
@@ -71,24 +73,23 @@ public:
   {}
 
   Colour raytrace_recursive(const LightingModel &model, const Point3D &src,
-			    const Vector3D &ray, double acc = 1, int depth = 0, const FlatGeo *avoid = 0);
+			    const Vector3D &ray, double acc = 1, int depth = 0);
 
   void raytrace_russian(const Point3D &src,
 			const Vector3D &ray, const Colour &acc,
-			const RussianFn &fn, int depth = 0, const FlatGeo *avoid = 0);
+			const RussianFn &fn, int depth = 0);
 
 
   // Returns true if any primitive hit yields a t-value in [tlo, thi].
   bool raytrace_within(const Point3D &src,
 		       const Vector3D &ray,
-		       double tlo, const FlatGeo *avoid, double thi);
+		       double tlo, double thi);
 
   // Finds the hit with the smallest t-value greater or equal to tlo and returns
   // the relevant information.
   double raytrace_min(const Point3D &src,
 		      const Vector3D &ray,
 		      double tlo,
-		      const FlatGeo *avoid,
 		      const FlatGeo **pg,
 		      const Material **med,
 		      Vector3D &normal,
