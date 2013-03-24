@@ -40,9 +40,18 @@ function wikithing()
 end
 
 if(debug.getinfo(2) == nil) then
+  if(true) then
   wt = wikithing()
   wt:translate(0, -0.8, 0)
   wt:rotate('x', 45)
   wt:rotate('y', 45)
+else
+  s = gr.sphere('')
+  s:set_material(blue)
+  s:translate(-1, 0, 0)
+  c = gr.cube('')
+  c:set_material(green)
+  wt = gr.difference(s, c)
+end
   cbox.cbox(wt)
 end

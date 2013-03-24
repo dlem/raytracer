@@ -175,7 +175,7 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
     rv += creflected * raytrace_recursive(model, p, ray_reflected, acc_reflected, depth + 1);
   }
 
-  if(acc_transmitted > threshold)
+  if(acc_transmitted > threshold && r < 0.99)
   {
     rv += ctransmitted * raytrace_recursive(model, p, ray_transmitted, acc_transmitted, depth + 1);
   }
@@ -232,7 +232,7 @@ void RayTracer::raytrace_russian(const Point3D &src,
   }
 
 
-  const RT_ACTION action = fn(p, incident, acc * cdiffuse, prs);
+  const RT_ACTION action = fn(p, ray_reflected, acc * cdiffuse, prs);
 
   if(action == RT_ABSORB)
     return;

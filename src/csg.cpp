@@ -252,24 +252,23 @@ void CSGIntersection::adjust_segments(SegmentList &out, SegmentList &c1, Segment
 void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const
 {
   auto i1 = c1.begin(), i2 = c2.begin();
-  bool inside_i1 = false, inside_i2 = false;
+  const FlatGeo *cur1 = 0, *cur2 = 0;
 
   while(i1 != c1.end() || i2 != c2.end())
   {
     if(i1 != c1.end() && (i2 == c2.end() || i1->t < i2->t))
     {
+      cur1 = i1->to;
       if(!i1->from && i1->to)
       {
-	inside_i1 = true;
-	if(!inside_i2)
+	if(!cur2)
 	{
 	  out.push_back(*i1);
 	}
       }
       else if(i1->from && !i1->to)
       {
-	inside_i1 = false;
-	if(!inside_i2)
+	if(!cur2)
 	{
 	  out.push_back(*i1);
 	}
@@ -278,13 +277,14 @@ void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentLi
     }
     else
     {
+      cur2 = i2->to;
       if(!i2->from && i2->to)
       {
-	inside_i2 = true;
-	if(inside_i1)
+	if(cur1)
 	{
+	  assert(out.size() > 0);
 	  out.push_back(*i2);
-	  out.back().from = out.back().to;
+	  out.back().from = i2->to;
 	  out.back().to = 0;
 	  out.back().penetrating = !out.back().penetrating;
 	  out.back().normal = -out.back().normal;
@@ -292,8 +292,7 @@ void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentLi
       }
       else if(i2->from && !i2->to)
       {
-	inside_i2 = false;
-	if(inside_i1)
+	if(cur1)
 	{
 	  out.push_back(*i2);
 	  out.back().to = out.back().from;

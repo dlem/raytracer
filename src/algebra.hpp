@@ -539,6 +539,17 @@ public:
     // From Wikipedia.
     return 0.299 * R() + 0.587 * G() + 0.114 * B();
   }
+  double normalize()
+  {
+    double len = sqrt(r_ * r_ + g_ * g_ + b_ * b_);
+    if(len > 0)
+    {
+      r_ /= len;
+      g_ /= len;
+      b_ /= len;
+    }
+    return len;
+  }
 
 private:
   double r_;

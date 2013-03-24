@@ -203,9 +203,7 @@ Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
     maxdist = max(maxdist, node.dist);
     nl.pop();
     const double fr = outgoing.dot(ph.outgoing);
-    if(fr <= 0)
-      continue;
-    intensity += fr * ph.colour;
+    intensity += max(fr, 0.) * ph.colour;
   }
 
   // Do an area average.

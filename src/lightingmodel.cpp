@@ -3,6 +3,8 @@
 #include "rt.hpp"
 #include "cmdopts.hpp"
 
+using namespace std;
+
 static double occlusion(RayTracer &rt, Light *light, const Point3D &pt)
 {
   const int resolution = GETOPT(shadow_grid);
@@ -117,7 +119,8 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
     rv += light->colour * occ * terms;
   }
 
-  if(m_caustics.size() > 50)
+  // This is expensive, so try to only do it when necessary.
+  if(m_caustics.size() > 50 && phong_kd.Y() > 0.2)
   {
     Colour c = m_caustics.query_radiance(phong_P, -ray);
     rv += c;
@@ -149,14 +152,18 @@ Colour PhotonDrawModel::compute_lighting(RayTracer &rt,
   else
     return Colour(0, 0, 0);
 #endif
+  if(mat.kd(uv).Y() < 0.2)
+    return Colour(0);
+
   const Point3D p = src + t * ray;
   Vector3D pos_rel;
   Colour c = m_map.query_photon(p, pos_rel);
+  c.normalize();
 
-  if(pos_rel.length() <= 10)
+  if(pos_rel.length() < 0.05)
     return c;
   else
-    return Colour(0, 0, 0);
+    return Colour(0);
 
 }
 
@@ -175,5 +182,12 @@ Colour PhotonsOnlyModel::compute_lighting(RayTracer &rt,
 {
   const Point3D p = src + t * ray;
   const Vector3D outgoing = -ray;
-  return m_map.query_radiance(p, outgoing);
+  if(mat.kd(uv).Y() > 0.2)
+  {
+    return m_map.query_radiance(p, outgoing);
+  }
+  else
+  {
+    return Colour(0);
+  }
 }
