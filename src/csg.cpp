@@ -43,13 +43,13 @@ bool CSGPrimitive::intersect(const Point3D &src, const Point3D &dst, HitInfo &hi
 
   for(auto &seg : segments)
   {
-    for(int i = 0; i < 2; i++)
-    {
-      const SegmentEnd &end = seg[i];
-      hi.geo = end.geo;
-      if(!hi.report(end.t, end.normal, end.uv, end.u, end.v))
-	return false;
-    }
+    hi.geo = seg.penetrating ? seg.to : seg.from;
+    assert(hi.geo);
+    const FlatGeo *med = seg.penetrating ? seg.from : seg.to;
+    hi.med = med ? med->mat : &Material::air;
+
+    if(!hi.report(seg.t, seg.normal, seg.uv, seg.u, seg.v))
+      return false;
   }
   return true;
 }
@@ -72,41 +72,37 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
     }
     else
     {
-      // Assume it's concave. This is a good assumption, since it's a non-csg
-      // primitive. Good thing torii aren't in my objectives.
+      const Point3D srcprime = geo.invtrans * src;
+      const Point3D dstprime = geo.invtrans * dst;
+      const Vector3D rayprime = dstprime - srcprime;
 
-      LineSegment ls;
-      int n = 0;
-
-      RaytraceFn fn([&n, &ls]
-	  (const FlatGeo &, const Material &, double t, const Vector3D &normal,
+      SegmentList lprim;
+      RaytraceFn fn([&lprim, &rayprime]
+	  (const FlatGeo &g, const Material &, double t, const Vector3D &normal,
 	   const Point2D &uv, const Vector3D &u, const Vector3D &v)
 	  {
-	    ls[n].t = t; 
-	    ls[n].normal = normal;
-	    ls[n].uv = uv;
-	    ls[n].u = u;
-	    ls[n].v = v;
-	    n++;
-	    return n < 2;
+	    const bool penetrating = rayprime.dot(normal) < 0;
+	    SegInterface si = { t, penetrating, normal, uv, u, v,
+		      penetrating ? 0 : &g, penetrating ? &g : 0 };
+	    lprim.push_back(si);
+	    assert(&g);
+	    assert(si.penetrating ? si.to : si.from);
+	    return true;
 	  });
 
       HitInfo hi(fn);
+      hi.geo = &geo;
       hi.med = &PhongMaterial::air;
-      geo.prim->intersect(geo.invtrans * src, geo.invtrans * dst, hi);
-      assert(n <= 2);
-      if(n >= 2)
-      {
-	if(ls[0].t > ls[1].t)
-	{
-	  const SegmentEnd tmp = ls[0];
-	  ls[0] = ls[1];
-	  ls[1] = tmp;
-	}
+      geo.prim->intersect(srcprime, dstprime, hi);
 
-	ls[0].geo = ls[1].geo = &geo;
-	l.push_back(ls);
-      }
+      struct SortCriteria
+      {
+	bool operator()(const SegInterface &si1, const SegInterface &si2)
+	{ return si1.t < si2.t; }
+      };
+
+      sort(lprim.begin(), lprim.end(), SortCriteria());
+      l.insert(l.end(), lprim.begin(), lprim.end());
     }
   }
 
@@ -115,57 +111,77 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
 
 void CSGUnion::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const
 {
+  const double epsilon = 0.001;
   auto i1 = c1.begin(), i2 = c2.begin();
-  auto done = [&i1, &i2, &c1, &c2] ()
-      { return i1 == c1.end() || i2 == c2.end(); };
+  SegInterface *prev = 0;
 
-  while(!done())
+  while(i1 != c1.end() && i2 != c2.end())
   {
-    // Assume the input lists are sorted, and assume that no overlaps occur in a
-    // single list. Our next output segment starts at whichever output segment
-    // comes first, and ends as soon as we stop being able to merge subsequent
-    // lines.
-    auto &merge2 = i1->t0() < i2->t0() ? i1 : i2;
-    auto &merge1 = i1->t0() < i2->t0() ? i2 : i1;
-    auto end2 = i1->t0() < i2->t0() ? c1.end() : c2.end();
-    auto end1 = i1->t0() < i2->t0() ? c2.end() : c1.end();
-    out.push_back(*merge2++);
-    LineSegment &segment = out.back();
+    SegInterface *si = 0;
 
-    for(;;)
+    if(abs(i1->t - i2->t) < epsilon)
     {
-      // Increment merge1 while it's entirely contained in our current segment.
-      while(merge1 != end1 && merge1->t1() < segment.t1())
-	merge1++;
+      si = &*i2;
+      if(!si->from)
+      {
+	si->from = i1->from;
+	assert(!prev || prev->to == i1->from);
+      }
+      if(!si->to)
+      {
+	si->to = i1->to;
+      }
 
-      if(merge1 == end1)
-	goto _done;
-
-      if(merge1->t0() > segment.t1())
-	// The lines don't intersect.
-	break;
-
-      segment.end = (merge1++)->end;
-
-      while(merge2 != end2 && merge2->t1() < segment.t1())
-	merge2++;
-
-      if(merge2 == end2)
-	goto _done;
-
-      if(merge2->t0() > segment.t1())
-	// The lines don't intersect.
-	break;
-
-      segment.t1() = (merge2++)->t1();
+      i1++;
+      i2++;
     }
+    else if(i1->t < i2->t)
+    {
+      si = &*i1++;
+      si->from = (prev && prev->to) ? prev->to : si->from;
+    }
+    else
+    {
+      si = &*i2++;
+      si->from = (si->from || !prev) ? si->from : prev->to;
+    }
+
+    if(prev)
+      prev->to = si->from;
+    out.push_back(*si);
+    prev = &out.back();
   }
 
-_done:
-  while(i1 != c1.end())
-    out.push_back(*i1++);
-  while(i2 != c2.end())
-    out.push_back(*i2++);
+  if(i2 != c2.end())
+  {
+    if(prev)
+    {
+      if(i2->from)
+	prev->to = i2->from;
+      else
+	i2->from = prev->to;
+    }
+
+    out.insert(out.end(), i2, c2.end());
+  }
+
+  if(i1 != c1.end())
+  {
+    if(prev)
+    {
+      if(prev->to)
+	i1->from = prev->to;
+      else
+	prev->to = i1->from;
+    }
+
+    out.insert(out.end(), i1, c1.end());
+  }
+
+  for(int i = 0; i < out.size(); i++)
+  {
+    assert(out[i].penetrating ? out[i].to : out[i].from);
+  }
 }
 
 void CSGUnion::combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const
@@ -185,6 +201,7 @@ void CSGDifference::combine_bounding_boxes(Box &out, const Box &bl, const Box &b
 
 void CSGIntersection::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const
 {
+#if 0
   auto i1 = c1.begin(), i2 = c2.begin();
   while(i1 != c1.end() && i2 != c2.end())
   {
@@ -201,10 +218,12 @@ void CSGIntersection::adjust_segments(SegmentList &out, SegmentList &c1, Segment
       out.push_back(ls);
     }
   }
+#endif
 }
 
 void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const
 {
+#if 0
   auto i1 = c1.begin(), i2 = c2.begin();
   while(i1 != c1.end() && i2 != c2.end())
   {
@@ -241,4 +260,5 @@ void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentLi
 
   while(i1 != c1.end())
     out.push_back(*i1++);
+#endif
 }

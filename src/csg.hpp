@@ -20,26 +20,18 @@ public:
 
 protected:
 
-  struct SegmentEnd
+  struct SegInterface
   {
     double t;
+    bool penetrating;
     Vector3D normal;
     Point2D uv;
     Vector3D u, v;
-    FlatGeo *geo;
+    const FlatGeo *from;
+    const FlatGeo *to;
   };
 
-  struct LineSegment
-  {
-    inline SegmentEnd &operator[](int ix) { return ix == 0 ? start : end; }
-    double t0() const { return start.t; }
-    double t1() const { return end.t; }
-    double &t0() { return start.t; }
-    double &t1() { return end.t; }
-    SegmentEnd start, end;
-  };
-
-  typedef std::vector<LineSegment> SegmentList;
+  typedef std::vector<SegInterface> SegmentList;
 
   void get_segments(SegmentList &out, const Point3D &eye, const Point3D &dst) const;
   virtual void adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const = 0;

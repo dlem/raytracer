@@ -44,7 +44,7 @@ public:
 	Vector3D n, u, v;
 	Point2D uv;
 	
-	if(rt.raytrace_min(centre, ray, tlo, &g, &med, n, uv, u, v) <
+	if(rt.raytrace_min(centre, ray, tlo, 0, &g, &med, n, uv, u, v) <
 	    numeric_limits<double>::max())
 	{
 	  if(pred(*g, uv))
@@ -305,7 +305,7 @@ bool CausticMap::test_pm(RayTracer &rt, const Point3D &pt, const Vector3D &norma
   if(!(*s_caustic_pm)(dir))
     return false;
 
-  if(rt.raytrace_within(pt, -dir, 0.1, distance))
+  if(rt.raytrace_within(pt, -dir, 0.1, 0, distance))
     return false;
 
   return true;

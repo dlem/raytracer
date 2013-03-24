@@ -3,7 +3,7 @@
 #include "rt.hpp"
 #include "cmdopts.hpp"
 
-static double occlusion(RayTracer &rt, Light *light, const Point3D &pt)
+static double occlusion(RayTracer &rt, Light *light, const FlatGeo &geo, const Point3D &pt)
 {
   const double epsilon = 0.001;
   const int resolution = GETOPT(shadow_grid);
@@ -14,7 +14,7 @@ static double occlusion(RayTracer &rt, Light *light, const Point3D &pt)
 
   if(radius <= 0 || !GETOPT(soft_shadows) || resolution <= 1)
   {
-    if(rt.raytrace_within(pt, w, epsilon, dist))
+    if(rt.raytrace_within(pt, w, epsilon, &geo, dist))
       return 0;
     return 1;
   }
@@ -37,7 +37,7 @@ static double occlusion(RayTracer &rt, Light *light, const Point3D &pt)
       {
 	const double dw = sqrt(1 - sumsqr);
 	const Vector3D ray = du * u + dv * v + dw * w;
-	if(!rt.raytrace_within(pt, ray, epsilon, dist))
+	if(!rt.raytrace_within(pt, ray, epsilon, &geo, dist))
 	  occ += 1;
 	count += 1;
       }
@@ -50,6 +50,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
 				  const Point3D &src,
 				  const Vector3D &ray,
 				  const double t,
+				  const FlatGeo &geo,
 				  const Material &mat,
 				  const Vector3D &normal,
 				  const Point2D &uv,
@@ -83,7 +84,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
     Vector3D phong_ell = light->position - phong_P;
     const double dist = phong_ell.normalize();
 
-    const double occ = occlusion(rt, light, phong_P);
+    const double occ = occlusion(rt, light, geo, phong_P);
     if(occ < 0.01)
       continue;
 
@@ -130,6 +131,7 @@ Colour PhotonDrawModel::compute_lighting(RayTracer &rt,
 			      const Point3D &src,
 			      const Vector3D &ray,
 			      const double t,
+			      const FlatGeo &,
 			      const Material &mat,
 			      const Vector3D &normal,
 			      const Point2D &uv,
@@ -163,6 +165,7 @@ Colour PhotonsOnlyModel::compute_lighting(RayTracer &rt,
 			      const Point3D &src,
 			      const Vector3D &ray,
 			      const double t,
+			      const FlatGeo &,
 			      const Material &mat,
 			      const Vector3D &normal,
 			      const Point2D &uv,
