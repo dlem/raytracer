@@ -113,70 +113,60 @@ void CSGUnion::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c
 {
   const double epsilon = 0.001;
   auto i1 = c1.begin(), i2 = c2.begin();
-  SegInterface *prev = 0;
+  const FlatGeo *cur1 = 0, *cur2 = 0;
 
   while(i1 != c1.end() && i2 != c2.end())
   {
-    SegInterface *si = 0;
+    assert(i1->from || i1->to);
+    assert(i2->from || i2->to);
 
-    if(abs(i1->t - i2->t) < epsilon)
+    if(abs(i2->t - i1->t) < epsilon)
     {
-      si = &*i2;
-      if(!si->from)
-      {
-	si->from = i1->from;
-	assert(!prev || prev->to == i1->from);
-      }
-      if(!si->to)
-      {
-	si->to = i1->to;
-      }
+      cur1 = i1->to;
+      cur2 = i2->to;
+
+      out.push_back(*i2);
+      out.back().from = i2->from ? i2->from : i1->from;
+      out.back().to = i2->to ? i2->to : i1->to;
 
       i1++;
       i2++;
     }
-    else if(i1->t < i2->t)
+    else if(i2->t < i1->t)
     {
-      si = &*i1++;
-      si->from = (prev && prev->to) ? prev->to : si->from;
+      cur2 = i2->to;
+      if(!i2->from && i2->to)
+      {
+	if(!cur1 || cur1 != i2->to)
+	{
+	  out.push_back(*i2);
+	  out.back().from = cur1;
+	}
+      }
+      else if(i2->from && !i2->to)
+      {
+	out.push_back(*i2);
+	out.back().to = cur1;
+      }
+      else
+      {
+	out.push_back(*i2);
+      }
+      i2++;
     }
     else
     {
-      si = &*i2++;
-      si->from = (si->from || !prev) ? si->from : prev->to;
+      cur1 = i1->to;
+      if(!cur2)
+      {
+	out.push_back(*i1);
+      }
+      i1++;
     }
-
-    if(prev)
-      prev->to = si->from;
-    out.push_back(*si);
-    prev = &out.back();
   }
 
-  if(i2 != c2.end())
-  {
-    if(prev)
-    {
-      if(i2->from)
-	prev->to = i2->from;
-      else
-	i2->from = prev->to;
-    }
-
-    out.insert(out.end(), i2, c2.end());
-  }
-
-  if(i1 != c1.end())
-  {
-    if(prev)
-    {
-      if(prev->to)
-	i1->from = prev->to;
-      else
-	prev->to = i1->from;
-    }
-
-    out.insert(out.end(), i1, c1.end());
-  }
+  out.insert(out.end(), i1, c1.end());
+  out.insert(out.end(), i2, c2.end());
 
   for(int i = 0; i < out.size(); i++)
   {
