@@ -170,7 +170,7 @@ void PhotonMap::build(RayTracer &rt, const list<Light *> &lights)
     // light's falloff coefficient is 1. Hence energy is 4PIr^2, where
     // r is given by the falloff coefficient such that f r^2 = 1, ie. r =
     // sqrt(1/f).
-    const double energy_fudge = 100;
+    const double energy_fudge = 50;
     const Colour total_energy = energy_fudge * light->colour;
 
     build_light(rt, *light, total_energy);
@@ -202,7 +202,8 @@ Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
     const Photon &ph = *static_cast<Photon *>(node.node);
     maxdist = max(maxdist, node.dist);
     nl.pop();
-    const double fr = outgoing.dot(ph.outgoing);
+    double fr = outgoing.dot(ph.outgoing);
+    fr = fr < 0 ? 0 : 1;
     intensity += max(fr, 0.) * ph.colour;
   }
 

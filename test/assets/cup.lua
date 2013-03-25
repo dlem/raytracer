@@ -59,5 +59,5 @@ if(debug.getinfo(2) == nil) then
   n:rotate('z', 20)
   n:scale(0.03, 1, 0.03)
   root:add_child(n)
-  cbox.cbox(root, 100, 100)
+  cbox.cbox(root, 256, 256)
 end
