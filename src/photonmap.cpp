@@ -192,7 +192,7 @@ Point3D s_caustic_pm_centre;
 Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
 {
   KDTree<Photon>::TPQueue nl;
-  m_map.find_nnn(pt, GETOPT(caustic_num_neighbours), nl);
+  m_map.find_nnn(pt, GETOPT(caustic_num_neighbours), nl, 0.15);
   double maxdist = 0;
   Colour intensity(0);
 
@@ -204,6 +204,7 @@ Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
     nl.pop();
     double fr = outgoing.dot(ph.outgoing);
     fr = fr < 0 ? 0 : 1;
+    //const double wp = 1 - 0.25 * node.dist / maxdist;
     intensity += max(fr, 0.) * ph.colour;
   }
 
@@ -214,10 +215,18 @@ Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
 
 Colour PhotonMap::query_photon(const Point3D &pt, Vector3D &pos_rel)
 {
-  Photon *p = m_map.find_nn(pt);
-  assert(p);
-  pos_rel = p->pt - pt;
-  return p->colour;
+  Photon *p = m_map.find_nn(pt, 0.15);
+  if(p)
+  {
+    pos_rel = p->pt - pt;
+    return p->colour;
+  }
+  else
+  {
+    const double dmax = numeric_limits<double>::max();
+    pos_rel = Vector3D(dmax, dmax, dmax);
+    return Colour(0);
+  }
 }
 
 void CausticMap::build_light(RayTracer &rt, const Light &light, const Colour &energy)

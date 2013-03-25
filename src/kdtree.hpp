@@ -8,6 +8,7 @@
 #define __KD_TREE_HPP__
 
 #include <queue>
+#include <limits>
 #include "algebra.hpp"
 
 struct KDNode
@@ -55,16 +56,16 @@ public:
     return find(pt, m_root, 0);
   }
 
-  TNode *find_nn(const Point3D &pt)
+  TNode *find_nn(const Point3D &pt, double maxdist = std::numeric_limits<double>::max())
   {
     TPQueue q;
-    find_nnn(pt, 1, m_root, q, 0);
+    find_nnn(pt, 1, m_root, q, 0, maxdist);
     return (TNode *)(q.top().node);
   }
 
-  void find_nnn(const Point3D &pt, int n, TPQueue &q)
+  void find_nnn(const Point3D &pt, int n, TPQueue &q, double maxdist = std::numeric_limits<double>::max())
   {
-    find_nnn(pt, n, m_root, q, 0);
+    find_nnn(pt, n, m_root, q, maxdist, 0);
   }
 
 private:
@@ -83,7 +84,7 @@ private:
     return find(pt, node->rchild, depth + 1);
   }
 
-  static void find_nnn(const Point3D &pt, int n, KDNode *node, TPQueue &nns, int depth)
+  static void find_nnn(const Point3D &pt, int n, KDNode *node, TPQueue &nns, double maxdist, int depth)
   {
     const int split = depth % 3;
 
@@ -102,17 +103,17 @@ private:
       tree2 = node->lchild;
     }
 
-    find_nnn(pt, n, tree1, nns, depth + 1);
+    find_nnn(pt, n, tree1, nns, maxdist, depth + 1);
 
     if(nns.size() < n)
     {
       nns.push(PQNode(pt, node));
-      find_nnn(pt, n, tree2, nns, depth + 1);
+      find_nnn(pt, n, tree2, nns, maxdist, depth + 1);
     }
     else
     {
       const double mindist = abs(pt[split] - node->pt[split]);
-      if(mindist < nns.top().dist)
+      if(mindist < maxdist && mindist < nns.top().dist)
       {
 	PQNode pqn(pt, node);
 	if(pqn.dist < nns.top().dist)
@@ -120,7 +121,7 @@ private:
 	  nns.pop();
 	  nns.push(pqn);
 	}
-	find_nnn(pt, n, tree2, nns, depth + 1);
+	find_nnn(pt, n, tree2, nns, maxdist, depth + 1);
       }
     }
   }

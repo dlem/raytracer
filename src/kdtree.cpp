@@ -55,7 +55,7 @@ void kdtree_test()
     Point3D jittered = pt;
     jittered[rand() % 3] += -0.00001 + rand() % 1000 * 0.00000002;
     KDTree<KDNode>::TPQueue q;
-    tree.find_nnn(jittered, 50, q);
+    tree.find_nnn(jittered, 50, q, numeric_limits<double>::max());
     while(q.size() > 1)
     {
       q.pop();
