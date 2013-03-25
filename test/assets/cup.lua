@@ -3,7 +3,7 @@ module('cup', package.seeall)
 require 'misc'
 require 'cbox'
 
-glass = gr.material({0, 0, 0}, {1, 1, 1}, 20)
+glass = gr.material({0, 0, 0}, {0.95, 0.95, 0.95}, 20)
 glass:set_ri(1.5)
 
 root = gr.node('root')
@@ -26,7 +26,7 @@ ninner:add_child(inner)
 ninner:translate(0, bot * 0.5, 0)
 ninner:scale(r_inner, 1 - bot * 0.5, r_inner)
 
-mat_liq = gr.material({0, 0, 0}, {0.8, 1, 1}, 20)
+mat_liq = gr.material({0, 0, 0}, {0.5, 0.95, 0.95}, 20)
 mat_liq:set_ri(1.33)
 liq = gr.cylinder('cup_liq')
 liq:set_material(mat_liq)

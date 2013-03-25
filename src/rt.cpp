@@ -146,13 +146,14 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
   const bool penetrating = incident.dot(normal) < 0;
   const Material &mat = penetrating ? *g->mat : *medium;
 
-  if(depth > 12)
+  if(depth > 15)
   {
     // This can happen in certain situations (eg. perfect mirrors or
     // repeated total internal reflection on the _inside_ of certain
     // primitives). The best thing we can do in this situations is just
     // calculate the phong lighting.
-    return model.compute_lighting(*this, src, incident, t, *g, mat, normal, uv, u, v, 1);
+    //return model.compute_lighting(*this, src, incident, t, *g, mat, normal, uv, u, v, 1);
+    return Colour(1);
   }
 
   const Point3D p = src + t * incident;
