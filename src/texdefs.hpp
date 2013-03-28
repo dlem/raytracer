@@ -13,10 +13,7 @@ template<typename TMapped>
 class UVRemapper : public UVMapper<TMapped>
 {
 public:
-  UVRemapper(UVMapper<TMapped> *tex, REMAPTYPE ty)
-    : m_tex(*tex)
-    , m_ty(ty)
-  {}
+  UVRemapper(UVMapper<TMapped> &tex, const std::string &ty);
 
   virtual TMapped operator()(const Point2D &uv);
 
@@ -25,7 +22,7 @@ private:
   REMAPTYPE m_ty;
 };
 
-typedef UVRemapper<Point2D> BMRemapper;
+typedef UVRemapper<Point2D> BmRemapper;
 typedef UVRemapper<Colour> TexRemapper;
 
 

@@ -208,7 +208,7 @@ void RayTracer::raytrace_russian(const Point3D &src,
   Vector3D normal, u, v;
   Point2D uv;
 
-  const double t = raytrace_min(src, incident, RT_EPSILON, &g, &medium, normal, uv, u, v);
+  const double t = raytrace_min(src, incident, RT_EPSILON, &g, &medium, _normal, uv, u, v);
 
   if(t >= numeric_limits<double>::max())
     return;
@@ -218,13 +218,14 @@ void RayTracer::raytrace_russian(const Point3D &src,
     return;
 
   const bool penetrating = incident.dot(normal) < 0;
+  const Material &mat = penetrating ? *g->mat : *medium;
+  mat.get_normal(normal, uv, u, v);
 
   Vector3D ray_reflected;
   Vector3D ray_transmitted;
   const double r = compute_specular(incident, *g->mat, *medium, normal,
 				    ray_reflected, ray_transmitted);
 
-  const Material &mat = penetrating ? *g->mat : *medium;
   const Point3D p = src + t * incident;
   // Giving incorrect uv coordinates to a medium won't hurt...
   const Colour cdiffuse = mat.kd(uv);

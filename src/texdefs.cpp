@@ -1,8 +1,35 @@
 #include "texdefs.hpp"
+#include "cmdopts.hpp"
+
+using namespace std;
+
+static map<const string, REMAPTYPE> s_remaptypes =
+{
+  { "cubetop", REMAP_CUBETOP },
+  { "cyltop", REMAP_CYLTOP },
+};
+
+template<typename TMapped>
+UVRemapper<TMapped>::UVRemapper(UVMapper<TMapped> &tex, const std::string &ty)
+  : m_tex(tex)
+{
+  auto rmtype = s_remaptypes.find(ty);
+  if(rmtype == s_remaptypes.end())
+  {
+    errs() << "Invalid remap type: '" << ty << "'" << endl;
+    errs() << "Valid remap types:" << endl;
+    for(auto p : s_remaptypes)
+      cerr << p.first << endl;
+    cerr << endl << "Aborting" << endl;
+    exit(1);
+  }
+  m_ty = rmtype->second;
+}
 
 template<typename TMapped>
 TMapped UVRemapper<TMapped>::operator()(const Point2D &uv)
 {
+  Point2D rv(uv);
   switch(m_ty)
   {
     case REMAP_CUBETOP:
@@ -12,9 +39,8 @@ TMapped UVRemapper<TMapped>::operator()(const Point2D &uv)
       {
 	const double u = (uv[0] - l) * (r - l);
 	const double v = (uv[1] - b) * (t - b);
-	return m_tex(Point2D(u, v));
+	rv = Point2D(u, v);
       }
-      return TMapped();
     }
     case REMAP_CYLTOP:
     {
@@ -25,7 +51,7 @@ TMapped UVRemapper<TMapped>::operator()(const Point2D &uv)
       assert(false);
     }
   }
-  return TMapped();
+  return m_tex(rv);
 }
 
 template class UVRemapper<Point2D>;
@@ -34,14 +60,15 @@ template class UVRemapper<Colour>;
 
 Point2D SineWavesBm::operator()(const Point2D &uv)
 {
-#if 0
-  const double dist = 0.2;
-  const double size = 0.03;
-  const double rad = sqrt(sqr(uv[0] - 0.5) + sqr(uv[1] - 0.5));
-  const double start = rad - rad % size;
-  const double end = start + size;
-#endif
-  return Point2D();
+  const Point2D offset(uv[0] - 0.5, uv[1] - 0.5);
+  const double len = sqrt(sqr(offset[0]) + sqr(offset[1]));
+  const Point2D dirvec(offset[0] / max(len, 0.0001), offset[1] / max(len, 0.0001));
+  const double factor = 2 * M_PI / 0.05;
+  const double rad = factor * len;
+  const double slope = cos(rad);
+  Point2D rv(slope * dirvec[0], slope * dirvec[1]);
+  errs() << rv << endl;
+  return rv;
 }
 
 Point2D BubblesBm::operator()(const Point2D &uv)

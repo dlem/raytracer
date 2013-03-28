@@ -10,11 +10,7 @@ using namespace std;
 
 static map<const string, function<Bumpmap *()>> s_bumpmaps = {
   { "sinewaves", []() { return new SineWavesBm(); } },
-  { "sinewaves_cyltop", []() { return new BMRemapper(new SineWavesBm(), REMAP_CYLTOP); } },
-  { "sinewaves_cubetop", []() { return new BMRemapper(new SineWavesBm(), REMAP_CUBETOP); } },
   { "bubbles", []() { return new BubblesBm(); } },
-  { "bubbles_cyltop", []() { return new BMRemapper(new BubblesBm(), REMAP_CYLTOP); } },
-  { "bubbles_cubetop", []() { return new BMRemapper(new BubblesBm(), REMAP_CUBETOP); } }
 };
 
 static map<const string, function<Texture *()>> s_textures = {

@@ -18,8 +18,11 @@ public:
   void get_normal(Vector3D &normal, const Point2D &uv,
 		  const Vector3D &u, const Vector3D &v) const;
 
-  void set_bumpmap(const std::string &bumpmap);
-  void set_texture(const std::string &texture);
+  Texture *&texture() { return m_texture; }
+  const Texture *texture() const { return m_texture; }
+  Bumpmap *&bumpmap() { return m_bumpmap; }
+  const Bumpmap *bumpmap() const { return m_bumpmap; }
+
   void set_ri(double ri) { m_ri = ri; }
 
   static PhongMaterial air;

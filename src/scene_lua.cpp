@@ -47,6 +47,10 @@
 #include "mesh.hpp"
 #include "csg.hpp"
 #include "cmdopts.hpp"
+#include "textures.hpp"
+#include "texdefs.hpp"
+
+using namespace std;
 
 // Uncomment the following line to enable debugging messages
 // #define GRLUA_ENABLE_DEBUG
@@ -88,6 +92,14 @@ struct gr_material_ud {
 // allocated by Lua to represent lights.
 struct gr_light_ud {
   Light* light;
+};
+
+struct gr_texture_ud {
+  Texture *tex;
+};
+
+struct gr_bumpmap_ud {
+  Bumpmap *bm;
 };
 
 // Useful function to retrieve and check an n-tuple of numbers.
@@ -404,14 +416,62 @@ int gr_render_cmd(lua_State* L)
 }
 
 extern "C"
+int gr_texture_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_texture_ud* data = (gr_texture_ud*)lua_newuserdata(L, sizeof(gr_texture_ud));
+  data->tex = 0;
+
+  const char *name = luaL_checkstring(L, 1);
+  Texture *tex = Texture::get(name);
+  if(!tex)
+  {
+    errs() << "Invalid texture: " << name << endl;
+    errs() << "Aborting" << endl;
+    exit(1);
+  }
+  data->tex = tex;
+
+  luaL_getmetatable(L, "gr.texture");
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
+extern "C"
+int gr_bumpmap_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+
+  gr_bumpmap_ud* data = (gr_bumpmap_ud*)lua_newuserdata(L, sizeof(gr_bumpmap_ud));
+  data->bm = 0;
+
+  const char *name = luaL_checkstring(L, 1);
+  Bumpmap *bm = Bumpmap::get(name);
+  if(!bm)
+  {
+    errs() << "Invalid bumpmap: " << name << endl;
+    errs() << "Aborting" << endl;
+    exit(1);
+  }
+  data->bm = bm;
+
+  luaL_getmetatable(L, "gr.bumpmap");
+  lua_setmetatable(L, -2);
+
+  return 1;
+}
+
+extern "C"
 int gr_material_set_texture_cmd(lua_State *L)
 {
   GRLUA_DEBUG_CALL;
   gr_material_ud* selfdata = (gr_material_ud*)luaL_checkudata(L, 1, "gr.material");
   luaL_argcheck(L, selfdata != 0, 1, "Material expected");
-  const char *texture = luaL_checkstring(L, 2);
-  luaL_argcheck(L, texture, 2, "Texture name/file expected");
-  selfdata->material->set_texture(texture);
+  gr_texture_ud* texdata = (gr_texture_ud*)luaL_checkudata(L, 2, "gr.texture");
+  luaL_argcheck(L, texdata != 0, 2, "Texture expected");
+  selfdata->material->texture() = texdata->tex;
   return 0;
 }
 
@@ -421,9 +481,31 @@ int gr_material_set_bumpmap_cmd(lua_State *L)
   GRLUA_DEBUG_CALL;
   gr_material_ud* selfdata = (gr_material_ud*)luaL_checkudata(L, 1, "gr.material");
   luaL_argcheck(L, selfdata != 0, 1, "Material expected");
-  const char *bumpmap = luaL_checkstring(L, 2);
-  luaL_argcheck(L, bumpmap, 2, "Texture name/file expected");
-  selfdata->material->set_bumpmap(bumpmap);
+  gr_bumpmap_ud* bmdata = (gr_bumpmap_ud*)luaL_checkudata(L, 2, "gr.bumpmap");
+  luaL_argcheck(L, bmdata != 0, 2, "Bump map expected");
+  selfdata->material->bumpmap() = bmdata->bm;
+  return 0;
+}
+
+extern "C"
+int gr_texture_remap_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+  gr_texture_ud* selfdata = (gr_texture_ud*)luaL_checkudata(L, 1, "gr.texture");
+  luaL_argcheck(L, selfdata != 0, 1, "Texture expected");
+  const char *name = luaL_checkstring(L, 2);
+  selfdata->tex = new TexRemapper(*selfdata->tex, name);
+  return 0;
+}
+
+extern "C"
+int gr_bumpmap_remap_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+  gr_bumpmap_ud* selfdata = (gr_bumpmap_ud*)luaL_checkudata(L, 1, "gr.bumpmap");
+  luaL_argcheck(L, selfdata != 0, 1, "Bumpmap expected");
+  const char *name = luaL_checkstring(L, 2);
+  selfdata->bm = new BmRemapper(*selfdata->bm, name);
   return 0;
 }
 
@@ -722,6 +804,9 @@ static const luaL_reg grlib_functions[] = {
   {"air", gr_air_cmd},
   {"option", gr_option_cmd},
 
+  {"texture", gr_texture_cmd},
+  {"bumpmap", gr_bumpmap_cmd},
+
   {0, 0}
 };
 
@@ -753,6 +838,14 @@ static const luaL_reg grlib_material_methods[] = {
   {"set_texture", gr_material_set_texture_cmd},
   {"set_bumpmap", gr_material_set_bumpmap_cmd},
   {"set_ri", gr_material_set_ri_cmd},
+};
+
+static const luaL_reg grlib_texture_methods[] = {
+  {"remap", gr_texture_remap_cmd},
+};
+
+static const luaL_reg grlib_bumpmap_methods[] = {
+  {"remap", gr_bumpmap_remap_cmd},
 };
 
 static const luaL_reg grlib_light_methods[] = {
@@ -793,6 +886,21 @@ bool run_lua(const std::string& filename)
 
   // Add material methods.
   luaL_openlib(L, 0, grlib_material_methods, 0);
+
+  luaL_newmetatable(L, "gr.texture");
+  lua_pushstring(L, "__index");
+  lua_pushvalue(L, -2);
+  lua_settable(L, -3);
+
+  luaL_openlib(L, 0, grlib_texture_methods, 0);
+
+  luaL_newmetatable(L, "gr.bumpmap");
+  lua_pushstring(L, "__index");
+  lua_pushvalue(L, -2);
+  lua_settable(L, -3);
+
+  luaL_openlib(L, 0, grlib_bumpmap_methods, 0);
+
 
   // And for light.
   luaL_newmetatable(L, "gr.light");
