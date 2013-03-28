@@ -74,8 +74,10 @@ public:
   unsigned aa_grid, threads;
   double aa_threshold, aa_jitter;
   unsigned caustic_num_photons;
+  unsigned gi_num_photons;
   unsigned caustic_pm_gran;
   unsigned caustic_num_neighbours;
+  unsigned gi_num_neighbours;
   unsigned shadow_grid;
   unsigned height, width;
   std::ostream *outs;

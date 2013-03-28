@@ -3,9 +3,7 @@
 
 #include <string>
 #include "algebra.hpp"
-
-class Texture;
-class Bumpmap;
+#include "textures.hpp"
 
 class PhongMaterial
 {

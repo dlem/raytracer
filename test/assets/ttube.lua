@@ -3,70 +3,51 @@ module('ttube', package.seeall)
 require 'misc'
 require 'cbox'
 
-glass = gr.material({0, 0, 0}, {1, 1, 1}, 10)
+glass = gr.material({0, 0, 0}, {0.95, 0.95, 0.95}, 10)
 glass:set_ri(1.5)
+liq = gr.material({0, 0, 0}, {0.4, 0.95, 0.45}, 10)
+liq:set_ri(1.33)
 
-function mk_outline(ends, r)
+w = 0.05
+r = 0.3
+h = 1.3
+fullness = 0.5
+
+function mk_cylsphere(mat, r, h)
   cyl = gr.cylinder('ttube_cyl')
-  cyl:translate(0, 0.5 * ends, 0)
-  cyl:scale(r, 1 - 0.5 * ends, r)
-  cyl:set_material(glass)
-  sph = gr.sphere('ttube_sph1')
-  sph:translate(0, -1 + ends, 0)
-  sph:scale(r, ends, r)
-  sph:set_material(glass)
-  bottom = gr.union(cyl, sph)
-  return bottom
+  cyl:scale(r, h, r)
+  cyl:set_material(mat)
+  sph = gr.sphere('ttube_sph')
+  sph:translate(0, -h, 0)
+  sph:scale(r, r, r)
+  sph:set_material(mat)
+  return gr.union(sph, cyl)
 end
 
-inner_r = 0.09
+tube = mk_cylsphere(glass, r, h)
+inner = mk_cylsphere(gr.air(), r - w, h - w)
+inner:translate(0, w, 0)
+it = gr.union(tube, inner)
+liq = mk_cylsphere(liq, r - w, (h - w) * fullness)
+liq:translate(0, w - (h - w) * (1 - fullness), 0)
+it = gr.union(it, liq)
 
-r = 0.1
-ends = 0.2
-epsilon = 0.001
-tube = mk_outline(ends, r)
-
-function ttube(liquid_mat, fullness)
-  if(liquid_mat == nil or fullness == nil) then
-    fullness = 0
-  end
-
-  empty_chunk = gr.cylinder('ttube_air')
-  empty_chunk:translate(0, ends + 2 * fullness + epsilon, 0)
-  empty_chunk:scale(inner_r, 1, inner_r)
-  empty_chunk:set_material(gr.air())
-
-  if(fullness > 0) then
-    liq_chunk = gr.cylinder('ttube_liquid')
-    liq_chunk:translate(0, ends, 0)
-    liq_chunk:scale(inner_r - epsilon, 1, inner_r - epsilon)
-    liq_chunk:set_material(liquid_mat)
-  end
-
-  return gr.difference(gr.difference(tube, empty_chunk), liq_chunk)
+function ttube()
+  n = gr.node('ttube')
+  n:add_child(it)
+  return n
 end
 
 if(debug.getinfo(2) == nil) then
   root = gr.node('root')
   if(false) then
-  ball = gr.sphere('ball')
-  ball:set_material(gr.material({0, 0, 0}, {1, 1, 1}, 20))
-  ball:translate(-1, -1, -2)
-  root:add_child(ball)
+  sph = gr.sphere('sph')
+  sph:set_material(gr.material({0.2, 0.05, 0.3}, {0.4, 0.4, 0.4}, 20))
+  sph:translate(-0.3, -1, -2)
+  root:add_child(sph)
   end
-
-  cyl = gr.cylinder('')
-  cyl:set_material(gr.material({0, 0, 0}, {0.2, 0.2, 0.9}, 0))
-  cyl:translate(0, -1.5, -2)
-  cyl:rotate('z', 45)
-  cyl:scale(2, 0.1, 0.1)
-  root:add_child(cyl)
-
-  liquid_mat = gr.material({0, 0, 0}, {0.2, 0.9, 0.2}, 10)
-  liquid_mat:set_ri(1.33)
-  tt = ttube(liquid_mat, 0.4)
+  tt = ttube()
   tt:translate(0, -1, 0)
-  tt:scale(3, 1.5, 3)
   root:add_child(tt)
-  cbox.cbox(root)
+  cbox.cbox(root, 256, 256)
 end

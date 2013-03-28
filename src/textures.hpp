@@ -7,22 +7,16 @@ class Image;
 
 void gradients(Image &grad, const Image &img);
 
-class Texture
+template<typename TMapped>
+class UVMapper
 {
 public:
-  virtual ~Texture() {}
-  virtual Colour operator()(const Point2D &uv) = 0;
-
-  static Texture *get(const std::string &name);
+  virtual ~UVMapper() {}
+  virtual TMapped operator()(const Point2D &uv) = 0;
+  static UVMapper<TMapped> *get(const std::string &name);
 };
 
-class Bumpmap
-{
-public:
-  virtual ~Bumpmap() {}
-  virtual Point2D operator()(const Point2D &uv) = 0;
-  
-  static Bumpmap *get(const std::string &name);
-};
+typedef UVMapper<Colour> Texture;
+typedef UVMapper<Point2D> Bumpmap;
 
 #endif

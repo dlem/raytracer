@@ -1,7 +1,12 @@
 module('cup', package.seeall)
 
+-- 1M photons and 100 neighbours seems to work.
+
 require 'misc'
 require 'cbox'
+
+gr.option("--caustic-num-photons 1000000")
+gr.option("--caustic-num-neighbours 100")
 
 glass = gr.material({0, 0, 0}, {0.95, 0.95, 0.95}, 20)
 glass:set_ri(1.5)

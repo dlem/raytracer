@@ -46,6 +46,27 @@ T safe_div(T x, T y)
   return y == 0 ? 0 : x / y;
 }
 
+template<typename T>
+bool approx(T v1, T v2)
+{
+  const double epsilon = 0.0001;
+  return inrange(v1, v2 - epsilon, v2 + epsilon);
+}
+
+template<typename T>
+T norm(T tin)
+{
+  T tout = tin;
+  tout.normalize();
+  return tout;
+}
+
+template<typename T>
+bool normalized(T t)
+{
+  return approx(t.length(), 1.);
+}
+
 class Point2D
 {
 public:
@@ -503,7 +524,7 @@ public:
     , g_(g)
     , b_(b)
   {}
-  Colour(double c)
+  Colour(double c = 0.)
     : r_(c)
     , g_(c)
     , b_(c)
@@ -549,6 +570,12 @@ public:
       b_ /= len;
     }
     return len;
+  }
+  void pow(double x)
+  {
+    r_ = ::pow(r_, x);
+    g_ = ::pow(g_, x);
+    b_ = ::pow(b_, x);
   }
 
 private:

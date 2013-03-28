@@ -247,7 +247,6 @@ void RayTracer::raytrace_russian(const Point3D &src,
     errs() << cdiffuse << ", " << cspecular << endl;
   }
 
-
   const RT_ACTION action = fn(p, ray_reflected, acc * cdiffuse, prs);
 
   if(action == RT_ABSORB)

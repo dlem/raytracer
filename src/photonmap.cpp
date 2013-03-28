@@ -2,7 +2,6 @@
 #include <vector>
 #include <iostream>
 #include "light.hpp"
-#include "cmdopts.hpp"
 #include "timer.hpp"
 #include "stats.hpp"
 
@@ -324,7 +323,7 @@ void GIPhotonMap::build_light(RayTracer &rt, const Light &light, const Colour &e
   const Colour photon_energy = energy * (1./nphotons);
 
   {
-    SCOPED_TIMER("shoot gi photons");
+    ProgressTimer timer("shoot gi photons", nphotons);
     for(int i = 0; i < nphotons; i++)
     {
       Vector3D ray;
@@ -351,6 +350,7 @@ void GIPhotonMap::build_light(RayTracer &rt, const Light &light, const Colour &e
 		return (RT_ACTION)i;
 	    return RT_ABSORB;
 	  });
+      timer.increment();
     }
   }
 

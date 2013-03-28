@@ -4,10 +4,17 @@
 #include <map>
 #include <cassert>
 #include "image.hpp"
+#include "texdefs.hpp"
 
 using namespace std;
 
 static map<const string, function<Bumpmap *()>> s_bumpmaps = {
+  { "sinewaves", []() { return new SineWavesBm(); } },
+  { "sinewaves_cyltop", []() { return new BMRemapper(new SineWavesBm(), REMAP_CYLTOP); } },
+  { "sinewaves_cubetop", []() { return new BMRemapper(new SineWavesBm(), REMAP_CUBETOP); } },
+  { "bubbles", []() { return new BubblesBm(); } },
+  { "bubbles_cyltop", []() { return new BMRemapper(new BubblesBm(), REMAP_CYLTOP); } },
+  { "bubbles_cubetop", []() { return new BMRemapper(new BubblesBm(), REMAP_CUBETOP); } }
 };
 
 static map<const string, function<Texture *()>> s_textures = {
@@ -29,6 +36,8 @@ public:
     const int v = clamp<double>((1 - uv[1]) * m_bumpmap.height(), 0, m_bumpmap.height() - 1);
     return Point2D(5 * m_bumpmap(u, v, 0), 5 * m_bumpmap(u, v, 1));
   }
+
+  virtual ~ImageBumpmap() {}
 
 private:
   Image m_bumpmap;
@@ -54,6 +63,7 @@ private:
   const Image &m_texture;
 };
 
+template<>
 Bumpmap *Bumpmap::get(const string &name)
 {
   auto it = s_bumpmaps.find(name);
@@ -67,6 +77,7 @@ Bumpmap *Bumpmap::get(const string &name)
     return 0;
 }
 
+template<>
 Texture *Texture::get(const string &name)
 {
   auto it = s_textures.find(name);

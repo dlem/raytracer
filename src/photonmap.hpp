@@ -5,6 +5,7 @@
 #include <vector>
 #include "rt.hpp"
 #include "kdtree.hpp"
+#include "cmdopts.hpp"
 
 class PhotonMap
 {
@@ -21,6 +22,7 @@ public:
 
 protected:
   virtual void build_light(RayTracer &rt, const Light &light, const Colour &energy) = 0;
+  virtual unsigned num_neighbours() = 0;
 
   struct Photon : public KDNode
   {
@@ -42,13 +44,15 @@ public:
 
 protected:
   virtual void build_light(RayTracer &rt, const Light &light, const Colour &energy);
+  virtual unsigned num_neighbours() { return GETOPT(caustic_num_neighbours); }
 
 };
 
 class GIPhotonMap : public PhotonMap
 {
-public:
+protected:
   virtual void build_light(RayTracer &rt, const Light &light, const Colour &energy);
+  virtual unsigned num_neighbours() { return GETOPT(gi_num_neighbours); }
 };
 
 #endif
