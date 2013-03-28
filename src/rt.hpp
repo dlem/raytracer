@@ -73,7 +73,7 @@ public:
   {}
 
   Colour raytrace_recursive(const LightingModel &model, const Point3D &src,
-			    const Vector3D &ray, double acc = 1, int depth = 0);
+			    const Vector3D &ray, double *dist = 0, double acc = 1, int depth = 0);
 
   void raytrace_russian(const Point3D &src,
 			const Vector3D &ray, const Colour &acc,

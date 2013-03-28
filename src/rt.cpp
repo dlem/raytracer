@@ -129,6 +129,7 @@ double compute_specular(const Vector3D &incident,     // Must be unit.
 Colour RayTracer::raytrace_recursive(const LightingModel &model,
 				     const Point3D &src,
 				     const Vector3D &incident,
+				     double *dist,
 				     double acc,
 				     int depth)
 {
@@ -138,6 +139,11 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
   Vector3D normal, u, v;
   Point2D uv;
 
+  if(dist)
+    *dist = -1.;
+
+  assert(normalized(incident));
+
   const double t = raytrace_min(src, incident, RT_EPSILON, &g, &medium, normal, uv, u, v); 
 
   if(t >= numeric_limits<double>::max())
@@ -145,6 +151,9 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
 
   const bool penetrating = incident.dot(normal) < 0;
   const Material &mat = penetrating ? *g->mat : *medium;
+
+  if(dist)
+    *dist = t;
 
   if(depth > 15)
   {
@@ -173,12 +182,18 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
 
   if(acc_reflected > threshold)
   {
-    rv += creflected * raytrace_recursive(model, p, ray_reflected, acc_reflected, depth + 1);
+    const Colour crec = creflected * raytrace_recursive(model, p, ray_reflected, 0, acc_reflected, depth + 1);
+    rv += crec;
   }
 
   if(acc_transmitted > threshold && r < 0.99)
   {
-    rv += ctransmitted * raytrace_recursive(model, p, ray_transmitted, acc_transmitted, depth + 1);
+    double dist_rec;
+    const Colour crec = raytrace_recursive(model, p, ray_transmitted, &dist_rec, acc_transmitted, depth + 1);
+    Colour cattenuated = cspecular;
+    if(dist_rec > -1)
+      cattenuated.pow(dist_rec);
+    rv += (1 - r) * cattenuated * crec;
   }
 
   return rv;
