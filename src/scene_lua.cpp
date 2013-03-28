@@ -46,6 +46,7 @@
 #include "a4.hpp"
 #include "mesh.hpp"
 #include "csg.hpp"
+#include "cmdopts.hpp"
 
 // Uncomment the following line to enable debugging messages
 // #define GRLUA_ENABLE_DEBUG
@@ -685,6 +686,14 @@ int gr_light_set_radius_cmd(lua_State *L)
   return 0;
 }
 
+extern "C"
+int gr_option_cmd(lua_State *L)
+{
+  const char *args = luaL_checkstring(L, 1);
+  g_opts->runtime_args(args);
+  return 0;
+}
+
 // This is where all the "global" functions in our library are
 // declared.
 // If you want to add a new non-member function, add it here.
@@ -711,6 +720,7 @@ static const luaL_reg grlib_functions[] = {
   {"difference", gr_difference_cmd},
 
   {"air", gr_air_cmd},
+  {"option", gr_option_cmd},
 
   {0, 0}
 };

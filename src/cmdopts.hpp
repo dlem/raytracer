@@ -49,6 +49,7 @@ public:
   }
 
   int init(int argc, const char **argv);
+  void runtime_args(const char *args) const;
 
 private:
   void add_parameter(const char *name, char shrt, const std::function<int(const char **)> &handler);

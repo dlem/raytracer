@@ -11,6 +11,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <cassert>
+#include <sstream>
+#include <iterator>
 
 using namespace std;
 
@@ -34,6 +36,17 @@ int CmdOptsBase::init(int argc, const char **argv)
     i += it->second(argv + i + 1);
   }
   return i;
+}
+
+void CmdOptsBase::runtime_args(const char *_args) const
+{
+  vector<string> ss;
+  istringstream iss(_args);
+  copy(istream_iterator<string>(iss), istream_iterator<string>(), back_inserter(ss));
+  vector<const char *> args(ss.size());
+  for(int i = 0; i < ss.size(); i++)
+    args[i] = ss[i].c_str();
+  const_cast<CmdOptsBase *>(this)->init(args.size(), args.data());
 }
 
 CmdOptsBase::CmdOptsBase()
