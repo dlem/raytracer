@@ -774,6 +774,15 @@ int gr_option_cmd(lua_State *L)
   return 0;
 }
 
+extern "C"
+int gr_set_miss_colour(lua_State *L)
+{
+  double c[3];
+  get_tuple(L, 1, c, 3);
+  g_opts->set_miss_colour(Colour(c[0], c[1], c[2]));
+  return 0;
+}
+
 // This is where all the "global" functions in our library are
 // declared.
 // If you want to add a new non-member function, add it here.
@@ -804,6 +813,8 @@ static const luaL_reg grlib_functions[] = {
 
   {"texture", gr_texture_cmd},
   {"bumpmap", gr_bumpmap_cmd},
+
+  {"set_miss_colour", gr_set_miss_colour},
 
   {0, 0}
 };

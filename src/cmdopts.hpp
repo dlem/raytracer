@@ -12,6 +12,7 @@
 #include <vector>
 #include <functional>
 #include <iostream>
+#include "algebra.hpp"
 
 class CmdOptsBase
 {
@@ -71,6 +72,7 @@ public:
   bool use_gi_map;
   bool soft_shadows;
   bool hires;
+  Colour miss_colour;
   unsigned aa_grid, threads;
   double aa_threshold, aa_jitter;
   unsigned caustic_num_photons;
@@ -80,9 +82,12 @@ public:
   unsigned gi_num_neighbours;
   unsigned shadow_grid;
   unsigned height, width;
+  double photon_energy_fudge;
   std::ostream *outs;
   std::ostream *dbgs;
   std::ostream *errs;
+
+  void set_miss_colour(const Colour &c) const;
 };
 
 extern const CmdOpts *g_opts;

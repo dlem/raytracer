@@ -5,8 +5,6 @@ module('cup', package.seeall)
 require 'misc'
 require 'cbox'
 
-gr.option("--caustic-num-photons 1000000")
-gr.option("--caustic-num-neighbours 100")
 
 glass = gr.material({0, 0, 0}, {0.95, 0.95, 0.95}, 20)
 glass:set_ri(1.5)
@@ -53,13 +51,17 @@ _cup = gr.union(_cup, nliq)
 function cup()
   n = gr.node('cup')
   n:add_child(_cup)
+  n:translate(0, 1.01, 0)
   return n
 end
 
 if(debug.getinfo(2) == nil) then
+  gr.option("--caustic-num-photons 1000000")
+  gr.option("--caustic-num-neighbours 100")
+
   root = gr.node('root')
   c = cup()
-  c:translate(0, -1, 0)
+  c:translate(0, -1.5, 0)
   c:rotate('x', 5)
   root:add_child(c)
   straw = gr.cylinder('straw')

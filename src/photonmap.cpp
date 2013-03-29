@@ -164,7 +164,7 @@ void PhotonMap::build(RayTracer &rt, const list<Light *> &lights)
     // light's falloff coefficient is 1. Hence energy is 4PIr^2, where
     // r is given by the falloff coefficient such that f r^2 = 1, ie. r =
     // sqrt(1/f).
-    const double energy_fudge = 50;
+    const double energy_fudge = GETOPT(photon_energy_fudge);
     const Colour total_energy = energy_fudge * light->colour;
 
     build_light(rt, *light, total_energy);

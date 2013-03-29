@@ -2,7 +2,7 @@ module(..., package.seeall)
 
 script_name = debug.getinfo(3).short_src
 
-png_name, _n = script_name:gsub('.lua', '.png')
+pang_name, _n = script_name:gsub('.lua', '.png')
 if _n <= 0 then png_name = nil end
 
 function cone(name)
@@ -21,3 +21,32 @@ function cylinder(name)
   return _c
 end
 
+function glass()
+  _g = gr.material({0, 0, 0}, {0.95, 0.95, 0.95}, 20)
+  _g:set_ri(1.5)
+  return _g
+end
+
+function red()
+  return gr.material({1, 0, 0}, {0, 0, 0}, 20)
+end
+
+function green()
+  return gr.material({0, 1, 0}, {0, 0, 0}, 20)
+end
+
+function blue()
+  return gr.material({0, 0, 1}, {0, 0, 0}, 20)
+end
+
+function white()
+  return gr.material({1, 1, 1}, {0, 0, 0}, 20)
+end
+
+function mirror()
+  return gr.material({0, 0, 0}, {0.95, 0.95, 0.95})
+end
+
+function black()
+  return gr.material({0, 0, 0}, {0, 0, 0})
+end

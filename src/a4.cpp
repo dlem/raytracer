@@ -79,7 +79,7 @@ void a4_render(// What to render
   };
 #endif
 
-  RayTracer rt(geometry, [](const Point3D &, const Vector3D &) { return Colour(1); });
+  RayTracer rt(geometry);
 
   // Build the caustic photon map.
   CausticMap caustic_map;

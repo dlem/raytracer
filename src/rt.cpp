@@ -18,6 +18,13 @@
 
 using namespace std;
 
+RayTracer::RayTracer(const FlatList &geo)
+  : m_geo(geo)
+  , m_miss_colour([](const Point3D &, const Vector3D &) { return g_opts->miss_colour; })
+{
+}
+
+
 bool RayTracer::raytrace(const Point3D &src, const Vector3D &ray, const RaytraceFn &fn)
 {
   const Point3D dst = src + ray;

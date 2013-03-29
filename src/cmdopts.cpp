@@ -129,6 +129,8 @@ CmdOpts::CmdOpts()
   shadow_grid = 4;
   hires = false;
   height = width = 0;
+  miss_colour = Colour(1);
+  photon_energy_fudge = 50;
 
   outs = &cout;
   errs = &cerr;
@@ -161,4 +163,10 @@ CmdOpts::CmdOpts()
   add_parameter<int>("gi-num-neighbours", [=](int n) { gi_num_neighbours = check_range(n, 0, "# gi neighbours must be non-negative"); });
   add_parameter<int>("caustic-pm-gran", [=](int n) { caustic_pm_gran = check_range(n, 1, "Caustic granularity must be postive"); });
   add_parameter<int>("shadow-grid", [=](int n) { soft_shadows = true; shadow_grid = check_range(n, 1, "Shadow grid arg must be positive"); });
+  add_parameter<double>("photon-energy-fudge", [=](double f) { photon_energy_fudge = check_range(f, 0., "energy fudge must be non-negative"); });
+}
+
+void CmdOpts::set_miss_colour(const Colour &c) const
+{
+  const_cast<CmdOpts *>(this)->miss_colour = c;
 }

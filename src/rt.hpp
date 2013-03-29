@@ -87,6 +87,7 @@ public:
     : m_geo(geo)
     , m_miss_colour(miss_colour)
   {}
+  RayTracer(const FlatList &geo);
 
   Colour raytrace_recursive(const LightingModel &model, const Point3D &src,
 			    const Vector3D &ray, double *dist = 0, double acc = 1, int depth = 0);
