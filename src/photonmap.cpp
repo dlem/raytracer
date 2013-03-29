@@ -319,7 +319,7 @@ bool CausticMap::test_pm(RayTracer &rt, const Point3D &pt, const Vector3D &norma
 
 void GIPhotonMap::build_light(RayTracer &rt, const Light &light, const Colour &energy)
 {
-  const int nphotons = GETOPT(caustic_num_photons);
+  const int nphotons = GETOPT(gi_num_photons);
   const Colour photon_energy = energy * (1./nphotons);
 
   {

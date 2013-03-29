@@ -14,6 +14,7 @@ static map<const string, function<Bumpmap *()>> s_bumpmaps = {
 };
 
 static map<const string, function<Texture *()>> s_textures = {
+  { "testtex", []() { return new TestTex(); } },
 };
 
 class ImageBumpmap : public Bumpmap

@@ -29,21 +29,30 @@ UVRemapper<TMapped>::UVRemapper(UVMapper<TMapped> &tex, const std::string &ty)
 template<typename TMapped>
 TMapped UVRemapper<TMapped>::operator()(const Point2D &uv)
 {
+  bool perturb = true;
   Point2D rv(uv);
   switch(m_ty)
   {
     case REMAP_CUBETOP:
     {
       const double l = 1/4., r = 2/4., b = 1/3., t = 2/3.;
-      if(inrange(uv[0], l, r) && inrange(uv[1], b, t))
+      perturb = inrange(uv[0], l, r) && inrange(uv[1], b, t);
+      if(perturb)
       {
-	const double u = (uv[0] - l) * (r - l);
-	const double v = (uv[1] - b) * (t - b);
+	const double u = (uv[0] - l) / (r - l);
+	const double v = (uv[1] - b) / (t - b);
 	rv = Point2D(u, v);
       }
+      break;
     }
     case REMAP_CYLTOP:
     {
+      const double l = 0.5, r = 1, b = 0.5, t = 1;
+      perturb = inrange(uv[0], l, r) && inrange(uv[1], b, t);
+      if(perturb)
+      {
+	rv = Point2D((uv[0] - l) / (r - l), (uv[1] - b) / (t - b));
+      }
       break;
     }
     default:
@@ -51,6 +60,8 @@ TMapped UVRemapper<TMapped>::operator()(const Point2D &uv)
       assert(false);
     }
   }
+  if(!perturb)
+    return TMapped();
   return m_tex(rv);
 }
 
@@ -63,15 +74,25 @@ Point2D SineWavesBm::operator()(const Point2D &uv)
   const Point2D offset(uv[0] - 0.5, uv[1] - 0.5);
   const double len = sqrt(sqr(offset[0]) + sqr(offset[1]));
   const Point2D dirvec(offset[0] / max(len, 0.0001), offset[1] / max(len, 0.0001));
-  const double factor = 2 * M_PI / 0.05;
+  const double factor = 2 * M_PI / 0.2;
   const double rad = factor * len;
   const double slope = cos(rad);
   Point2D rv(slope * dirvec[0], slope * dirvec[1]);
-  errs() << rv << endl;
   return rv;
 }
 
 Point2D BubblesBm::operator()(const Point2D &uv)
 {
   return Point2D();
+}
+
+Colour TestTex::operator()(const Point2D &uv)
+{
+      const double l = 0.5, r = 1, b = 0.5, t = 1;
+      const bool perturb = inrange(uv[0], l, r) && inrange(uv[1], b, t);
+      if(perturb)
+      {
+    return Colour(1, 0, 0);
+      }
+    return Colour(0, 1, 0);
 }

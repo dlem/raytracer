@@ -25,17 +25,18 @@ private:
 typedef UVRemapper<Point2D> BmRemapper;
 typedef UVRemapper<Colour> TexRemapper;
 
+#define DECLARE_BUMPMAP(name) \
+  class name : public Bumpmap \
+  { public: virtual Point2D operator()(const Point2D &uv); }
 
-class SineWavesBm : public Bumpmap
-{
-public:
-  virtual Point2D operator()(const Point2D &uv);
-};
+#define DECLARE_TEXTURE(name) \
+  class name : public Texture \
+  { public: virtual Colour operator()(const Point2D &uv); }
 
-class BubblesBm : public Bumpmap
-{
-public:
-  virtual Point2D operator()(const Point2D &uv);
-};
+
+DECLARE_BUMPMAP(SineWavesBm);
+DECLARE_BUMPMAP(BubblesBm);
+
+DECLARE_TEXTURE(TestTex);
 
 #endif

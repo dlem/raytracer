@@ -152,6 +152,23 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
   const bool penetrating = incident.dot(normal) < 0;
   const Material &mat = penetrating ? *g->mat : *medium;
 
+  if(penetrating && g->mat != &PhongMaterial::air)
+    g->mat->get_normal(normal, uv, u, v);
+  else if(!penetrating && g->mat != &PhongMaterial::air)
+  {
+    normal = -normal;
+    g->mat->get_normal(normal, uv, u, v);
+    normal = -normal;
+  }
+  else if(penetrating)
+  {
+    normal = -normal;
+    medium->get_normal(normal, uv, u, v);
+    normal = -normal;
+  }
+  else
+    medium->get_normal(normal, uv, u, v);
+
   if(dist)
     *dist = t;
 
@@ -208,7 +225,7 @@ void RayTracer::raytrace_russian(const Point3D &src,
   Vector3D normal, u, v;
   Point2D uv;
 
-  const double t = raytrace_min(src, incident, RT_EPSILON, &g, &medium, _normal, uv, u, v);
+  const double t = raytrace_min(src, incident, RT_EPSILON, &g, &medium, normal, uv, u, v);
 
   if(t >= numeric_limits<double>::max())
     return;
@@ -219,7 +236,6 @@ void RayTracer::raytrace_russian(const Point3D &src,
 
   const bool penetrating = incident.dot(normal) < 0;
   const Material &mat = penetrating ? *g->mat : *medium;
-  mat.get_normal(normal, uv, u, v);
 
   Vector3D ray_reflected;
   Vector3D ray_transmitted;

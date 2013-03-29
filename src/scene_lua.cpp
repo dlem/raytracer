@@ -230,8 +230,6 @@ int gr_cone_cmd(lua_State* L)
   return 1;
 }
 
-
-
 // Create a non-hierarchical sphere node
 extern "C"
 int gr_nh_sphere_cmd(lua_State* L)
@@ -488,7 +486,7 @@ int gr_material_set_bumpmap_cmd(lua_State *L)
 }
 
 extern "C"
-int gr_texture_remap_cmd(lua_State *L)
+int gr_texture_remapt_cmd(lua_State *L)
 {
   GRLUA_DEBUG_CALL;
   gr_texture_ud* selfdata = (gr_texture_ud*)luaL_checkudata(L, 1, "gr.texture");
@@ -841,7 +839,7 @@ static const luaL_reg grlib_material_methods[] = {
 };
 
 static const luaL_reg grlib_texture_methods[] = {
-  {"remap", gr_texture_remap_cmd},
+  {"remapt", gr_texture_remapt_cmd},
 };
 
 static const luaL_reg grlib_bumpmap_methods[] = {

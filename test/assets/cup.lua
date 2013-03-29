@@ -40,6 +40,12 @@ nliq:add_child(liq)
 nliq:translate(0, bot * 0.5 - (1 - fullness), 0)
 nliq:scale(r_inner, (1 - bot * 0.5) * fullness, r_inner)
 
+if(true) then
+  bm = gr.bumpmap('sinewaves')
+  bm:remap('cyltop')
+  mat_liq:set_bumpmap(bm)
+end
+
 --_cup = ncyl
 _cup = gr.union(ncyl, ninner)
 _cup = gr.union(_cup, nliq)
