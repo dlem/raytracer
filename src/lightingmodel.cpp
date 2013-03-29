@@ -50,26 +50,21 @@ static double occlusion(RayTracer &rt, Light *light, const Point3D &pt)
 Colour PhongModel::compute_lighting(RayTracer &rt,
 				  const Point3D &src,
 				  const Vector3D &ray,
-				  const double t,
-				  const FlatGeo &geo,
-				  const Material &mat,
-				  const Vector3D &normal,
-				  const Point2D &uv,
-				  const Vector3D &u,
-				  const Vector3D &v,
+				  const HitInfo &hi,
 				  const double refl_attn
 				  ) const
 {
-  const Point3D phong_P = src + t * ray;
+  const Point3D phong_P = src + hi.t * ray;
 
   // Projection drawing stuff.
   const Colour projc(1, 0, 0);
   const bool use_proj = GETOPT(draw_caustic_pm) &&
-			m_caustics.test_pm(rt, phong_P, normal);
+			m_caustics.test_pm(rt, phong_P, hi.normal);
+  const Point2D &uv = hi.uv;
+  const PhongMaterial &mat = hi.tomat();
   const Colour phong_kd = use_proj ? projc * mat.kd(uv).Y() : mat.kd(uv);
 
-  Vector3D phong_n = normal;
-  mat.get_normal(phong_n, uv, u, v);
+  Vector3D phong_n = hi.normal;
   const Colour &phong_ks = refl_attn * mat.ks(uv);
   const double phong_p = mat.shininess(uv);
   Vector3D phong_v = src - phong_P;
@@ -132,13 +127,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
 Colour PhotonDrawModel::compute_lighting(RayTracer &rt,
 			      const Point3D &src,
 			      const Vector3D &ray,
-			      const double t,
-			      const FlatGeo &,
-			      const Material &mat,
-			      const Vector3D &normal,
-			      const Point2D &uv,
-			      const Vector3D &u,
-			      const Vector3D &v,
+			      const HitInfo &hi,
 			      const double refl_attn
 			      ) const
 {
@@ -152,10 +141,10 @@ Colour PhotonDrawModel::compute_lighting(RayTracer &rt,
   else
     return Colour(0, 0, 0);
 #endif
-  if(mat.kd(uv).Y() < 0.2)
+  if(hi.primary->mat->kd(hi.uv).Y() < 0.2)
     return Colour(0);
 
-  const Point3D p = src + t * ray;
+  const Point3D p = src + hi.t * ray;
   Vector3D pos_rel;
   Colour c = m_map.query_photon(p, pos_rel);
   c.normalize();
@@ -170,19 +159,13 @@ Colour PhotonDrawModel::compute_lighting(RayTracer &rt,
 Colour PhotonsOnlyModel::compute_lighting(RayTracer &rt,
 			      const Point3D &src,
 			      const Vector3D &ray,
-			      const double t,
-			      const FlatGeo &,
-			      const Material &mat,
-			      const Vector3D &normal,
-			      const Point2D &uv,
-			      const Vector3D &u,
-			      const Vector3D &v,
+			      const HitInfo &hi,
 			      const double refl_attn
 			      ) const
 {
-  const Point3D p = src + t * ray;
+  const Point3D p = src + hi.t * ray;
   const Vector3D outgoing = -ray;
-  if(mat.kd(uv).Y() > 0.2)
+  if(hi.primary->mat->kd(hi.uv).Y() > 0.2)
   {
     return m_map.query_radiance(p, outgoing);
   }

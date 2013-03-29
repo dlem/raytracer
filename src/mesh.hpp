@@ -18,7 +18,7 @@ public:
   Mesh(const std::vector<Point3D>& verts,
        const std::vector< std::vector<int> >& faces);
 
-  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const;
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const;
   virtual void bounding_box(Box &b) const;
 
   typedef std::vector<int> Face;

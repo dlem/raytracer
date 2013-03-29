@@ -22,62 +22,47 @@ bool RayTracer::raytrace(const Point3D &src, const Vector3D &ray, const Raytrace
 {
   const Point3D dst = src + ray;
 
-  HitInfo hi(fn);
-  hi.med = &PhongMaterial::air;
-
+  HitReporter hr(fn);
   for(auto &geo : m_geo)
   {
-    hi.geo = &geo;
-    if(!geo.prim->intersect(geo.invtrans * src, geo.invtrans * dst, hi))
+    hr.to = hr.primary = &geo;
+    if(!geo.prim->intersect(geo.invtrans * src, geo.invtrans * dst, hr))
       return false;
   }
 
   return true;
 }
 
-bool RayTracer::raytrace_within(const Point3D &src,
-                     const Vector3D &ray,
-                     double tlo, double thi)
+bool RayTracer::raytrace_within(const Point3D &src, const Vector3D &ray,
+				double tlo, double thi)
 {
-  return !raytrace(src , ray,
-    [tlo, thi](const FlatGeo &g, const Material &, double tcur, const Vector3D &,
-               const Point2D &, const Vector3D &, const Vector3D &)
+  return !raytrace(src, ray,
+    [tlo, thi](const HitInfo &hi)
   {
-    return tcur < tlo || tcur > thi;
+    return hi.t < tlo || hi.t > thi;
   });
 }
 
-double RayTracer::raytrace_min(const Point3D &src, const Vector3D &ray,
-    double tlo, const FlatGeo **pg, const Material **med,
-    Vector3D &n,
-    Point2D &uv,
-    Vector3D &u,
-    Vector3D &v)
+bool RayTracer::raytrace_min(const Point3D &src, const Vector3D &ray,
+    double tlo, HitInfo &hi)
 {
-  *pg = 0;
-  double tmin = numeric_limits<double>::max();
-  raytrace(src, ray, [tlo, &tmin, pg, &n, &uv, &u, &v, med]
-      (const FlatGeo &g, const Material &_med, double tcur, const Vector3D &_n,
-       const Point2D &_uv, const Vector3D &_u, const Vector3D &_v)
+  hi.t = numeric_limits<double>::max();
+  raytrace(src, ray, [tlo, &hi] (const HitInfo &_hi)
+      {
+	if(_hi.t < hi.t && _hi.t >= tlo)
+	  hi = _hi;
+	return true;
+      });
+  const bool hit = hi.t < numeric_limits<double>::max();
+  if(hit)
   {
-    if(tcur < tmin && tcur >= tlo)
-    {
-      tmin = tcur;
-      *pg = &g;
-      *med = &_med;
-      n = _n;
-      uv = _uv;
-      u = _u;
-      v = _v;
-    }
-    return true;
-  });
-  if(*pg)
-  {
-    n = (*pg)->trans_normal * n;
-    n.normalize();
+    assert(hi.primary);
+    hi.normal = hi.primary->trans_normal * hi.normal;
+    hi.normal.normalize();
+    hi.primary->mat->get_normal(hi.normal, hi.uv, hi.u, hi.v);
+    assert(normalized(hi.normal));
   }
-  return tmin;
+  return hit;
 }
 
 double fresnel(double n1, double n2, double cosi, double cost)
@@ -93,14 +78,14 @@ double fresnel(double n1, double n2, double cosi, double cost)
 // Returns the proportion of specular power that should go to reflection. The
 // rest should go to refraction.
 double compute_specular(const Vector3D &incident,     // Must be unit.
-			const Material &obj,
-			const Material &medium,
+			const FlatGeo *obj,
+			const FlatGeo *med,
 			const Vector3D &_n,	      // The normal.
 			Vector3D &ray_reflected,
 			Vector3D &ray_transmitted)
 {
-  const double ri_medium = medium.ri();
-  const double ri_obj = obj.ri();
+  const double ri_medium = (med ? *med->mat : PhongMaterial::air).ri();
+  const double ri_obj = (obj ? *obj->mat : PhongMaterial::air).ri();
   const bool penetrating = incident.dot(_n) < 0;
   const Vector3D n = penetrating ? _n : -_n;
   ray_reflected = incident - 2 * incident.dot(n) * n;
@@ -134,43 +119,26 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
 				     int depth)
 {
   const double threshold = 0.02;
-  const FlatGeo *g;
-  const Material *medium;
-  Vector3D normal, u, v;
-  Point2D uv;
 
   if(dist)
     *dist = -1.;
 
   assert(normalized(incident));
 
-  const double t = raytrace_min(src, incident, RT_EPSILON, &g, &medium, normal, uv, u, v); 
-
-  if(t >= numeric_limits<double>::max())
+  HitInfo hi;
+  if(!raytrace_min(src, incident, RT_EPSILON, hi))
     return m_miss_colour(src, incident);
 
-  const bool penetrating = incident.dot(normal) < 0;
-  const Material &mat = penetrating ? *g->mat : *medium;
-
-  if(penetrating && g->mat != &PhongMaterial::air)
-    g->mat->get_normal(normal, uv, u, v);
-  else if(!penetrating && g->mat != &PhongMaterial::air)
-  {
-    normal = -normal;
-    g->mat->get_normal(normal, uv, u, v);
-    normal = -normal;
-  }
-  else if(penetrating)
-  {
-    normal = -normal;
-    medium->get_normal(normal, uv, u, v);
-    normal = -normal;
-  }
+  if(hi.primary == hi.from)
+    assert(hi.normal.dot(incident) >= 0);
   else
-    medium->get_normal(normal, uv, u, v);
+  {
+    assert(hi.primary == hi.to);
+    //assert(hi.normal.dot(incident) <= 0);
+  }
 
   if(dist)
-    *dist = t;
+    *dist = hi.t;
 
   if(depth > 15)
   {
@@ -182,16 +150,16 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
     return Colour(1);
   }
 
-  const Point3D p = src + t * incident;
+  const Point3D p = src + hi.t * incident;
   Vector3D ray_reflected, ray_transmitted;
-  const double r = compute_specular(incident, *g->mat, *medium, normal, ray_reflected, ray_transmitted);
+  const double r = compute_specular(incident, hi.primary, hi.from == hi.primary ? hi.to : hi.from, hi.normal, ray_reflected, ray_transmitted);
 
   Colour rv(0);
 
-  Colour cdirect = model.compute_lighting(*this, src, incident, t, *g, mat, normal, uv, u, v, r);
+  Colour cdirect = model.compute_lighting(*this, src, incident, hi, r);
   rv += cdirect;
 
-  const Colour cspecular = mat.ks(uv);
+  const Colour cspecular = hi.tomat().ks(hi.uv);
   const Colour creflected = r * cspecular;
   const Colour ctransmitted = (1 - r) * cspecular;
   const double acc_reflected = acc * creflected.Y();
@@ -220,32 +188,34 @@ void RayTracer::raytrace_russian(const Point3D &src,
 		      const Vector3D &incident, const Colour &acc,
 		      const RussianFn &fn, int depth)
 {
-  const FlatGeo *g;
-  const PhongMaterial *medium;
-  Vector3D normal, u, v;
-  Point2D uv;
+  assert(normalized(incident));
 
-  const double t = raytrace_min(src, incident, RT_EPSILON, &g, &medium, normal, uv, u, v);
-
-  if(t >= numeric_limits<double>::max())
+  HitInfo hi;
+  if(!raytrace_min(src, incident, RT_EPSILON, hi))
     return;
+
+  if(hi.primary == hi.from)
+    assert(hi.normal.dot(incident) >= 0);
+  else
+  {
+    assert(hi.primary == hi.to);
+    //assert(hi.normal.dot(incident) <= 0);
+    //errs() << hi.normal << ", " << incident << endl;
+  }
 
   if(depth > 12)
     // We've no use for information about photons hitting spec surfaces, so...
     return;
 
-  const bool penetrating = incident.dot(normal) < 0;
-  const Material &mat = penetrating ? *g->mat : *medium;
-
   Vector3D ray_reflected;
   Vector3D ray_transmitted;
-  const double r = compute_specular(incident, *g->mat, *medium, normal,
+  const double r = compute_specular(incident, hi.primary, hi.primary == hi.from ? hi.to : hi.from, hi.normal,
 				    ray_reflected, ray_transmitted);
 
-  const Point3D p = src + t * incident;
+  const Point3D p = src + hi.t * incident;
   // Giving incorrect uv coordinates to a medium won't hurt...
-  const Colour cdiffuse = mat.kd(uv);
-  const Colour cspecular = mat.ks(uv);
+  const Colour cdiffuse = hi.tomat().kd(hi.uv);
+  const Colour cspecular = hi.tomat().ks(hi.uv);
 
   double prs[RT_ACTION_COUNT];
   prs[RT_DIFFUSE] = cdiffuse.Y();

@@ -16,34 +16,50 @@
 
 class LightingModel;
 
-// Callback type that gets passed to my main raytracing function.
-typedef std::function<bool(const FlatGeo &geo, const Material &med,
-			   double t,
-                           const Vector3D &normal,
-                           const Point2D &uv,
-                           const Vector3D &u,
-                           const Vector3D &v)>
-        RaytraceFn;
-
-
 class HitInfo
 {
 public:
-  HitInfo(const RaytraceFn &fn)
-    : geo(0)
-    , med(0)
-    , fn(fn)
-  {}
+  HitInfo() : from(0), to(0), primary(0) {}
+  double t;
+  Vector3D normal;
+  Point2D uv;
+  Vector3D u, v;
+  const FlatGeo *from;
+  const FlatGeo *to;
+  const FlatGeo *primary;
 
-  bool report(double t, const Vector3D &normal, const Point2D &uv,
-	      const Vector3D &u, const Vector3D &v)
-  { return fn(*geo, *med, t, normal, uv, u, v); }
-
-  const FlatGeo *geo;
-  const Material *med;
-  const RaytraceFn &fn;
+  const PhongMaterial &tomat() const { return to ? *to->mat : PhongMaterial::air; }
+  const PhongMaterial &frommat() const { return from ? *from->mat : PhongMaterial::air; }
 };
 
+// Callback type that gets passed to my main raytracing function.
+typedef std::function<bool(const HitInfo &hi)> RaytraceFn;
+
+class HitReporter : public HitInfo
+{
+public:
+  HitReporter(const RaytraceFn &fn) : fn(fn) {}
+
+  inline bool report() { return fn(*this); }
+  inline bool report(const HitInfo &hi)
+  {
+    *(HitInfo *)this = hi;
+    return report();
+  }
+  inline bool report(double _t, const Vector3D &_normal, const Point2D &_uv,
+	      const Vector3D &_u, const Vector3D &_v)
+  {
+    t = _t;
+    normal = _normal;
+    uv = _uv;
+    u = _u;
+    v = _v;
+    return report();
+  }
+
+private:
+  const RaytraceFn &fn;
+};
 
 typedef std::function<Colour(const Point3D &, const Vector3D &)> MissColourFn;
 
@@ -87,15 +103,9 @@ public:
 
   // Finds the hit with the smallest t-value greater or equal to tlo and returns
   // the relevant information.
-  double raytrace_min(const Point3D &src,
+  bool raytrace_min(const Point3D &src,
 		      const Vector3D &ray,
-		      double tlo,
-		      const FlatGeo **pg,
-		      const Material **med,
-		      Vector3D &normal,
-		      Point2D &uv,
-		      Vector3D &u,
-		      Vector3D &v);
+		      double tlo, HitInfo &hi);
 
   const FlatList &geo() { return m_geo; }
 

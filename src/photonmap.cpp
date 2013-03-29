@@ -23,7 +23,7 @@ public:
   }
 
   double build(RayTracer &rt, const Point3D &centre,
-	     const std::function<bool(const FlatGeo &, const Point2D &)> &pred)
+	     const std::function<bool(const HitInfo &hi)> &pred)
   {
     const int philimit = m_granularity;
     const int thetalimit = 2 * m_granularity;
@@ -37,15 +37,10 @@ public:
 	Vector3D ray;
 	pttov(phi, theta, ray);
 
-	const FlatGeo *g;
-	const Material *med;
-	Vector3D n, u, v;
-	Point2D uv;
-	
-	if(rt.raytrace_min(centre, ray, RT_EPSILON, &g, &med, n, uv, u, v) <
-	    numeric_limits<double>::max())
+	HitInfo hi;
+	if(rt.raytrace_min(centre, ray, RT_EPSILON, hi))
 	{
-	  if(pred(*g, uv))
+	  if(pred(hi))
 	  {
 	    const int is[] = {i, (i + 1) % thetalimit, (i + thetalimit - 1) % thetalimit};
 	    const int js[] = {j, j + 1, j - 1};
@@ -235,9 +230,9 @@ void CausticMap::build_light(RayTracer &rt, const Light &light, const Colour &en
 
   {
     SCOPED_TIMER("build caustic projection map");
-    proportion = pm.build(rt, light.position, [](const FlatGeo &geo, const Point2D &uv)
+    proportion = pm.build(rt, light.position, [](const HitInfo &hi)
     {
-      const Colour ks = geo.mat->ks(uv);
+      const Colour ks = hi.primary->mat->ks(hi.uv);
       const bool rv = ks.Y() > 0.2;
       return rv;
     });
@@ -273,6 +268,7 @@ void CausticMap::build_light(RayTracer &rt, const Light &light, const Colour &en
       break;
     }
 
+    ray.normalize();
     bool seen_specular = false;
     rt.raytrace_russian(light.position, ray, photon_energy, [&seen_specular, this]
 	(const Point3D &p, const Vector3D &outgoing, const Colour &cdiffuse, double *prs)

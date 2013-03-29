@@ -15,13 +15,7 @@ public:
   virtual Colour compute_lighting(RayTracer &rt,
 				const Point3D &src,
 				const Vector3D &ray,
-				const double t,
-				const FlatGeo &geo,
-				const Material &mat,
-				const Vector3D &normal,
-				const Point2D &uv,
-				const Vector3D &u,
-				const Vector3D &v,
+				const HitInfo &hi,
 				const double refl_attn
 				) const = 0;
 };
@@ -39,13 +33,7 @@ public:
   virtual Colour compute_lighting(RayTracer &rt,
 				const Point3D &src,
 				const Vector3D &ray,
-				const double t,
-				const FlatGeo &geo,
-				const Material &mat,
-				const Vector3D &normal,
-				const Point2D &uv,
-				const Vector3D &u,
-				const Vector3D &v,
+				const HitInfo &hi,
 				const double refl_attn
 				) const;
 
@@ -66,13 +54,7 @@ public:
   virtual Colour compute_lighting(RayTracer &rt,
 				const Point3D &src,
 				const Vector3D &ray,
-				const double t,
-				const FlatGeo &geo,
-				const Material &mat,
-				const Vector3D &normal,
-				const Point2D &uv,
-				const Vector3D &u,
-				const Vector3D &v,
+				const HitInfo &hi,
 				const double refl_attn
 				) const;
 
@@ -90,18 +72,10 @@ public:
   virtual Colour compute_lighting(RayTracer &rt,
 				const Point3D &src,
 				const Vector3D &ray,
-				const double t,
-				const FlatGeo &geo,
-				const Material &mat,
-				const Vector3D &normal,
-				const Point2D &uv,
-				const Vector3D &u,
-				const Vector3D &v,
+				const HitInfo &hi,
 				const double refl_attn
 				) const;
 
 private:
   PhotonMap &m_map;
 };
-
-

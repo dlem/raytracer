@@ -19,7 +19,7 @@ ripple = gr.bumpmap('sinewaves')
 ripple:remap('cubetop')
 mat:set_bumpmap(ripple)
 
-m2 = gr.material({0, 0, 0}, {0.7, 0.85, 0.95}, 20)
+m2 = gr.material({0, 0, 0}, {0.9, 0.90, 0.95}, 20)
 m2:set_ri(1.33)
 r2 = gr.bumpmap('sinewaves')
 r2:remap('cyltop')

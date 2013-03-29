@@ -10,7 +10,7 @@
 #include "algebra.hpp"
 #include <cstring>
 
-class HitInfo;
+class HitReporter;
 
 struct Box
 {
@@ -73,7 +73,7 @@ public:
   typedef std::function<bool(double t, const Vector3D &normal,
                              const Point2D &uv, const Vector3D &u,
                              const Vector3D &v)> IntersectFn;
-  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const = 0;
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const = 0;
   virtual void bounding_box(Box &b) const = 0;
   virtual bool is_csg() const { return false; }
   virtual Matrix4x4 get_transform() { return Matrix4x4(); }
@@ -82,14 +82,14 @@ public:
 class Circle : public Primitive
 {
 public:
-  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const;
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const;
 };
 
 class Quadric : public Primitive
 {
 public:
   Quadric() { memset(this, 0, sizeof(*this)); }
-  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const;
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const;
   virtual bool predicate(const Point3D &pt) const { return true; }
   virtual void get_uv(const Point3D &pt, const Vector3D &normal,
 		      Point2D &uv, Vector3D &u, Vector3D &v) const = 0;
@@ -102,14 +102,14 @@ class Sphere : public Primitive {
 public:
   Sphere() {}
   virtual void bounding_box(Box &b) const;
-  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const;
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const;
 };
 
 class Cylinder : public Quadric
 {
 public:
   Cylinder() { A = D = 1; K = -1; }
-  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const; 
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const; 
   virtual bool predicate(const Point3D &pt) const;
   virtual void get_uv(const Point3D &pt, const Vector3D &normal, Point2D &uv,
 		      Vector3D &u, Vector3D &v) const;
@@ -121,7 +121,7 @@ class Cone : public Quadric
 {
 public:
   Cone() { A = D = 1; F = -1; }
-  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const;
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const;
   virtual bool predicate(const Point3D &pt) const;
   virtual void get_uv(const Point3D &pt, const Vector3D &normal, Point2D &uv,
 		      Vector3D &u, Vector3D &v) const;
@@ -143,7 +143,7 @@ private:
 
 class Cube : public Primitive {
 public:
-  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitInfo &hi) const;
+  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const;
   virtual void bounding_box(Box &b) const;
   virtual Matrix4x4 get_transform();
 };

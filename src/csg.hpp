@@ -2,7 +2,7 @@
 #define __CSG_HPP__
 
 #include "scene.hpp"
-
+#include "rt.hpp"
 
 class CSGPrimitive : public Primitive
 {
@@ -14,23 +14,13 @@ public:
 
   void init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans);
 
-  virtual bool intersect(const Point3D &eye, const Point3D &dst, HitInfo &hi) const;
+  virtual bool intersect(const Point3D &eye, const Point3D &dst, HitReporter &hr) const;
   virtual void bounding_box(Box &b) const { b.set(m_mins, m_maxes); }
   virtual bool is_csg() const { return true; }
 
 protected:
 
-  struct SegInterface
-  {
-    double t;
-    bool penetrating;
-    Vector3D normal;
-    Point2D uv;
-    Vector3D u, v;
-    const FlatGeo *from;
-    const FlatGeo *to;
-  };
-
+  typedef HitInfo SegInterface;
   typedef std::vector<SegInterface> SegmentList;
 
   void get_segments(SegmentList &out, const Point3D &eye, const Point3D &dst) const;

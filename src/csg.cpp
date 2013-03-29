@@ -32,7 +32,7 @@ void CSGPrimitive::init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans)
   m_maxes = box.maxes();
 }
 
-bool CSGPrimitive::intersect(const Point3D &src, const Point3D &dst, HitInfo &hi) const
+bool CSGPrimitive::intersect(const Point3D &src, const Point3D &dst, HitReporter &hr) const
 {
   // This can take a while. Therefore, we'll test a bounding volume first.
   if(!axis_aligned_box_check(src, dst, m_mins, m_maxes))
@@ -43,12 +43,8 @@ bool CSGPrimitive::intersect(const Point3D &src, const Point3D &dst, HitInfo &hi
 
   for(auto &seg : segments)
   {
-    hi.geo = seg.penetrating ? seg.to : seg.from;
-    assert(hi.geo);
-    const FlatGeo *med = seg.penetrating ? seg.from : seg.to;
-    hi.med = med ? med->mat : &Material::air;
-
-    if(!hi.report(seg.t, seg.normal, seg.uv, seg.u, seg.v))
+    hr.report(seg);
+    if(!hr.report())
       return false;
   }
   return true;
@@ -78,22 +74,23 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
 
       SegmentList lprim;
       RaytraceFn fn([&lprim, &rayprime]
-	  (const FlatGeo &g, const Material &, double t, const Vector3D &normal,
-	   const Point2D &uv, const Vector3D &u, const Vector3D &v)
+	  (const HitInfo &hi)
 	  {
-	    const bool penetrating = rayprime.dot(normal) < 0;
-	    SegInterface si = { t, penetrating, normal, uv, u, v,
-		      penetrating ? 0 : &g, penetrating ? &g : 0 };
-	    lprim.push_back(si);
-	    assert(&g);
-	    assert(si.penetrating ? si.to : si.from);
+	    assert(hi.primary);
+	    lprim.push_back(hi);
+	    SegInterface &si = lprim.back();
+	    if(si.normal.dot(rayprime) > 0)
+	    {
+	      const FlatGeo *tmp = si.from;
+	      si.from = si.to;
+	      si.to = tmp;
+	    }
 	    return true;
 	  });
 
-      HitInfo hi(fn);
-      hi.geo = &geo;
-      hi.med = &PhongMaterial::air;
-      geo.prim->intersect(srcprime, dstprime, hi);
+      HitReporter hr(fn);
+      hr.to = hr.primary = &geo;
+      geo.prim->intersect(srcprime, dstprime, hr);
 
       struct SortCriteria
       {
@@ -167,11 +164,6 @@ void CSGUnion::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c
 
   out.insert(out.end(), i1, c1.end());
   out.insert(out.end(), i2, c2.end());
-
-  for(int i = 0; i < out.size(); i++)
-  {
-    assert(out[i].penetrating ? out[i].to : out[i].from);
-  }
 }
 
 void CSGUnion::combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const
@@ -274,9 +266,8 @@ void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentLi
 	{
 	  assert(out.size() > 0);
 	  out.push_back(*i2);
-	  out.back().from = i2->to;
+	  out.back().from = out.back().primary = i2->to;
 	  out.back().to = 0;
-	  out.back().penetrating = !out.back().penetrating;
 	  out.back().normal = -out.back().normal;
 	}
       }
@@ -285,9 +276,8 @@ void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentLi
 	if(cur1)
 	{
 	  out.push_back(*i2);
-	  out.back().to = out.back().from;
+	  out.back().to = out.back().primary = out.back().from;
 	  out.back().from = 0;
-	  out.back().penetrating = !out.back().penetrating;
 	  out.back().normal = -out.back().normal;
 	}
       }
