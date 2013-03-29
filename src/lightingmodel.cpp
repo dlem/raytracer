@@ -78,7 +78,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
   for(auto &light : m_lights)
   {
     Vector3D phong_ell = light->position - phong_P;
-    const double dist = phong_ell.normalize();
+    const double dist = phong_ell.normalize() / GETOPT(unit_distance);
 
     const double occ = occlusion(rt, light, phong_P);
     if(occ < 0.01)

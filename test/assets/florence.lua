@@ -52,6 +52,7 @@ end
 
 fl = mk_cylsphere(misc.glass(), r, rinner, h, false)
 fl = gr.union(fl, mk_cylsphere(gr.air(), r, rinner, h, true, liq))
+fl:translate(0, 2 * r, 0)
 
 function florence()
   n = gr.node('florence')

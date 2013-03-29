@@ -82,7 +82,7 @@ public:
   unsigned gi_num_neighbours;
   unsigned shadow_grid;
   unsigned height, width;
-  double photon_energy_fudge;
+  double unit_distance;
   std::ostream *outs;
   std::ostream *dbgs;
   std::ostream *errs;

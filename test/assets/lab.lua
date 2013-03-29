@@ -52,16 +52,23 @@ function lab(scene, name)
   cup1:scale(1.2, 1, 1.2)
   cs_bench:add_child(cup1)
 
+  fl1 = florence.florence()
+  fl1:translate(0, 0.4, 3)
+  fl1:scale(1.7, 1.7, 1.7)
+  cs_bench:add_child(fl1)
+
+  if(false) then
   s_e1 = {x=3, y=3, z=3}
   e1 = erlenmeyer.erlenmeyer()
   e1:translate(-1, 0.5, 3)
   e1:scale(3, 3, 3)
   cs_bench:add_child(e1)
+end
 
   w = 256
   h = 256
 
-  gr.option("--photon-energy-fudge 1000")
+  gr.option("--unit-distance 1")
   light = gr.light({4, 3, 4}, {0.9, 0.9, 0.9}, {0, 0, 0.03})
   light:set_radius(0.05)
   gr.set_miss_colour({0, 0, 0})

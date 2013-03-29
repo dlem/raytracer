@@ -1,4 +1,4 @@
-module('erlenmeyer', package.seeall)
+module(..., package.seeall)
 
 require 'misc'
 require 'cbox'
@@ -48,7 +48,8 @@ function mk_em(small, mat, liq)
   return rv
 end
 
-em = gr.union(mk_em(false, glass), mk_em(true, gr.air(), false))
+em = mk_em(false, glass)
+--em = gr.union(em, mk_em(true, gr.air(), false))
 
 function erlenmeyer()
   n = gr.node('erlenmeyer')
