@@ -98,7 +98,7 @@ function lab(scene, name)
   cs_bench:add_child(gr1)
 
   pertable = paper.paper('../pertable.png', 14.5, 8.5)
-  pertable:translate(6, 3.5, -3)
+  pertable:translate(6, 3.5, -c + s)
   pertable:scale(3, 3, 1)
   pertable:rotate('x', 90)
   root:add_child(pertable)
