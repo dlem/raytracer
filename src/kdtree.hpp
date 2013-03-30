@@ -59,7 +59,7 @@ public:
   TNode *find_nn(const Point3D &pt, double maxdist = std::numeric_limits<double>::max())
   {
     TPQueue q;
-    find_nnn(pt, 1, m_root, q, 0, maxdist);
+    find_nnn(pt, 1, m_root, q, maxdist, 0);
     return (TNode *)(q.top().node);
   }
 
