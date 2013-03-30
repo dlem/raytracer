@@ -83,6 +83,7 @@ public:
   unsigned shadow_grid;
   unsigned height, width;
   double unit_distance;
+  double energy_fudge;
   std::ostream *outs;
   std::ostream *dbgs;
   std::ostream *errs;

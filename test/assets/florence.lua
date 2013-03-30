@@ -10,9 +10,8 @@ cutoff = 0.1
 r = 0.8
 rinner = 0.2
 h = 1.1
-fullness = 0.5
 
-function mk_cylsphere(mat, r, rinner, h, small, mat_liq)
+function mk_cylsphere(mat, small, mat_liq, fullness)
   trans = -r
   if(small) then rinner = rinner * 0.9 end
   if(small) then r = r * 0.8 end
@@ -50,11 +49,10 @@ function mk_cylsphere(mat, r, rinner, h, small, mat_liq)
   return rv
 end
 
-fl = mk_cylsphere(misc.glass(), r, rinner, h, false)
-fl = gr.union(fl, mk_cylsphere(gr.air(), r, rinner, h, true, liq))
-fl:translate(0, 2 * r, 0)
-
-function florence()
+function florence(mliq, fullness)
+  fl = mk_cylsphere(misc.glass(), false, nil, fullness)
+  fl = gr.union(fl, mk_cylsphere(gr.air(), true, mliq, fullness))
+  fl:translate(0, 2 * r, 0)
   n = gr.node('florence')
   n:add_child(fl)
   return n
@@ -62,7 +60,7 @@ end
 
 if debug.getinfo(2) == nil then
   root = gr.node('root')
-  fl = florence()
+  fl = florence(liq, 0.5)
   fl:translate(0, -1, 0)
   root:add_child(fl)
   cbox.cbox(root)

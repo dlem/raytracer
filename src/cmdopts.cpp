@@ -131,6 +131,7 @@ CmdOpts::CmdOpts()
   height = width = 0;
   miss_colour = Colour(1);
   unit_distance = 1;
+  energy_fudge = 1;
 
   outs = &cout;
   errs = &cerr;
@@ -164,6 +165,7 @@ CmdOpts::CmdOpts()
   add_parameter<int>("caustic-pm-gran", [=](int n) { caustic_pm_gran = check_range(n, 1, "Caustic granularity must be postive"); });
   add_parameter<int>("shadow-grid", [=](int n) { soft_shadows = true; shadow_grid = check_range(n, 1, "Shadow grid arg must be positive"); });
   add_parameter<double>("unit-distance", [=](double u) { unit_distance = check_range(u, 0., "unit distance must be non-negative"); });
+  add_parameter<double>("energy-fudge", [=](double f) { energy_fudge = check_range(f, 0., "energy fudge must be non-negative"); });
 }
 
 void CmdOpts::set_miss_colour(const Colour &c) const

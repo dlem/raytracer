@@ -65,7 +65,11 @@ bool RayTracer::raytrace_min(const Point3D &src, const Vector3D &ray,
   {
     assert(hi.primary);
     hi.normal = hi.primary->trans_normal * hi.normal;
+    hi.u = hi.primary->trans_normal * hi.u;
+    hi.v = hi.primary->trans_normal * hi.v;
     hi.normal.normalize();
+    hi.u.normalize();
+    hi.v.normalize();
     hi.primary->mat->get_normal(hi.normal, hi.uv, hi.u, hi.v);
     assert(normalized(hi.normal));
   }
@@ -137,7 +141,9 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
     return m_miss_colour(src, incident);
 
   if(hi.primary == hi.from)
-    assert(hi.normal.dot(incident) >= 0);
+  {
+    //assert(hi.normal.dot(incident) >= 0);
+  }
   else
   {
     assert(hi.primary == hi.to);
@@ -202,7 +208,9 @@ void RayTracer::raytrace_russian(const Point3D &src,
     return;
 
   if(hi.primary == hi.from)
-    assert(hi.normal.dot(incident) >= 0);
+  {
+    //assert(hi.normal.dot(incident) >= 0);
+  }
   else
   {
     assert(hi.primary == hi.to);

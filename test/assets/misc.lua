@@ -50,3 +50,14 @@ end
 function black()
   return gr.material({0, 0, 0}, {0, 0, 0})
 end
+
+function liquid(spec)
+  liq = gr.material({0, 0, 0}, spec, 30)
+  liq:set_ri(1.33)
+  return liq
+end
+
+function solid(diff)
+  sol = gr.material(diff, {0, 0, 0}, 30)
+  return sol
+end

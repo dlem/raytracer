@@ -11,6 +11,7 @@ function render(scene, w, h, name)
   light = gr.light({0, 1.8, 0}, {0.9, 0.9, 0.9}, {0, 0, 0.15})
   light:set_radius(0.05)
 
+  gr.option('--unit-distance 1')
   gr.render(scene, name, w, h, {0, 0, 8}, {0, 0, -1}, {0, 1, 0}, 50,
             {0.4, 0.4, 0.4}, {light})
 end
