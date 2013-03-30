@@ -6,7 +6,8 @@ require 'cup'
 require 'erlenmeyer'
 require 'florence'
 require 'grad'
-require 'graph1'
+require 'paper'
+require 'holder'
 
 mbench = gr.material({0.5, 0.5, 0.5}, {0.3, 0.3, 0.3}, 30)
 mwall = gr.material({0.6, 0.6, 0.6}, {0, 0, 0}, 30)
@@ -57,7 +58,7 @@ function lab(scene, name)
   cs_bench:add_child(bench)
 
   cup1 = cup.cup(0.6, true, misc.liquid({0.5, 0.95, 0.95}), true)
-  cup1:translate(3.1, 0, 2)
+  cup1:translate(3.1, 0, 3)
   cup1:scale(1.2, 1, 1.2)
   cs_bench:add_child(cup1)
 
@@ -102,6 +103,12 @@ function lab(scene, name)
   pertable:scale(3, 3, 1)
   pertable:rotate('x', 90)
   root:add_child(pertable)
+
+  h1 = holder.holder()
+  h1:translate(3, -0.1, 0.6)
+  h1:scale(0.8, 0.8, 0.8)
+  h1:rotate('y', -30)
+  cs_bench:add_child(h1)
 
   gr.option("--unit-distance 1")
   light = gr.light({1, 2, 2}, {0.9, 0.9, 0.9}, {0, 0, 0.03})

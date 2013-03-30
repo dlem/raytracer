@@ -24,30 +24,29 @@ function mk_cylsphere(mat, r, h)
   return gr.union(sph, cyl)
 end
 
-tube = mk_cylsphere(glass, r, h)
-inner = mk_cylsphere(gr.air(), r - w, h - w)
-inner:translate(0, w, 0)
-it = gr.union(tube, inner)
-liq = mk_cylsphere(liq, r - w, (h - w) * fullness)
-liq:translate(0, w - (h - w) * (1 - fullness), 0)
-it = gr.union(it, liq)
-
-function ttube()
+function ttube(liq, fullness, flip)
+  tube = mk_cylsphere(glass, r, h)
+  inner = mk_cylsphere(gr.air(), r - w, h - w)
+  tt = gr.union(tube, inner)
+  if fullness > 0 then
+    liq = mk_cylsphere(liq, r - w, (h - w) * fullness)
+    liq:translate(0, w - (h - w) * (1 - fullness), 0)
+    tt = gr.union(tt, liq)
+  end
+  tt:translate(0, h + r, 0)
+  if flip then
+    tt:translate(0, -r, 0)
+    tt:rotate('x', 180)
+  end
   n = gr.node('ttube')
-  n:add_child(it)
+  n:add_child(tt)
   return n
 end
 
-if(debug.getinfo(2) == nil) then
+if debug.getinfo(2) == nil then
   root = gr.node('root')
-  if(false) then
-  sph = gr.sphere('sph')
-  sph:set_material(gr.material({0.2, 0.05, 0.3}, {0.4, 0.4, 0.4}, 20))
-  sph:translate(-0.3, -1, -2)
-  root:add_child(sph)
-  end
-  tt = ttube()
-  tt:translate(0, -1, 0)
+  tt = ttube(misc.liquid({0.4, 0.95, 0.45}), 0.7)
+  tt:translate(0, -2.5, 0)
   root:add_child(tt)
-  cbox.cbox(root, 256, 256)
+  cbox.cbox(root)
 end
