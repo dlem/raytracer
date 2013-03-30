@@ -7,12 +7,12 @@ require 'erlenmeyer'
 require 'florence'
 
 mbench = gr.material({0.3, 0.3, 0.3}, {0.3, 0.3, 0.3}, 30)
-mwall = misc.white()
+mwall = gr.material({0.6, 0.6, 0.6}, {0, 0, 0}, 30)
 mceil = mwall
 mfloor = mwall
 
 s = 3.2
-c = 6
+c = 8
 
 function mkwall(x, y, z, m)
   wall = gr.cube('lwall')
@@ -48,12 +48,12 @@ function lab(scene, name)
   cs_bench:add_child(bench)
 
   cup1 = cup.cup()
-  cup1:translate(1, 0, 2)
+  cup1:translate(3, 0, 2)
   cup1:scale(1.2, 1, 1.2)
   cs_bench:add_child(cup1)
 
   fl1 = florence.florence()
-  fl1:translate(0, 0.4, 3)
+  fl1:translate(-2, 0.4, 3)
   fl1:scale(1.7, 1.7, 1.7)
   cs_bench:add_child(fl1)
 
@@ -65,11 +65,8 @@ function lab(scene, name)
   cs_bench:add_child(e1)
 end
 
-  w = 256
-  h = 256
-
   gr.option("--unit-distance 1")
-  light = gr.light({4, 3, 4}, {0.9, 0.9, 0.9}, {0, 0, 0.03})
+  light = gr.light({1, 2, 2}, {0.9, 0.9, 0.9}, {0, 0, 0.03})
   light:set_radius(0.05)
   gr.set_miss_colour({0, 0, 0})
 
@@ -77,7 +74,7 @@ end
     gr.render(root, name, w, h, {0, 0, 8}, {0, 0, -1}, {0, 1, 0}, 50,
               {0.4, 0.4, 0.4}, {light})
   else
-    gr.render(root, name, w, h, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
+    gr.render(root, name, 100, 100, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
                                 {0.4, 0.4, 0.4}, {light})
   end
 end
