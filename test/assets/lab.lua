@@ -16,9 +16,12 @@ s = 3.2
 c = 8
 
 function mkwall(x, y, z, m)
-  bm = gr.bumpmap('../scratchy.png')
+  tex = gr.texture('../bwgrid.png')
+  bm = gr.bumpmap('../bwgrid.png')
+  tex:remapt('cubetop')
   bm:remap('cubetop')
   m:set_bumpmap(bm)
+  m:set_texture(tex)
   wall = gr.cube('lwall')
   wall:set_material(m)
   wall:translate(x, y, z)
@@ -97,7 +100,7 @@ function lab(scene, name)
     gr.render(root, name, w, h, {0, 0, 8}, {0, 0, -1}, {0, 1, 0}, 50,
               {0.4, 0.4, 0.4}, {light})
   else
-    gr.render(root, name, 100, 100, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
+    gr.render(root, name, 256, 256, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
                                 {0.4, 0.4, 0.4}, {light})
   end
 end
