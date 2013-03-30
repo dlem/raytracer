@@ -33,13 +33,13 @@ public:
     PQNode() {}
     PQNode(const Point3D &pt, KDNode *node)
       : node(node)
-      , dist((pt - node->pt).length())
+      , dist2((pt - node->pt).length2())
     {}
-    double dist;
+    double dist2;
     KDNode *node;
     bool operator<(const PQNode &other) const
     {
-      return dist < other.dist;
+      return dist2 < other.dist2;
     }
   };
 
@@ -56,16 +56,16 @@ public:
     return find(pt, m_root, 0);
   }
 
-  TNode *find_nn(const Point3D &pt, double maxdist = std::numeric_limits<double>::max())
+  TNode *find_nn(const Point3D &pt, double maxdist2 = std::numeric_limits<double>::max())
   {
     TPQueue q;
-    find_nnn(pt, 1, m_root, q, maxdist, 0);
+    find_nnn(pt, 1, m_root, q, maxdist2, 0);
     return (TNode *)(q.top().node);
   }
 
-  void find_nnn(const Point3D &pt, int n, TPQueue &q, double maxdist = std::numeric_limits<double>::max())
+  void find_nnn(const Point3D &pt, int n, TPQueue &q, double maxdist2 = std::numeric_limits<double>::max())
   {
-    find_nnn(pt, n, m_root, q, maxdist, 0);
+    find_nnn(pt, n, m_root, q, maxdist2, 0);
   }
 
 private:
@@ -84,7 +84,7 @@ private:
     return find(pt, node->rchild, depth + 1);
   }
 
-  static void find_nnn(const Point3D &pt, int n, KDNode *node, TPQueue &nns, double maxdist, int depth)
+  static void find_nnn(const Point3D &pt, int n, KDNode *node, TPQueue &nns, double maxdist2, int depth)
   {
     const int split = depth % 3;
 
@@ -103,25 +103,25 @@ private:
       tree2 = node->lchild;
     }
 
-    find_nnn(pt, n, tree1, nns, maxdist, depth + 1);
+    find_nnn(pt, n, tree1, nns, maxdist2, depth + 1);
 
     if(nns.size() < n)
     {
       nns.push(PQNode(pt, node));
-      find_nnn(pt, n, tree2, nns, maxdist, depth + 1);
+      find_nnn(pt, n, tree2, nns, maxdist2, depth + 1);
     }
     else
     {
-      const double mindist = abs(pt[split] - node->pt[split]);
-      if(mindist < maxdist && mindist < nns.top().dist)
+      const double mindist2 = sqr(pt[split] - node->pt[split]);
+      if(mindist2 < maxdist2 && mindist2 < nns.top().dist2)
       {
 	PQNode pqn(pt, node);
-	if(pqn.dist < nns.top().dist)
+	if(pqn.dist2 < nns.top().dist2)
 	{
 	  nns.pop();
 	  nns.push(pqn);
 	}
-	find_nnn(pt, n, tree2, nns, maxdist, depth + 1);
+	find_nnn(pt, n, tree2, nns, maxdist2, depth + 1);
       }
     }
   }

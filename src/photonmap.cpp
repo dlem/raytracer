@@ -185,15 +185,15 @@ Point3D s_caustic_pm_centre;
 Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
 {
   KDTree<Photon>::TPQueue nl;
-  m_map.find_nnn(pt, GETOPT(caustic_num_neighbours), nl, 0.15);
-  double maxdist = 0;
+  m_map.find_nnn(pt, GETOPT(caustic_num_neighbours), nl, sqr(0.15));
+  double maxdist2 = 0;
   Colour intensity(0);
 
   while(!nl.empty())
   {
     const KDTree<Photon>::PQNode &node = nl.top();
     const Photon &ph = *static_cast<Photon *>(node.node);
-    maxdist = max(maxdist, node.dist);
+    maxdist2 = max(maxdist2, node.dist2);
     nl.pop();
     double fr = outgoing.dot(ph.outgoing);
     fr = fr < 0 ? 0 : 1;
@@ -203,12 +203,12 @@ Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
 
   // Do an area average.
   // 100 works here for caustics, 1 works for GI...
-  return intensity * (1 / (M_PI * maxdist * maxdist));
+  return intensity * (1 / (M_PI * maxdist2));
 }
 
 Colour PhotonMap::query_photon(const Point3D &pt, Vector3D &pos_rel)
 {
-  Photon *p = m_map.find_nn(pt, 0.15);
+  Photon *p = m_map.find_nn(pt, sqr(0.15));
   if(p)
   {
     pos_rel = p->pt - pt;
