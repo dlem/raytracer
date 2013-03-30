@@ -2,19 +2,10 @@ module('graph1', package.seeall)
 
 require 'misc'
 require 'base'
+require 'paper'
 
 function graph1()
-  t = gr.texture('../graph1.png')
-  t:remapt('cubetop')
-  mat = gr.material({1, 1, 1}, {0, 0, 0}, 10)
-  mat:set_texture(t)
-  c = gr.cube('graph1')
-  c:translate(0, 0.01, 0)
-  c:scale(8.5 * 0.1, 0.001, 11 * 0.1)
-  c:set_material(mat)
-  n = gr.node('')
-  n:add_child(c)
-  return n
+  return paper.paper('../graph1.png', 8.5, 11)
 end
 
 if debug.getinfo(2) == nil then

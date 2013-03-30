@@ -92,10 +92,16 @@ function lab(scene, name)
   g3:translate(0, 0, -2)
   cs_bench:add_child(g3)
 
-  gr1 = graph1.graph1()
+  gr1 = paper.paper('../graph1.png', 8.5, 11)
   gr1:translate(0, 0, 2)
   gr1:scale(1.6, 1, 1.6)
   cs_bench:add_child(gr1)
+
+  pertable = paper.paper('../pertable.png', 14.5, 8.5)
+  pertable:translate(6, 3.5, -3)
+  pertable:scale(3, 3, 1)
+  pertable:rotate('x', 90)
+  root:add_child(pertable)
 
   gr.option("--unit-distance 1")
   light = gr.light({1, 2, 2}, {0.9, 0.9, 0.9}, {0, 0, 0.03})
@@ -106,7 +112,7 @@ function lab(scene, name)
     gr.render(root, name, w, h, {0, 0, 8}, {0, 0, -1}, {0, 1, 0}, 50,
               {0.4, 0.4, 0.4}, {light})
   else
-    gr.render(root, name, 256, 256, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
+    gr.render(root, name, 100, 100, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
                                 {0.4, 0.4, 0.4}, {light})
   end
 end
