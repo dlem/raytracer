@@ -32,7 +32,6 @@ void a4_render(// What to render
                const std::list<Light*>& lights
                )
 {
-  kdtree_test();
   if(GETOPT(height) != 0)
     height = GETOPT(height);
   if(GETOPT(width) != 0)

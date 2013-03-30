@@ -6,6 +6,7 @@ require 'cup'
 require 'erlenmeyer'
 require 'florence'
 require 'grad'
+require 'graph1'
 
 mbench = gr.material({0.5, 0.5, 0.5}, {0.3, 0.3, 0.3}, 30)
 mwall = gr.material({0.6, 0.6, 0.6}, {0, 0, 0}, 30)
@@ -56,12 +57,12 @@ function lab(scene, name)
   cs_bench:add_child(bench)
 
   cup1 = cup.cup(0.6, true, misc.liquid({0.5, 0.95, 0.95}), true)
-  cup1:translate(3, 0, 2)
+  cup1:translate(3.1, 0, 2)
   cup1:scale(1.2, 1, 1.2)
   cs_bench:add_child(cup1)
 
   fl1 = florence.florence(misc.liquid({0.4, 0.95, 0.45}), 0.5)
-  fl1:translate(-2.25, 0.2, 2)
+  fl1:translate(-2.75, 0.2, 2)
   fl1:scale(1.7, 1.7, 1.7)
   cs_bench:add_child(fl1)
 
@@ -91,6 +92,11 @@ function lab(scene, name)
   g3:translate(0, 0, -2)
   cs_bench:add_child(g3)
 
+  gr1 = graph1.graph1()
+  gr1:translate(0, 0, 2)
+  gr1:scale(1.6, 1, 1.6)
+  cs_bench:add_child(gr1)
+
   gr.option("--unit-distance 1")
   light = gr.light({1, 2, 2}, {0.9, 0.9, 0.9}, {0, 0, 0.03})
   light:set_radius(0.05)
@@ -100,7 +106,7 @@ function lab(scene, name)
     gr.render(root, name, w, h, {0, 0, 8}, {0, 0, -1}, {0, 1, 0}, 50,
               {0.4, 0.4, 0.4}, {light})
   else
-    gr.render(root, name, 100, 100, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
+    gr.render(root, name, 256, 256, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
                                 {0.4, 0.4, 0.4}, {light})
   end
 end
