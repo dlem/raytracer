@@ -28,7 +28,7 @@ function mkwall(x, y, z, m)
   wall = gr.cube('lwall')
   wall:set_material(m)
   wall:translate(x, y, z)
-  wall:scale(10, 10, s)
+  wall:scale(15, 15, s)
   wall:rotate('x', 90)
   return wall
 end
@@ -58,7 +58,7 @@ function lab(scene, name)
   bench:set_material(mbench)
   cs_bench:add_child(bench)
 
-  cup1 = cup.cup(0.6, true, misc.liquid({0.5, 0.95, 0.95}), true)
+  cup1 = cup.cup(0.6, false, misc.liquid({0.5, 0.95, 0.95}), false)
   cup1:translate(-0.1, 0, 1.4)
   cup1:scale(1.4, 1, 1.4)
   cs_bench:add_child(cup1)
