@@ -70,7 +70,7 @@ function lab(scene, name)
   fl2 = florence.florence(misc.liquid({1, 0, 0}), 0.5)
   fl2:translate(5.15, 0.2, -2)
   fl2:scale(1.7, 1.7, 1.7)
-  cs_bench:add_child(fl2)
+  --cs_bench:add_child(fl2)
 
   gliq1 = gr.material({0, 0, 0}, {1, 0.5, 1}, 20)
   gliq1:set_ri(1.33)
