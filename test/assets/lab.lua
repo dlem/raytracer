@@ -63,12 +63,12 @@ function lab(scene, name)
   cs_bench:add_child(cup1)
 
   fl1 = florence.florence(misc.liquid({0.4, 0.95, 0.45}), 0.5)
-  fl1:translate(-2.75, 0.2, 2)
+  fl1:translate(-3.25, 0.2, 2.25)
   fl1:scale(1.7, 1.7, 1.7)
   cs_bench:add_child(fl1)
 
   fl2 = florence.florence(misc.liquid({1, 0, 0}), 0.5)
-  fl2:translate(-4.5, 0.2, 4.5)
+  fl2:translate(5.15, 0.2, -2)
   fl2:scale(1.7, 1.7, 1.7)
   cs_bench:add_child(fl2)
 
@@ -96,16 +96,23 @@ function lab(scene, name)
   gr1 = paper.paper('../graph1.png', 8.5, 11)
   gr1:translate(0, 0, 2)
   gr1:scale(1.6, 1, 1.6)
+  gr1:rotate('y', -15)
   cs_bench:add_child(gr1)
+
+  p2 = paper.paper(nil, 8.5, 11)
+  p2:translate(0, -0.001, 2)
+  p2:scale(1.6, 1, 1.6)
+  p2:rotate('y', 5)
+  cs_bench:add_child(p2)
 
   pertable = paper.paper('../pertable.png', 14.5, 8.5)
   pertable:translate(6, 3.5, -c + s)
   pertable:scale(3, 3, 1)
   pertable:rotate('x', 90)
-  root:add_child(pertable)
+  --root:add_child(pertable)
 
   h1 = holder.holder()
-  h1:translate(3, -0.1, 0.6)
+  h1:translate(3, -0.8, -0.4)
   h1:scale(0.8, 0.8, 0.8)
   h1:rotate('y', -30)
   cs_bench:add_child(h1)
@@ -119,7 +126,7 @@ function lab(scene, name)
     gr.render(root, name, w, h, {0, 0, 8}, {0, 0, -1}, {0, 1, 0}, 50,
               {0.4, 0.4, 0.4}, {light})
   else
-    gr.render(root, name, 100, 100, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
+    gr.render(root, name, 256, 256, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
                                 {0.4, 0.4, 0.4}, {light})
   end
 end

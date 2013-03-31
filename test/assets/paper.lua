@@ -4,10 +4,12 @@ require 'misc'
 require 'base'
 
 function paper(imgname, w, h)
-  t = gr.texture(imgname)
-  t:remapt('cubetop')
   mat = gr.material({1, 1, 1}, {0, 0, 0}, 10)
-  mat:set_texture(t)
+  if imgname ~= nil then
+    t = gr.texture(imgname)
+    t:remapt('cubetop')
+    mat:set_texture(t)
+  end
   c = gr.cube('paper')
   c:translate(0, 0.01, 0)
   c:scale(w * 0.1, 0.001, h * 0.1)
