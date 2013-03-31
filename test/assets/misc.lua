@@ -48,7 +48,7 @@ function mirror()
 end
 
 function black()
-  return gr.material({0, 0, 0}, {0, 0, 0})
+  return gr.material({0, 0, 0}, {0, 0, 0}, 20)
 end
 
 function liquid(spec)

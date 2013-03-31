@@ -8,6 +8,7 @@ require 'florence'
 require 'grad'
 require 'paper'
 require 'holder'
+require 'spider'
 
 mbench = gr.material({0.5, 0.5, 0.5}, {0.3, 0.3, 0.3}, 30)
 mwall = gr.material({0.6, 0.6, 0.6}, {0, 0, 0}, 30)
@@ -110,6 +111,13 @@ function lab(scene, name)
   h1:rotate('y', -30)
   cs_bench:add_child(h1)
 
+  sp1 = spider.spider()
+  sp1:translate(3.5, 2, -4.2)
+  --sp1:translate(1.5, 2, 0)
+  sp1:scale(1, 1, 1)
+  sp1:rotate('x', 90)
+  root:add_child(sp1)
+
   gr.option("--unit-distance 1")
   light = gr.light({1, 2, 2}, {0.9, 0.9, 0.9}, {0, 0, 0.03})
   light:set_radius(0.05)
@@ -119,7 +127,7 @@ function lab(scene, name)
     gr.render(root, name, w, h, {0, 0, 8}, {0, 0, -1}, {0, 1, 0}, 50,
               {0.4, 0.4, 0.4}, {light})
   else
-    gr.render(root, name, 100, 100, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
+    gr.render(root, name, 256, 256, {0, 8, 8}, {0, -1/1.41, -1/1.41}, {0, 1/1.41, -1/1.41}, 50,
                                 {0.4, 0.4, 0.4}, {light})
   end
 end
