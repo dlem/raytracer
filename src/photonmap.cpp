@@ -331,18 +331,21 @@ void GIPhotonMap::build_light(RayTracer &rt, const Light &light, const Colour &e
       while(ray.length() > 1);
       ray.normalize();
 
-      int depth = 0;
-      rt.raytrace_russian(light.position, ray, photon_energy, [&depth, this]
+      bool diffusely_reflected = false;
+      rt.raytrace_russian(light.position, ray, photon_energy, [&diffusely_reflected, this]
 	  (const Point3D &p, const Vector3D &outgoing, const Colour &cdiffuse, double *prs)
 	  {
-	    if(prs[RT_DIFFUSE] > 0 && depth > 0)
+	    if(prs[RT_DIFFUSE] > 0 && diffusely_reflected)
 	      this->m_photons.push_back(Photon(p, cdiffuse, outgoing));
-	    depth += 1;
 
 	    const double pr = rand() / (double)RAND_MAX;
 	    for(int i = 0; i < RT_ACTION_COUNT; i++)
 	      if(pr <= prs[i])
+	      {
+		if(i == RT_DIFFUSE)
+		  diffusely_reflected = true;
 		return (RT_ACTION)i;
+	      }
 	    return RT_ABSORB;
 	  });
       timer.increment();
