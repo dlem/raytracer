@@ -14,7 +14,10 @@ static map<const string, function<Bumpmap *()>> s_bumpmaps = {
 };
 
 static map<const string, function<Texture *()>> s_textures = {
-  { "testtex", []() { return new TestTex(); } },
+  { "redcheck", []() { return new CheckerTexture(Colour(1, 0, 0)); } },
+  { "greencheck", []() { return new CheckerTexture(Colour(0, 1, 0)); } },
+  { "bluecheck", []() { return new CheckerTexture(Colour(0, 0.8, 1)); } },
+  { "whitecheck", []() { return new CheckerTexture(Colour(1, 1, 1)); } },
 };
 
 class ImageBumpmap : public Bumpmap

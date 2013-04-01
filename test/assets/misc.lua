@@ -61,3 +61,9 @@ function solid(diff)
   sol = gr.material(diff, {0, 0, 0}, 30)
   return sol
 end
+
+function texture(s)
+  m = gr.material({0, 0, 0}, {0, 0, 0}, 30)
+  m:set_texture(gr.texture(s))
+  return m
+end

@@ -24,7 +24,6 @@ RayTracer::RayTracer(const FlatList &geo)
 {
 }
 
-
 bool RayTracer::raytrace(const Point3D &src, const Vector3D &ray, const RaytraceFn &fn)
 {
   const Point3D dst = src + ray;

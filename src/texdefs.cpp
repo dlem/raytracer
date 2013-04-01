@@ -86,13 +86,9 @@ Point2D BubblesBm::operator()(const Point2D &uv)
   return Point2D();
 }
 
-Colour TestTex::operator()(const Point2D &uv)
+Colour CheckerTexture::operator()(const Point2D &uv)
 {
-      const double l = 0.5, r = 1, b = 0.5, t = 1;
-      const bool perturb = inrange(uv[0], l, r) && inrange(uv[1], b, t);
-      if(perturb)
-      {
-    return Colour(1, 0, 0);
-      }
-    return Colour(0, 1, 0);
+  const double resolution = 20;
+  const int n = (int)(uv[0] * resolution) + (int)(uv[1] * resolution);
+  return n % 2 ? m_c : Colour(0);
 }

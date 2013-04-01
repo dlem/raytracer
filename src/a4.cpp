@@ -51,35 +51,37 @@ void a4_render(// What to render
   FlatList geometry;
   root->flatten(geometry);
 
-#if 0
-  auto ray_pupil_background = [fov_x, fov_y, &right, &up, &view](const Point3D &src, const Point3D &dst)
+  MissColourFn miss_fn = [](const Point3D &, const Vector3D &) { return GETOPT(miss_colour); };
+  
+  if(GETOPT(bgstyle) == BGS_RAYS)
   {
-    const Colour darker(1., 0.29, 0);
-    const Colour lighter(1., 0.56, 0);
-    const int arcs = 28;
-    const double pupil_proportion = 0.1;
-    const double ray_proportion = 0.5;
+    miss_fn = [fov_x, fov_y, &right, &up, &view](const Point3D &src, const Vector3D &ray)
+    {
+      const Colour darker(1., 0.29, 0);
+      const Colour lighter(1., 0.56, 0);
+      const int arcs = 28;
 
-    Vector3D ray = dst - src;
-    ray.normalize();
-    
-    const double dtheta = acos(ray.dot(view));
-    if(dtheta <= pupil_proportion * fov_x)
-      return lighter;
-    else if(dtheta > ray_proportion * fov_x)
-      return darker;
-
-    const double x = ray.dot(right);
-    const double y = ray.dot(up);
-    double theta = atan2(y, x);
-    theta /= 2 * M_PI / arcs;
-    theta -= 0.5;
-
-    return (int)abs(floor(theta)) % 2 >= 1 ? lighter : darker;
-  };
+#if 0
+      const double pupil_proportion = 0.1;
+      const double ray_proportion = 0.5;
+      const double dtheta = acos(ray.dot(view));
+      if(dtheta <= pupil_proportion * fov_x)
+	return lighter;
+      else if(dtheta > ray_proportion * fov_x)
+	return darker;
 #endif
 
-  RayTracer rt(geometry);
+      const double x = ray.dot(right);
+      const double y = ray.dot(up);
+      double theta = atan2(y, x);
+      theta /= 2 * M_PI / arcs;
+      theta -= 0.5;
+
+      return (int)abs(floor(theta)) % 2 >= 1 ? lighter : darker;
+    };
+  }
+
+  RayTracer rt(geometry, miss_fn);
 
   // Build the caustic photon map.
   CausticMap caustic_map;

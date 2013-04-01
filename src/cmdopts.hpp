@@ -59,6 +59,12 @@ private:
   OptMap m_opts;
 };
 
+enum BGSTYLE
+{
+  BGS_COLOUR,
+  BGS_RAYS,
+};
+
 class CmdOpts : public CmdOptsBase
 {
 public:
@@ -71,7 +77,6 @@ public:
   bool draw_gi_only;
   bool use_gi_map;
   bool soft_shadows;
-  bool hires;
   Colour miss_colour;
   unsigned aa_grid, threads;
   double aa_threshold, aa_jitter;
@@ -84,6 +89,7 @@ public:
   unsigned height, width;
   double unit_distance;
   double energy_fudge;
+  BGSTYLE bgstyle;
   std::ostream *outs;
   std::ostream *dbgs;
   std::ostream *errs;

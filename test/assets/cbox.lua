@@ -17,9 +17,9 @@ function cbox(scene, w, h, name)
     wall:scale(s, s, s)
     box:add_child(wall)
   end
-  mr = gr.material({0.9, 0, 0}, {0, 0, 0}, 1)
-  mg = gr.material({0, 0.9, 0}, {0, 0, 0}, 1)
-  mw = gr.material({0.9, 0.9, 0.9}, {0, 0, 0}, 1)
+  mr = gr.material({0.8, 0, 0.9}, {0, 0, 0}, 1)
+  mg = gr.material({0, 0.9, 0.0}, {0, 0, 0}, 1)
+  mw = gr.material({0.95, 0.95, 0.95}, {0, 0, 0}, 1)
 
   box = gr.node('cbox')
 

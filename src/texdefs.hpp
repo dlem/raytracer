@@ -33,10 +33,17 @@ typedef UVRemapper<Colour> TexRemapper;
   class name : public Texture \
   { public: virtual Colour operator()(const Point2D &uv); }
 
-
 DECLARE_BUMPMAP(SineWavesBm);
 DECLARE_BUMPMAP(BubblesBm);
 
-DECLARE_TEXTURE(TestTex);
+class CheckerTexture : public Texture
+{
+public:
+  CheckerTexture(const Colour &c) : m_c(c) {}
+  virtual Colour operator()(const Point2D &uv);
+
+private:
+  Colour m_c;
+};
 
 #endif

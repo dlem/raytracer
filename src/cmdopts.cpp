@@ -113,7 +113,7 @@ CmdOpts::CmdOpts()
   threads = 4;
   aa_threshold = 0.5;
   aa_jitter = 0.;
-  caustic_num_photons = 1000000;
+  caustic_num_photons = 0;
   caustic_num_neighbours = 5;
   gi_num_photons = 1000000;
   gi_num_neighbours = 100;
@@ -127,9 +127,9 @@ CmdOpts::CmdOpts()
   draw_gi_only = false;
   soft_shadows = true;
   shadow_grid = 4;
-  hires = false;
   height = width = 0;
   miss_colour = Colour(1);
+  bgstyle = BGS_COLOUR;
   unit_distance = 1;
   energy_fudge = 1;
 
@@ -154,7 +154,11 @@ CmdOpts::CmdOpts()
   add_flag("draw-gi-only", [=]() { draw_gi_only = true; });
   add_flag("draw-gi-map", [=]() {draw_gi_map = true; });
   add_flag("no-soft-shadows", [=]() { soft_shadows = false; });
+  add_flag("minres", [=] { height = width = 100; });
+  add_flag("lores", [=] { height = width = 256; });
+  add_flag("midres", [=] { height = width = 512; });
   add_flag("hires", [=] { height = width = 1024; });
+  add_flag("rays", [=] { bgstyle = BGS_RAYS; });
   add_parameter<int>("aa-grid", [=](int g) { aa_grid = check_range(g, 1, "Invalid postive integer argument to aa-grid"); });
   add_parameter<int>("threads", [=](int t) { threads = check_range(t, 1, "Invalid positive integer argument to threads"); }, 'j');
   add_parameter<double>("aa-threshold", [=](double t) { aa_threshold = check_range(t, 0., "Jitter value must be non-negative double"); });
@@ -170,5 +174,7 @@ CmdOpts::CmdOpts()
 
 void CmdOpts::set_miss_colour(const Colour &c) const
 {
-  const_cast<CmdOpts *>(this)->miss_colour = c;
+  CmdOpts *ths = const_cast<CmdOpts *>(this);
+  ths->bgstyle = BGS_COLOUR;
+  ths->miss_colour = c;
 }
