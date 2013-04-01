@@ -90,8 +90,8 @@ bool Sphere::intersect(const Point3D &eye, const Point3D &dst, HitReporter &hr) 
       // Figure out the uv.
       const double theta = atan2(-pt[2], pt[0]);
       const double y = pt[1];
-      const Point2D uv(0.5 + theta/M_PI, 0.5 + y * 0.5);
-      Vector3D u = Vector3D(pt[1], -pt[0], 0);
+      const Point2D uv(0.5 + theta / 2 / M_PI, 0.5 + y * 0.5);
+      Vector3D u = Vector3D(pt[1], 0, -pt[0]);
       u.normalize();
       const Vector3D v = normal.cross(u);
 
