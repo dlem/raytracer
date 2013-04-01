@@ -243,13 +243,14 @@ void Cylinder::get_uv(const Point3D &pt, const Vector3D &normal,
 {
   // This function handles uvs on the non-planar part.
   // Find theta, translate it into a coordinate from 0 to 1.
-  const double theta = atan2(-pt[2], pt[0]);
-  const double y = pt[1];
-  uv[0] = 0.5 + theta / M_PI;
-  uv[1] = 0.25 + y * 0.25;
-  u = Vector3D(pt[1], -pt[0], 0);
-  u.normalize();
-  v = Vector3D(0, 1, 0);
+  const double theta = atan2(pt[1], pt[0]);
+  const double z = pt[2];
+  uv[0] = 0.5 + theta / 2 / M_PI;
+  uv[1] = 0.25 + z * 0.25;
+  v = Vector3D(0, 0, 1);
+  u = v.cross(normal);
+  assert(approx(v.dot(normal), 0.));
+  assert(approx(u.dot(normal), 0.));
 }
 
 Matrix4x4 Cylinder::get_transform()
