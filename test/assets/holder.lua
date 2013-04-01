@@ -4,7 +4,7 @@ require 'misc'
 require 'cbox'
 require 'ttube'
 
-holder_mat = gr.material({0.2, 0.2, 0.2}, {0.3, 0.3, 0.3}, 30)
+holder_mat = gr.material({0.2, 0.2, 0.2}, {0, 0, 0}, 30)
 
 sh = 0.2
 
