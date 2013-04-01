@@ -9,6 +9,8 @@ mb = gr.material({0.95, 0.95, 0.95}, {0, 0, 0}, 1)
 mt = gr.material({0.95, 0.95, 0.95}, {0, 0, 0}, 1)
 mlo = gr.material({0.95, 0.95, 0.95}, {0, 0, 0}, 1)
 
+diffmat = nil
+
 
 function cbox(scene, w, h, name)
   scene = scene or gr.node('')
@@ -17,11 +19,16 @@ function cbox(scene, w, h, name)
 
   s = 3.2
   c = 6
-  function mkwall(x, y, z, m)
+  function mkwall(x, y, z, m, diffmat)
     wall = gr.cube('cwall')
     wall:set_material(m)
     wall:translate(x, y, z)
     wall:scale(s, s, s)
+
+    if diffmat ~= nil then
+      wall = gr.difference(wall, diffmat)
+    end
+
     box:add_child(wall)
   end
 
@@ -31,7 +38,7 @@ function cbox(scene, w, h, name)
   mkwall(c, 0, 0, mr)
   mkwall(0, -c, 0, mlo)
   mkwall(0, c, 0, mt)
-  mkwall(0, 0, -c, mb)
+  mkwall(0, 0, -c, mb, diffmat)
 
   root:add_child(scene)
   root:add_child(box)

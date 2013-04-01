@@ -44,7 +44,7 @@ function white()
 end
 
 function mirror()
-  return gr.material({0, 0, 0}, {0.95, 0.95, 0.95})
+  return gr.material({0, 0, 0}, {0.95, 0.95, 0.95}, 30)
 end
 
 function black()
