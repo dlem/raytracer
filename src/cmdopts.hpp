@@ -71,7 +71,8 @@ public:
   CmdOpts();
   bool aa, bv, draw_aa, timing;
   bool stats, use_caustic_map, draw_caustic_map;
-  bool draw_caustic_pm;
+  bool draw_caustic_prm;
+  bool disable_caustic_prm;
   bool draw_caustics_only;
   bool draw_gi_map;
   bool draw_gi_only;

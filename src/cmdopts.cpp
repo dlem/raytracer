@@ -120,7 +120,8 @@ CmdOpts::CmdOpts()
   caustic_pm_gran = 180;
   use_caustic_map = true;
   draw_caustic_map = false;
-  draw_caustic_pm = false;
+  draw_caustic_prm = false;
+  disable_caustic_prm = false;
   draw_caustics_only = false;
   use_gi_map = false;
   draw_gi_map = false;
@@ -140,6 +141,7 @@ CmdOpts::CmdOpts()
 
   add_flag("disable-aa", [=]() { aa = false; });
   add_flag("disable-bv", [=]() { bv = false; });
+  add_flag("disable-caustic-prm", [=]() { disable_caustic_prm = true; });
   add_flag("draw-aa", [=]() { draw_aa = true; });
   add_flag("timing", [=]() { timing = true; }, 't');
   add_flag("silent", [=]() { outs = &clog; }, 's');
@@ -147,7 +149,7 @@ CmdOpts::CmdOpts()
   add_flag("verbose", [=]() { dbgs = &cout; }, 'v');
   add_flag("no-caustic-map", [=]() { use_caustic_map = false; });
   add_flag("draw-caustic-map", [=]() { draw_caustic_map = true; });
-  add_flag("draw-caustic-pm", [=]() { draw_caustic_pm = true; });
+  add_flag("draw-caustic-pm", [=]() { draw_caustic_prm = true; });
   add_flag("draw-caustics-only", [=]() { draw_caustics_only = true; });
   add_flag("debug", [=]() { dbgs = &cout; outs = &clog; }, 'd');
   add_flag("gi", [=]() { use_gi_map = true; });
