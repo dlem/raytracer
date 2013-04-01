@@ -88,7 +88,7 @@ Point2D BubblesBm::operator()(const Point2D &uv)
 
 Colour CheckerTexture::operator()(const Point2D &uv)
 {
-  const double resolution = 20;
+  const double resolution = 24;
   const int n = (int)(uv[0] * resolution) + (int)(uv[1] * resolution);
   return n % 2 ? m_c : Colour(0);
 }

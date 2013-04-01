@@ -312,13 +312,13 @@ bool Cone::predicate(const Point3D &pt) const
 void Cone::get_uv(const Point3D &pt, const Vector3D &normal,
 		  Point2D &uv, Vector3D &u, Vector3D &v) const
 {
-  const double theta = atan2(-pt[2], pt[0]);
-  const double y = pt[1];
-  uv[0] = 0.5 + theta / M_PI;
-  uv[1] = 0.25 + y * 0.25;
-  u = Vector3D(pt[1], -pt[0], 0);
-  u.normalize();
-  v = normal.cross(u);
+  const double theta = atan2(pt[1], pt[0]);
+  const double z = pt[2];
+  uv[0] = 0.5 + theta / 2 / M_PI;
+  uv[1] = z * 0.5;
+  v = Point3D() - pt;
+  v.normalize();
+  u = v.cross(normal);
 }
 
 // Translate it so that it's centered at 0.
