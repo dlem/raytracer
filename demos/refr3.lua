@@ -4,7 +4,7 @@ require 'cbox'
 w = 0.05
 
 cbox.mb = misc.texture('redcheck', nil, 'cubefront')
-cbox.mlo = misc.texture('whitecheck', nil, 'cubetop')
+--cbox.mlo = misc.texture('whitecheck', nil, 'cubetop')
 
 s_aq = {x=2.25, y=1.0, z=2.25}
 p_aq = {x=0, y=-2.2, z=0}

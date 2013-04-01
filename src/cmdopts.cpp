@@ -110,7 +110,7 @@ CmdOpts::CmdOpts()
   aa_jitter = 0;
   aa_grid = 3;
   draw_aa = false;
-  threads = 4;
+  threads = 6;
   aa_threshold = 0.5;
   aa_jitter = 0.;
   caustic_num_photons = 0;
