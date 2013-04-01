@@ -3,6 +3,13 @@ module("cbox", package.seeall)
 require 'misc'
 require 'base'
 
+ml = gr.material({0.8, 0, 0.9}, {0, 0, 0}, 1)
+mr = gr.material({0, 0.9, 0.0}, {0, 0, 0}, 1)
+mb = gr.material({0.95, 0.95, 0.95}, {0, 0, 0}, 1)
+mt = gr.material({0.95, 0.95, 0.95}, {0, 0, 0}, 1)
+mlo = gr.material({0.95, 0.95, 0.95}, {0, 0, 0}, 1)
+
+
 function cbox(scene, w, h, name)
   scene = scene or gr.node('')
 
@@ -17,18 +24,14 @@ function cbox(scene, w, h, name)
     wall:scale(s, s, s)
     box:add_child(wall)
   end
-  mr = gr.material({0.8, 0, 0.9}, {0, 0, 0}, 1)
-  mg = gr.material({0, 0.9, 0.0}, {0, 0, 0}, 1)
-  mw = gr.material({0.95, 0.95, 0.95}, {0, 0, 0}, 1)
 
   box = gr.node('cbox')
 
-  d = 0
-  mkwall(-c, 0, 0, mr)
-  mkwall(c, 0, 0, mg)
-  mkwall(0, -c, 0, mw)
-  mkwall(0, c, 0, mw)
-  mkwall(0, 0, -c, mw)
+  mkwall(-c, 0, 0, ml)
+  mkwall(c, 0, 0, mr)
+  mkwall(0, -c, 0, mlo)
+  mkwall(0, c, 0, mt)
+  mkwall(0, 0, -c, mb)
 
   root:add_child(scene)
   root:add_child(box)

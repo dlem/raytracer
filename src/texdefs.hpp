@@ -6,7 +6,10 @@
 enum REMAPTYPE
 {
   REMAP_CUBETOP,
+  REMAP_CUBEFRONT,
+  REMAP_CUBEBOT,
   REMAP_CYLTOP,
+  REMAP_CONETOP,
 };
 
 template<typename TMapped>

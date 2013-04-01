@@ -62,8 +62,23 @@ function solid(diff)
   return sol
 end
 
-function texture(s)
+function bumpmap(sbm, rm)
+  bm = gr.bumpmap(sbm)
+  if rm ~= nil then bm:remap(rm) end
+  return bm
+end
+
+function texture(s, sbm, rm)
   m = gr.material({0, 0, 0}, {0, 0, 0}, 30)
-  m:set_texture(gr.texture(s))
+
+  if s ~= nil then
+    tex = gr.texture(s)
+    if rm ~= nil then tex:remapt(rm) end
+    m:set_texture(tex)
+  end
+
+  if sbm ~= nil then m:set_bumpmap(bumpmap(sbm, rm)) end
+
   return m
 end
+

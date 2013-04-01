@@ -1,0 +1,275 @@
+<html>
+  <head>
+    <title>
+      dlemmond's CS488 Project
+    </title>
+    <!--<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js' type='text/javascript'></script>
+    <script src='demo.js' type='text/javascript'></script>
+    -->
+    <link rel='stylesheet' type='text/css' href='demo.css'>
+  </head>
+  <body>
+    <div class="container">
+    <h1>dlemmond's CS488 Project: Photon Mapping Ray Tracer</h1>
+    <div class="obj">
+      <hr>
+      <h2>Objective 0: Adaptive Anti-Aliasing via Supersampling</h2>
+      <div class="hexo"><div class="hex"><div class="hexi">
+        <div class="ex">
+          <a href='aa_none.png'>
+            <img src='aa_none_thumb.png'/>
+          </a>
+          <p>Low-resolution ghost rendering. Notice the visible jaggies. Render
+          time: 0.2s.</p>
+        </div>
+        <div class="ex">
+          <a href='aa_draw.png'>
+            <img src='aa_draw_thumb.png'/>
+          </a>
+          <p>Pixels selected for anti-aliasing in the original image.</p>
+        </div>
+        <div class="ex">
+          <a href='aa_4x4.png'>
+            <img src='aa_4x4_thumb.png'/>
+          </a>
+          <p>The same low-resolution image after 4x4 anti-aliasing. Render time:
+          0.75s.</p>
+        </div>
+  </div></div></div>
+      <p class='desc'>Pixels are selected for anti-aliasing when the maximal
+      "distance" between the colours of their corners surpasses a threshold. The
+      ray tracer performs anti-aliasing by averaging samples in an NxN grid
+      inside the pixel. My attempts at jittering samples added noise.
+      </p>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 0.5: Multithreading</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='threading.png'>
+            <img src='threading_thumb.png'/>
+          </a>
+          <p>Test image: a low resolution version of my assignment 4 unique scene.</p>
+        </div>
+      </div></div></div>
+      <p>
+      A number of threads are spawned when rendering begins. Each of them works
+      by repeatedly asking for a row number and rendering that row of the image.
+      I did not bother to parallelize the photon shooting preprocessing phase of
+      my ray tracer as a much greater part of the runtime is spent rendering.
+      </p>
+      <p>Here are some timings:</p>
+      <div class="hexo"><div class="hex"><div class="hexi">
+        <div class="tex">
+          <b>Core i5-3317U @ 1.70GHz (2 cores hyperthreaded)</b>
+          <center>
+          <table>
+            <tr class="header"><td># threads</td><td>User time</td><td>Clock time</td></tr>
+            <tr><td>6</td><td>127.1s</td><td>33.1s</td></tr>
+            <tr><td>4</td><td>127.0s</td><td>32.8s</td></tr>
+            <tr><td>2</td><td>84.3s</td><td>42.4s</td></tr>
+            <tr><td>1</td><td>83.3s</td><td>83.1s</td></tr>
+          </table>
+        </center>
+        </div>
+      </div></div></div>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 1: Cone and Cylinder Primitives</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='primitives.png'>
+            <img src='primitives_thumb.png'/>
+          </a>
+          <p></p>
+        </div>
+      </div></div></div>
+      <p>
+      </p>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 2: Texture Mapping</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='texmapping.png'>
+            <img src='texmapping_thumb.png'/>
+          </a>
+          <p></p>
+        </div>
+      </div></div></div>
+      <p>
+      </p>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 3: Bump Mapping</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='bumpmapping.png'>
+            <img src='bumpmapping_thumb.png'/>
+          </a>
+          <p></p>
+        </div>
+      </div></div></div>
+      <p>
+      </p>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 4: Reflection</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='reflection.png'>
+            <img src='reflection_thumb.png'/>
+          </a>
+          <p></p>
+        </div>
+      </div></div></div>
+      <p>
+      </p>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 5: Refraction and Transparency</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='refrac_trans.png'>
+            <img src='refrac_trans_thumb.png'/>
+          </a>
+          <p></p>
+        </div>
+      </div></div></div>
+      <p>
+      </p>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 6: Soft Shadows</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='shadows.png'>
+            <img src='shadows_thumb.png'/>
+          </a>
+          <p></p>
+        </div>
+      </div></div></div>
+      <p>
+      </p>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 7: Constructive Solid Geometry</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='csg.png'>
+            <img src='csg_thumb.png'/>
+          </a>
+          <p></p>
+        </div>
+      </div></div></div>
+      <p>
+      </p>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 8: Caustics</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='caustics.png'>
+            <img src='caustics_thumb.png'/>
+          </a>
+          <p></p>
+        </div>
+      </div></div></div>
+      <p>
+      </p>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 9: Projection Maps</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='projmap.png'>
+            <img src='projmap_thumb.png'/>
+          </a>
+          <p></p>
+        </div>
+      </div></div></div>
+      <p>
+      </p>
+      <p>Here are some timings:</p>
+      <div class="hexo"><div class="hex"><div class="hexi">
+        <div class="tex">
+          <b>Core i5-3317U @ 1.70GHz (2 cores hyperthreaded)</b>
+          <center>
+          <table>
+            <tr class="header"><td># threads</td><td>User time</td><td>Clock time</td></tr>
+            <tr><td>6</td><td>127.1s</td><td>33.1s</td></tr>
+            <tr><td>4</td><td>127.0s</td><td>32.8s</td></tr>
+            <tr><td>2</td><td>84.3s</td><td>42.4s</td></tr>
+            <tr><td>1</td><td>83.3s</td><td>83.1s</td></tr>
+          </table>
+        </center>
+        </div>
+      </div></div></div>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 10: Laboratory Final Scene</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='lab.png'>
+            <img src='lab_thumb.png'/>
+          </a>
+          <p></p>
+        </div>
+      </div></div></div>
+      <p>
+      </p>
+    </div>
+
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Objective 11: Global Illumination</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='lab.png'>
+            <img src='lab_thumb.png'/>
+          </a>
+          <p></p>
+        </div>
+      </div></div></div>
+      <p>
+      </p>
+    </div>
+
+
+  </div>
+  </body>
+</html>

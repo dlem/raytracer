@@ -6,7 +6,10 @@ using namespace std;
 static map<const string, REMAPTYPE> s_remaptypes =
 {
   { "cubetop", REMAP_CUBETOP },
+  { "cubefront", REMAP_CUBEFRONT },
+  { "cubebot", REMAP_CUBEBOT },
   { "cyltop", REMAP_CYLTOP },
+  { "conetop", REMAP_CONETOP },
 };
 
 template<typename TMapped>
@@ -38,12 +41,26 @@ TMapped UVRemapper<TMapped>::operator()(const Point2D &uv)
       const double l = 1/4., r = 2/4., b = 1/3., t = 2/3.;
       perturb = inrange(uv[0], l, r) && inrange(uv[1], b, t);
       if(perturb)
-      {
-	const double u = (uv[0] - l) / (r - l);
-	const double v = (uv[1] - b) / (t - b);
-	rv = Point2D(u, v);
-      }
+	rv = Point2D((uv[0] - l) / (r - l), (uv[1] - b) / (t - b));
       break;
+    }
+    case REMAP_CUBEFRONT:
+    {
+      const double l = 1/4., r = 2/4., b = 0/3., t = 1/3.;
+      perturb = inrange(uv[0], l, r) && inrange(uv[1], b, t);
+      if(perturb)
+	rv = Point2D((uv[0] - l) / (r - l), (uv[1] - b) / (t - b));
+      break;
+
+    }
+    case REMAP_CUBEBOT:
+    {
+      const double l = 3/4., r = 4/4., b = 1/3., t = 2/3.;
+      perturb = inrange(uv[0], l, r) && inrange(uv[1], b, t);
+      if(perturb)
+	rv = Point2D((uv[0] - l) / (r - l), (uv[1] - b) / (t - b));
+      break;
+
     }
     case REMAP_CYLTOP:
     {
@@ -52,6 +69,16 @@ TMapped UVRemapper<TMapped>::operator()(const Point2D &uv)
       if(perturb)
       {
 	rv = Point2D((uv[0] - l) / (r - l), (uv[1] - b) / (t - b));
+      }
+      break;
+    }
+    case REMAP_CONETOP:
+    {
+      const double b = 0.5, t = 1;
+      perturb = inrange(uv[1], b, t);
+      if(perturb)
+      {
+	rv = Point2D(uv[0], (uv[1] - b) / (t - b));
       }
       break;
     }
@@ -74,7 +101,7 @@ Point2D SineWavesBm::operator()(const Point2D &uv)
   const Point2D offset(uv[0] - 0.5, uv[1] - 0.5);
   const double len = sqrt(sqr(offset[0]) + sqr(offset[1]));
   const Point2D dirvec(offset[0] / max(len, 0.0001), offset[1] / max(len, 0.0001));
-  const double factor = 2 * M_PI / 0.2;
+  const double factor = 3 * 2 * M_PI / 0.2;
   const double rad = factor * len;
   const double slope = cos(rad);
   Point2D rv(slope * dirvec[0], slope * dirvec[1]);
