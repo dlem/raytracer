@@ -29,4 +29,6 @@ root:add_child(r)
 
 gr.option('--caustic-num-photons 12000000 --caustic-num-neighbours 200')
 
+base.ambient = {0.0, 0.0, 0.0}
+
 cbox.cbox(root)

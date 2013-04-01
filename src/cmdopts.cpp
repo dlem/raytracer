@@ -141,6 +141,7 @@ CmdOpts::CmdOpts()
 
   add_flag("disable-aa", [=]() { aa = false; });
   add_flag("disable-bv", [=]() { bv = false; });
+  add_flag("disable-csg-bb", [=]() { disable_csg_bb = true; });
   add_flag("disable-caustic-prm", [=]() { disable_caustic_prm = true; });
   add_flag("draw-aa", [=]() { draw_aa = true; });
   add_flag("timing", [=]() { timing = true; }, 't');

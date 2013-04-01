@@ -191,7 +191,7 @@ Point3D s_caustic_pm_centre;
 Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
 {
   KDTree<Photon>::TPQueue nl;
-  m_map.find_nnn(pt, GETOPT(caustic_num_neighbours), nl, sqr(0.15));
+  m_map.find_nnn(pt, num_neighbours(), nl, sqr(0.15));
   double maxdist2 = 0;
   Colour intensity(0);
 

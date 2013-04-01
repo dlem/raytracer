@@ -289,6 +289,6 @@ void RayTracer::raytrace_russian(const Point3D &src,
     outgoing = ray_reflected;
 #endif
 
-    raytrace_russian(p, outgoing, acc * cdiffuse * (1./M_PI), fn, depth + 1);
+    raytrace_russian(p, outgoing, acc * cdiffuse, fn, depth + 1);
   }
 }

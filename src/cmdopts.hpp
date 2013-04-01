@@ -70,6 +70,7 @@ class CmdOpts : public CmdOptsBase
 public:
   CmdOpts();
   bool aa, bv, draw_aa, timing;
+  bool disable_csg_bb;
   bool stats, use_caustic_map, draw_caustic_map;
   bool draw_caustic_prm;
   bool disable_caustic_prm;
