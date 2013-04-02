@@ -1,0 +1,299 @@
+\documentclass{article}
+
+\begin{document}
+
+\title{A5 Manual}
+\author{Daniel Lemmond\\
+20302247}
+
+\maketitle
+
+\section{Using the Features}
+
+This section describes how to use the features of the ray tracer. Features which
+were mandatory components of assignment 4 will not be discussed unless they have
+seen changes since assignment 4.
+
+\subsection{Anti-Aliasing}
+
+Adaptive anti-aliasing is used in this ray tracer. It reduces `jaggies' by
+performing rendering calculations multiple times for pixels containing colour
+discontinuities. There are two parameters to adjust: the sensitivity to
+discontinuities (ie, the number of pixels which are selected for anti-aliasing)
+and the number of samples used for anti-aliasing a selected pixel. In practise,
+anti-aliasing is inexpensive given a reasonable threshold. See also the
+`--aa-grid' and `--aa-threshold' program options.
+
+\subsection{Multithreading}
+
+This ray tracer takes advantage of thread-level parallelism to achieve
+significant performance boosts. To achieve optimal performance, use the
+`--threads' program option to have the program use a number of threads which is
+approximately equal to the number of logical cores on the machine.
+
+\subsection{Cone and Cylinder Primitives}
+
+It is possible to create cone and cylinder primitives via the `gr.cone' and
+`gr.cylinder' commands. These primitives are hierarchal and both have heights
+2 and radii 1. The same actions may be performed
+upon them as on any other primitive.
+
+\subsection{Texture Mapping}
+
+Texture mapping is used in this ray tracer so that users may `map' pictures onto
+primitives. In particular, materials with associated textures have their diffuse
+colour coefficients determined by the texture.
+
+A user may create a texture using the `gr.texture' function. The function
+accepts a single string argument which is either the name of a procedural
+texture or the path of a PNG image. The only procedural textures that are
+supported are `redcheck', `greencheck', `bluecheck', and `whitecheck', which are
+checker patterns of varying colours. After a texture is created, it may be
+attached to a material using the material:set_texture method.
+
+Each primitive has a parametrization by which PNG images are mapped to them; see
+section \ref{uv_parametrizations}.
+
+
+\subsection{Bump Mapping}
+
+Bump mapping is used to perturb the surface normals of primitives according to a
+user-specified map. Doing so can produce impressive images by having the
+direction of light bounces give the impression of detailed shapes; but bump
+mapping is usually much less difficult than modeling the detailed shapes
+themselves, and rendering simple shapes with bump maps is certainly less
+expensive than rendering detailed ones.
+
+Users may create bump maps using the `gr.bumpmap' function. The function accepts
+a single string argument which is either the name of a procedural bump map or the
+path of a PNG image. The only procedural bump map which is supported is the
+`ripple' bump map, which simulates the ripple effect of water which has been
+disturbed. After a bumpmap is created, it may be attached to a material using
+the material:set_bumpmap method.
+
+Image bump maps must be grayscale PNG images. Normal perturbations are drawn
+from bump map images via the image gradients; specifically, normals are
+perturbed in the direction of positive gradients. Thus: on a rendered primitive,
+areas corresponding to darker areas of the bump map will appear more elevated.
+
+Each primitive has a parametrization by which PNG images are mapped to them; see
+section \ref{uv_parametrizations}.
+
+\subsection{UV Parametrizations}
+
+Texture and bump mapping require parametrizations of each primitive so that
+two-dimensional images can be mapped to the three-dimensional primitives. For
+this purpose, the ray tracer parametrizes the primitives with respect to
+rectangular images in the following ways.
+
+For cube primitives, the image is divided into twelve squares in three rows of
+four. Each face on the cube is linearly mapped to one of these squares. If we
+number the squares from $1$ to $12$ -- top to bottom, left to right -- then
+square $6$ is mapped to the top of the cube, and squares $2$, $5$, $7$, $8$, and
+$10$ are mapped to the other faces of the cube as if they had been wrapped
+around it. The parametrizations of individual faces are consistent with this
+wrapping metaphor.
+
+For sphere primitives, an image texture is mapped to the primitive as if it
+had been curled into a top- and bottom-less cylinder around the sphere and then
+projected onto the sphere from that position.
+
+For cylinder primitives, the lower half of the image is wrapped around the
+non-planar face of the primitive. The upper half of the image is divided equally
+into two squares on the left and right side. The maximal circles inside these
+squares are mapped to the top and bottom of the cylinder, respectively.
+
+For cone primitives, the lower half of the image is wrapped around the
+non-planar face of the primitive. The maximal circle inside the upper half of
+the image is linearly mapped to the planar face of the cone.
+
+\subsection{Constructive Solid Geometry}
+
+The idea behind constructive solid geometry is to provide only simple
+primitives, like the sphere, cube, cone, and cylinder primitives supported by
+this ray tracer, and allow users to combine them in order to create more complex
+shapes. To this end, constructuve solid geometry provides three basic operations
+on hierarchal nodes: union, difference, and intersection. The ray tracer exposes
+these operations in the form of the `gr.union', `gr.difference', and
+`gr.intersection' functions, which all require exactly two node operands.
+
+The union function 
+
+\subsection{Reflection}
+
+\subsection{Refraction and Transparency}
+
+\subsection{Soft Shadows}
+
+\subsection{Caustics}
+
+\section{LUA Commands}
+
+The following is a listing of the LUA commands and methods supported by the ray
+tracer. For the sake of conciseness and clarity, commands which were mandatory
+components of assignment 4 will be ommitted (though they are also available).
+
+\newcommand{\cmditem}[1]{\item {\tt #1}}
+
+\begin{itemize}
+
+  \cmditem{gr.cone(name)} -- Return an hierarchal cone with the specified name.
+
+  \cmditem{gr.cylinder(name)} -- Return an hierarchal cylinder with the
+  specified name.
+
+  \cmditem{gr.texture(str)} -- Return the texture object described by `str'.
+  `str' may be either the relative path of an RBG PNG image file or one of the
+  strings `redcheck', `greencheck', `whitecheck', `bluecheck'. See section
+  \ref{bump_mapping}.
+
+  \cmditem{gr.bumpmap(str)} -- Return the bumpmap object described by `str'.
+  `str' may be either the relative path of a grayscale PNG image file or the
+  string `sinewaves'. See section \ref{texture_mapping}.
+
+  \cmditem{texture:remapt(str)} -- Remap the specified texture as described by
+  `str', which must be one of the strings `cubetop', `cubefront', `cubebot',
+  `cyltop', `conetop'. See section \ref{texture_mapping}.
+
+  \cmditem{bumpmap:remap(str)} -- Remap the specified bumpmap as described by
+  `str', which must be one of the strings `cubetop', `cubefront', `cubebot',
+  `cyltop', `conetop'. See section \ref{bump_mapping}.
+
+  \cmditem{material:set_texture(texture)} -- Have the material use the given
+  texture object for its diffuse coefficients.
+
+  \cmditem{material:set_bumpmap(bumpmap)} -- Have the material use the given
+  bump map to perturb normal vectors.
+
+  \cmditem{material:set_ri(ri)} -- Sets the refractive index of the object to
+  `ri'. See section \ref{refraction_and_transparency}.
+
+  \cmditem{gr.union(c1, c2)} -- Creates a constructive solid geometry node representing
+  the union of `c1' and `c2'. See section \ref{constructive_solid_geometry}.
+
+  \cmditem{gr.intersection(c1, c2)} -- Creates a constructuve solid geometry node
+  representing the intersection of `c1' and `c2'. See section
+  \ref{constructive_solid_geometry}.
+
+  \cmditem{gr.difference(c1, c2)} -- Creates a constructive solid geometry node
+  representing the difference between `c1' and `c2' (in other words, the
+  resulting node is $c1 \setminus c2$). See section
+  \ref{constructive_solid_geometry}.
+
+  \cmditem{light:set_radius(rad)} -- Sets the radius of the light to `rad' (see
+  section \ref{soft_shadows}.
+
+  \cmditem{gr.option(str)} -- Pass an option string to the program. Option strings
+  take the same form as command-line arguments. See section
+  \ref{program_options}.
+
+  \cmditem{gr.set_miss_colour(colour)} -- Sets the colour to be used when a
+  ray fails to hit any objects in a scene.
+
+\end{itemize}
+
+\section{Program Options}
+
+Program options are global values which affect the appearance of the image
+produced as well as the runtime of the program.
+
+There are two types of options: flag (boolean) options, which are by default
+disabled and can only be enabled, and single-value options, which must always be
+accompanied by either integer or real values.
+
+There are two ways to toggle flags or specify single-value options: via the
+command line and via the `gr.option' LUA command. On the command line, any
+number of strings (for flag options) or whitespace-separated string-value pairs
+(for single-value options) can be specified \emph{before} the first scene file.
+The `gr.option' command accepts a single string which has the same form as a
+sequence of command-line arguments (note in particular that you can modify many
+program options through a single call to `gr.option').
+
+The following is a comprehensive listing of valid program options, in
+approximately descending order of usefulness.
+
+\begin{itemize}
+
+  \cmditem{--threads N} -- Have the program use up to N threads. N should be
+  the number of logical cores on the machine for maximum performance. Default:
+  6.
+
+  \cmditem{--aa-grid N} -- Specify that the program should use an NxN grid when
+  it performs anti-aliasing for a single pixel. Higher values may improve image
+  quality but will reduce performance. Default: 3.
+
+  \cmditem{--aa-threshold R} -- Specify the discontinuity threshold above which
+  anti-aliasing should be performed on a pixel (see section
+  \ref{anti_aliasing}). Higher values may reduce image quality while improving
+  performance. Default: $0.5$.
+
+  \cmditem{--caustic-num-photons N} -- Specify the number of caustic photons to be
+  shot during the caustic photon mapping preprocessing stage (see section
+  \ref{caustics}). Higher values will reduce performance while improving caustic
+  quality. See also `--caustic-num-neighbours'. Default: 0.
+
+  \cmditem{--caustic-num-neighbours N} -- Specify the number of neighbours to be
+  used in caustic radiance estimations (see section \ref{caustics}). Higher
+  values will reduce performance while improving caustic quality (though this is
+  dependent on the value of --caustic-num-photnos). Default: 100.
+
+  \cmditem{--shadow-grid N} -- Specify that the program sould use an NxN grid when
+  it computes soft shadows. Higher values may improve shadow quality but may
+  reduce performance. Default: 4.
+
+  \cmditem{--energy-fudge D} -- Have the photon map adjust the amount of energy
+  used in photon shooting for every light proportionally to D. This is useful
+  for situations when you want to abandon a physically realistic model for
+  artistic reasons. In particular, you may wish to have objects produce caustic
+  effects despite being far away from the relevant light. Default: 1.
+
+  \cmditem{--unit-distance D} -- Specify the unit distance. Higher unit distances
+  will increase the strength of lights with non-zero second and third falloff
+  coefficients and will increase the brightness of caustics. This option is
+  useful when dealing with scripts with very large or very small scenes (ie,
+  scripts which scale their objects by very large or very small amounts).
+  Default: 1.
+
+  \cmditem{-t, --timing} -- Print the runtimes of various phases of the program
+  after it's done rendering a scene.
+
+  \cmditem{-s, --silent} -- Don't print normal output. Will still print errors.
+
+  \cmditem{-S, --stats} -- Print various statistics after the program is done
+  rendering a scene.
+
+  \cmditem{-v, --verbose} -- Print debug output.
+
+  \cmditem{-d, --debug} -- Print debug output and suppress normal output.
+
+  \cmditem{--disable-aa} -- Disables anti-aliasing. Equivalent to `--aa-grid 1'.
+
+  \cmditem{--disable-bv} -- Disables mesh bounding volumes. Will likely reduce
+  performance.
+
+  \cmditem{--draw-aa} -- Colours pixels selected for anti-aliasing red.
+
+  \cmditem{--draw-caustic-map} -- Draws caustics photons on the image rather
+  than performing normal lighting calculations.
+
+  \cmditem{--draw-caustic-prm} -- Draws red pixels on diffuse surfaces inside
+  the range of the caustic projection map for just one light.
+
+  \cmditem{--minres} -- Override scene scripts and always render images with
+  resolution 100 by 100.
+
+  \cmditem{--lores} -- Override scene scripts and always render images with
+  resolution 256 by 256.
+
+  \cmditem{--midres} -- Override scene scripts and always render images with
+  resolution 512 by 512.
+
+  \cmditem{--hires} -- Override scene scripts and always render images with
+  resolution 1024 by 1024.
+
+  \cmditem{--rays} -- Draw a sunny background where rays fail to intersect with
+  objects in the scene.
+
+\end{itemize}
+
+\end{document}
