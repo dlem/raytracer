@@ -2,15 +2,26 @@
 
 \begin{document}
 
-\title{A5 Manual}
-\author{Daniel Lemmond\\
-20302247}
-
-\maketitle
+\begin{center}{\bf \LARGE Manual}\end{center}
 
 \tableofcontents
 
-\section{Features}
+\section{Running the Program}
+\label{running_the_program}
+
+The ray tracer is driven by the same style of LUA scene scripts as in assignment
+4. It now accepts several additional commands, which are laid out in section
+\ref{lua_commands}. The program is run on the command line, and it accepts as
+arguments an optional series of command-line flags and name-value pairs (see
+section \ref{program_options}) followed by a series of LUA scene scripts to run.
+If no scripts are specified, the program attempts to run {\tt scene.lua}. As in
+assignment 4, images can be produced from scene files using the {\tt gr.render}
+function.
+
+While the program is rendering a scene, it outputs information about elapsed
+time and progress.
+
+\section{Using the Features}
 \label{using_the_features}
 
 This section describes how to use the features of the ray tracer. Features which
