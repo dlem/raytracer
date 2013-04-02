@@ -35,7 +35,7 @@ void CSGPrimitive::init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans)
 bool CSGPrimitive::intersect(const Point3D &src, const Point3D &dst, HitReporter &hr) const
 {
   // This can take a while. Therefore, we'll test a bounding volume first.
-  if(!axis_aligned_box_check(src, dst, m_mins, m_maxes))
+  if(!GETOPT(disable_csg_bb) && !axis_aligned_box_check(src, dst, m_mins, m_maxes))
     return true;
 
   SegmentList segments;

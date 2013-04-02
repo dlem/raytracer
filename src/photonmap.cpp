@@ -19,12 +19,18 @@ public:
     : m_map(other.m_map)
     , m_granularity(other.m_granularity)
   {
-    assert(GETOPT(draw_caustic_pm));
+    assert(GETOPT(draw_caustic_prm));
   }
 
   double build(RayTracer &rt, const Point3D &centre,
 	     const std::function<bool(const HitInfo &hi)> &pred)
   {
+    if(GETOPT(disable_caustic_prm))
+    {
+      m_map.assign(true, m_map.size());
+      return 1;
+    }
+
     const int philimit = m_granularity;
     const int thetalimit = 2 * m_granularity;
     for(int i = 0; i < thetalimit; i++)
@@ -185,7 +191,7 @@ Point3D s_caustic_pm_centre;
 Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
 {
   KDTree<Photon>::TPQueue nl;
-  m_map.find_nnn(pt, GETOPT(caustic_num_neighbours), nl, sqr(0.15));
+  m_map.find_nnn(pt, num_neighbours(), nl, sqr(0.15));
   double maxdist2 = 0;
   Colour intensity(0);
 
@@ -289,7 +295,7 @@ void CausticMap::build_light(RayTracer &rt, const Light &light, const Colour &en
 
   add_stat("caustic photon count", m_photons.size());
 
-  if(GETOPT(draw_caustic_pm) && !s_caustic_pm)
+  if(GETOPT(draw_caustic_prm) && !s_caustic_pm)
   {
     s_caustic_pm_centre = light.position;
     s_caustic_pm = new ProjectionMap(pm);

@@ -58,7 +58,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
 
   // Projection drawing stuff.
   const Colour projc(1, 0, 0);
-  const bool use_proj = GETOPT(draw_caustic_pm) &&
+  const bool use_proj = GETOPT(draw_caustic_prm) &&
 			m_caustics.test_pm(rt, phong_P, hi.normal);
   const Point2D &uv = hi.uv;
   const PhongMaterial &mat = hi.tomat();
@@ -149,7 +149,7 @@ Colour PhotonDrawModel::compute_lighting(RayTracer &rt,
   Colour c = m_map.query_photon(p, pos_rel);
   c.normalize();
 
-  if(pos_rel.length() < 0.05)
+  if(pos_rel.length() < 0.01)
     return c;
   else
     return Colour(0);
