@@ -158,11 +158,11 @@ these operations in the form of the {\tt gr.union}, {\tt gr.difference}, and
 {\tt gr.intersection} functions, which all require exactly two node operands and
 return CSG primitives.
 
-The union function combines two hierarchal nodes into a single CSG object. This
+The {\bf union} function combines two hierarchal nodes into a single CSG object. This
 had no visible effect except insofar as the resulting object can be used in
 other CSG functions.
 
-The difference function takes two hierarchal nodes and returns a CSG node which
+The {\bf difference} function takes two hierarchal nodes and returns a CSG node which
 contains the non-empty volume of the first node which does not intersect with
 the second node. In other words, the difference function \emph{subtracts} its
 second operand from its first. In the resulting node, there may be newly exposed
@@ -171,7 +171,7 @@ intersected with the second subtracted operand. These surfaces take on the
 properties (ie, the materials and normals) of the intersecting volume of the
 subtracted shape.
 
-The intersection function returns a CSG node which contains only the volumes
+The {\bf intersection} function returns a CSG node which contains only the volumes
 within which its children intersect. Every surface in the resulting node will
 correspond with a surface in one of the children volumes; and it is from these
 corresponding surfaces that the properties of the resulting CSG node are derived
