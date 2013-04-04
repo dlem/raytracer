@@ -131,16 +131,6 @@ Colour PhotonDrawModel::compute_lighting(RayTracer &rt,
 			      const double refl_attn
 			      ) const
 {
-#if 0
-  const Point3D p = src + t * ray;
-  Vector3D pos_rel;
-  m_map.query_photon(p, pos_rel);
-
-  if(pos_rel.length() <= 10)
-    return Colour(1, 1, 1);
-  else
-    return Colour(0, 0, 0);
-#endif
   if(hi.primary->mat->kd(hi.uv).Y() < 0.2)
     return Colour(0);
 

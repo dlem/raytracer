@@ -5,7 +5,7 @@ require 'cbox'
 
 spec = {0.0, 0.0, 0.0}
 shin = 20
-green = gr.material({0, 0.8, 0}, spec, shin)
+green = gr.material({0, 0.8, 0}, {0.3, 0.2, 0.3}, shin)
 blue = gr.material({0, 0, 0.9}, spec, shin)
 pink = gr.material({0.9, 0.2, 0.1}, spec, shin)
 

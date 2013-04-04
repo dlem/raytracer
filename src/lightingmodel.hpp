@@ -44,6 +44,8 @@ private:
   GIPhotonMap *m_gimap;
 };
 
+// This lighting model draws colour only at points which are sufficiently close
+// to photons. Good visualization of photon map.
 class PhotonDrawModel : public LightingModel
 {
 public:
@@ -62,6 +64,7 @@ private:
   PhotonMap &m_map;
 };
 
+// This lighting model draws caustics and nothing else.
 class PhotonsOnlyModel : public LightingModel
 {
 public:

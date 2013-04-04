@@ -60,17 +60,6 @@ void a4_render(// What to render
       const Colour darker(1., 0.29, 0);
       const Colour lighter(1., 0.56, 0);
       const int arcs = 28;
-
-#if 0
-      const double pupil_proportion = 0.1;
-      const double ray_proportion = 0.5;
-      const double dtheta = acos(ray.dot(view));
-      if(dtheta <= pupil_proportion * fov_x)
-	return lighter;
-      else if(dtheta > ray_proportion * fov_x)
-	return darker;
-#endif
-
       const double x = ray.dot(right);
       const double y = ray.dot(up);
       double theta = atan2(y, x);

@@ -1,4 +1,6 @@
 Reflection/phong/transmission control
 Cylinder/cone funniness
-Cone difference funniness?
-Florence clipping cube funniness?
+Cone difference funniness? -- Bounding boxes?
+Florence clipping cube funniness? -- Bounding boxes?
+--Refraction distance attenuation?
+Comments

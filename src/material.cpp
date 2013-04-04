@@ -6,13 +6,14 @@
 
 using namespace std;
 
-PhongMaterial PhongMaterial::air(Colour(0), Colour(1), 0, 1);
+PhongMaterial PhongMaterial::air(Colour(0), Colour(1), 0, 1, true);
 
-PhongMaterial::PhongMaterial(const Colour& kd, const Colour& ks, double shininess, double ri)
+PhongMaterial::PhongMaterial(const Colour& kd, const Colour& ks, double shininess, double ri, bool reflective)
   : m_kd(kd), m_ks(ks), m_shininess(shininess)
   , m_bumpmap(0)
   , m_texture(0)
   , m_ri(ri)
+  , m_reflective(reflective)
 {
 }
 
