@@ -134,8 +134,16 @@ private:
     if(start == end)
       return 0;
 
-    std::sort(start, end, [split](const KDNode *c1, const KDNode *c2)
-	{ return c1->pt[split] < c2->pt[split]; });
+    struct SortCriteria
+    {
+      SortCriteria(int split) : split(split) {}
+      bool operator()(const KDNode *c1, const KDNode *c2)
+      { return c1->pt[split] < c2->pt[split]; }
+      int split;
+    };
+
+    SortCriteria sc(split);
+    std::sort(start, end, sc);
 
     auto median = start + (end - start) / 2;
     KDNode *node = *median;
