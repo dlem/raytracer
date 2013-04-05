@@ -2,12 +2,14 @@ require 'misc'
 require 'cbox'
 require 'base'
 
+gr.option('--hires')
+
 base.ambient = {0.2, 0.2, 0.2}
 
-cbox.mb = misc.texture('../test/fog.png', '../test/fog_bm.png', 'cubefront')
+cbox.mb = misc.texture('../assets/fog.png', '../assets/fog_bm.png', 'cubefront')
 
 sph = gr.sphere('sph')
-sph:set_material(misc.texture('../test/bwgrid.png', '../test/bwgrid_bm.png'))
+sph:set_material(misc.texture('../assets/bwgrid.png', '../assets/bwgrid_bm.png'))
 sph:translate(-1.5, 0, 1)
 sph:scale(0.75, 0.75, 0.75)
 
@@ -20,7 +22,7 @@ cyl:rotate('x', 50)
 cyl:rotate('z', 25)
 cyl:scale(0.5, 0.3, 0.5)
 
-cone = gr.cone('cone', misc.texture('../test/cloth.png', '../test/cloth_bm.png'))
+cone = gr.cone('cone', misc.texture('../assets/cloth.png', '../assets/cloth_bm.png'))
 cone:translate(0,-1, -0.5)
 cone:scale(2, 3, 1)
 

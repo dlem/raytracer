@@ -15,8 +15,7 @@ function mk_cylsphere(mat, small, mat_liq, fullness)
   trans = -r
   if(small) then rinner = rinner * 0.9 end
   if(small) then r = r * 0.8 end
-  cyl = gr.cylinder('flor_cyl')
-  cyl:set_material(mat)
+  cyl = gr.cylinder('flor_cyl', mat)
   cyl:scale(rinner, h, rinner)
   sph = gr.sphere('flor_sph')
   sph:set_material(mat)

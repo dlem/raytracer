@@ -37,7 +37,6 @@ function holder()
 
   left = gr.cylinder('left', holder_mat)
   root:add_child(left)
-  left:set_material(holder_mat)
   left:translate(-tl/2 + ssides, th/2, 0)
   left:scale(ssides, th/2, ssides)
 

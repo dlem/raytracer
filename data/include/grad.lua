@@ -14,7 +14,6 @@ function grad(liq, fullness, bubbles)
   cyl = gr.cylinder('grad_cyl', misc.glass())
   cyl:scale(r, h, r)
   cinner = gr.cylinder('grad_cinner', gr.air())
-  cinner:set_material(gr.air())
   cinner:translate(0, bot / 2, 0)
   cinner:scale(rinner, h - bot / 2, rinner)
   rv = gr.union(cyl, cinner)
@@ -35,9 +34,10 @@ function grad(liq, fullness, bubbles)
       end
       j = 0.2
       dl = 0.5
-      limit = s * fullness * 2 - 0.3
-      l = -limit
-      while l < limit do
+      lo = -h/2 + bot + 0.15
+      hi = lo + 2 * s * fullness - 0.15
+      l = lo
+      while l < hi do
         cliq = bubble(2 * math.random() * j - j, l,
                       2 * math.random() * j - j, cliq)
         l = l + 0.2 + dl * (-1 + 2 * math.random());

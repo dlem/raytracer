@@ -2,8 +2,12 @@ require 'misc'
 require 'base'
 require 'cbox'
 
+gr.option('--hires')
+
 mirror = gr.material({0.2, 0.2, 0.2}, {0.7, 0.7, 0.7}, 20)
+mirror:set_reflective()
 rip = gr.material({0.2, 0.2, 0.2}, {0.7, 0.7, 0.7}, 20)
+rip:set_reflective()
 rip:set_bumpmap(misc.bumpmap('sinewaves', 'cubetop'))
 cbox.mlo = rip
 

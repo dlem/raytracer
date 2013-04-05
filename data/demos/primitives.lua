@@ -1,6 +1,8 @@
 require 'misc'
 require 'base'
 
+gr.option('--hires')
+
 mcone = gr.material({0, 0.8, 0.95}, {0, 0.4, 0.5}, 10)
 mcyl = gr.material({0, 1, 0}, {0, 0.4, 0}, 10)
 

@@ -2,6 +2,8 @@ require 'misc'
 require 'cbox'
 require 'plane'
 
+gr.option('--hires')
+
 root = gr.node('root')
 
 cyl = gr.cylinder('cyl', misc.texture('redcheck'));

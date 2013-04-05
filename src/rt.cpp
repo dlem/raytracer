@@ -215,12 +215,12 @@ void RayTracer::raytrace_russian(const Point3D &src,
   const Colour cdiffuse = hi.tomat().kd(hi.uv);
   Colour cspecular = hi.tomat().ks(hi.uv);
 
+  if(!hi.tomat().reflective() && !hi.tomat().transmissive())
+    cspecular = Colour(0);
+
   double prs[RT_ACTION_COUNT];
   prs[RT_DIFFUSE] = cdiffuse.Y();
   prs[RT_SPECULAR] = cspecular.Y();
-
-  if(!hi.tomat().reflective() && !hi.tomat().transmissive())
-    cspecular = Colour(0);
 
   for(int i = 1; i < RT_ACTION_COUNT - 1; i++)
     prs[i] += prs[i - 1];

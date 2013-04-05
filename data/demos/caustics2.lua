@@ -3,6 +3,8 @@ require 'cbox'
 require 'base'
 require 'cup'
 
+gr.option('--hires')
+
 base.ambient = {0.1, 0.1, 0.1}
 
 c = cup.cup(0.7, false, misc.liquid({0.4, 0.9, 0.96}))

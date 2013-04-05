@@ -5,7 +5,7 @@ require 'base'
 require 'paper'
 
 function graph1()
-  return paper.paper('../graph1.png', 8.5, 11)
+  return paper.paper('../assets/graph1.png', 8.5, 11)
 end
 
 if debug.getinfo(2) == nil then

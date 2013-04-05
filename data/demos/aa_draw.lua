@@ -1,5 +1,6 @@
 require 'misc'
 require 'aa'
 
-gr.option('--draw-aa --lores')
+gr.option('--hires')
+gr.option('--draw-aa')
 aa.aa()

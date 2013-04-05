@@ -20,7 +20,7 @@
             <img src='aa_none_thumb.png'/>
           </a>
           <p>Low-resolution ghost rendering. Notice the visible jaggies. Render
-          time: 0.2s.</p>
+          time: 2.1s.</p>
         </div>
         <div class="ex">
           <a href='aa_draw.png'>
@@ -33,7 +33,7 @@
             <img src='aa_4x4_thumb.png'/>
           </a>
           <p>The same low-resolution image after 4x4 anti-aliasing. Render time:
-          0.75s.</p>
+          7.0s.</p>
         </div>
   </div></div></div>
       <p class='desc'>Pixels are selected for anti-aliasing when the maximal
@@ -67,14 +67,29 @@
           <b>Core i5-3317U @ 1.70GHz (2 cores hyperthreaded)</b>
           <center>
           <table>
-            <tr class="header"><td># threads</td><td>User time</td><td>Clock time</td></tr>
-            <tr><td>6</td><td>127.1s</td><td>33.1s</td></tr>
-            <tr><td>4</td><td>127.0s</td><td>32.8s</td></tr>
-            <tr><td>2</td><td>84.3s</td><td>42.4s</td></tr>
-            <tr><td>1</td><td>83.3s</td><td>83.1s</td></tr>
+            <tr class="header"><td># threads</td><td>User time</td><td>Clock
+                time</td><td>Speedup</td></tr>
+            <tr><td>6</td><td>127.1s</td><td>33.1s</td><td>2.51x</td></tr>
+            <tr><td>4</td><td>127.0s</td><td>32.8s</td><td>2.53x</td></tr>
+              <tr><td>2</td><td>84.3s</td><td>42.4s</td><td>1.96x</td></tr>
+              <tr><td>1</td><td>83.3s</td><td>83.1s</td><td>1.00x</td></tr>
           </table>
         </center>
         </div>
+        <div class="tex">
+          <b>AMD FX-6100</b>
+          <center>
+          <table>
+            <tr class="header"><td># threads</td><td>User time</td><td>Clock
+                time</td><td>Speedup</td></tr>
+            <tr><td>6</td><td>28.9s</td><td>4.9s</td><td>4.59x</td></tr>
+            <tr><td>4</td><td>27.3s</td><td>6.8s</td><td>3.31x</td></tr>
+            <tr><td>2</td><td>23.4s</td><td>11.7s</td><td>1.92x</td></tr>
+            <tr><td>1</td><td>22.5s</td><td>22.5s</td><td>1.00x</td></tr>
+          </table>
+        </center>
+        </div>
+
       </div></div></div>
     </div>
 
@@ -87,10 +102,12 @@
           <a href='primitives.png'>
             <img src='primitives_thumb.png'/>
           </a>
-          <p></p>
+          <p>Render time: 1.4s.</p>
         </div>
       </div></div></div>
       <p>
+      For my extended ray tracer, I implemented cone and cylinder primitives in
+      addition to the original cube and sphere primitives.
       </p>
     </div>
 
@@ -100,13 +117,27 @@
       <h2>Objective 2: Texture Mapping</h2>
       <div class='hexo'><div class='hex'><div class='hexi'>
         <div class="ex">
-          <a href='texmapping.png'>
-            <img src='texmapping_thumb.png'/>
+          <a href='texmap2.png'>
+            <img src='texmap2_thumb.png'/>
           </a>
-          <p></p>
+          <p>My procedural checkerboard texture in different colours. Render
+          time: 5.5s.</p>
+        </div>
+        <div class="ex">
+          <a href='texmap3.png'>
+            <img src='texmap3_thumb.png'/>
+          </a>
+          <p>Some more interesting textures. Each of these textures was generated using
+          the GIMP. Render time: 5.7s.</p>
         </div>
       </div></div></div>
       <p>
+      In my proposal, I promised to implement a programmatical checkerboard
+      texture demonstrated by the image on the left. That image
+      also shows that the ray tracer uses sane UV mappings. Notice how the
+      grid is aligned to the edges of the cube. The right image demonstrates
+      some textures loaded from PNG images that were created via filters in the
+      GIMP.
       </p>
     </div>
 
@@ -116,13 +147,24 @@
       <h2>Objective 3: Bump Mapping</h2>
       <div class='hexo'><div class='hex'><div class='hexi'>
         <div class="ex">
-          <a href='bumpmapping.png'>
-            <img src='bumpmapping_thumb.png'/>
+          <a href='bumpmap1.png'>
+            <img src='bumpmap1_thumb.png'/>
           </a>
-          <p></p>
+          <p>
+          Render time: 17.8s.
+          </p>
         </div>
       </div></div></div>
       <p>
+      Some examples of my bump mapping feature. The cylinder's ripple bump map
+      was something I promised to do as part of the objective. The other
+      materials in the scene use both textures and bump maps tailored for the
+      textures for neat results. All of the PNG image textures were
+      generated via filters in the GIMP.
+      </p>
+      <p>
+      Having the ripple effect map to only the top of the cylinder is easy due
+      to my UV remapping feature.
       </p>
     </div>
 
@@ -132,10 +174,17 @@
       <h2>Objective 4: Reflection</h2>
       <div class='hexo'><div class='hex'><div class='hexi'>
         <div class="ex">
-          <a href='reflection.png'>
-            <img src='reflection_thumb.png'/>
+          <a href='nonhier.png'>
+            <img src='nonhier_thumb.png'/>
           </a>
-          <p></p>
+          <p>The non-hierarchal scene with reflection enabled. Render time:
+          5.2s.</p>
+        </div>
+        <div class="ex">
+          <a href='refl1.png'>
+            <img src='refl1_thumb.png'/>
+          </a>
+          <p>Some mirror-surfaced primitives. Render time: 5.7s.</p>
         </div>
       </div></div></div>
       <p>
@@ -148,13 +197,26 @@
       <h2>Objective 5: Refraction and Transparency</h2>
       <div class='hexo'><div class='hex'><div class='hexi'>
         <div class="ex">
-          <a href='refrac_trans.png'>
-            <img src='refrac_trans_thumb.png'/>
+          <a href='refr1.png'>
+            <img src='refr1_thumb.png'/>
           </a>
-          <p></p>
+          <p>Boo! Render time: 40.1s.</p>
+        </div>
+        <div class="ex">
+          <a href='refr2.png'>
+            <img src='refr2_thumb.png'/>
+          </a>
+          <p>Notice the discontinuity as the straw hits the liquid. Render time:
+          39.1s.</p>
         </div>
       </div></div></div>
       <p>
+      Refraction and reflection calculations for transparent objects use the
+      Fresnel equations; notice the reflection at the sides of the glass.
+      </p>
+      <p>My CSG
+      implementation allows for direct interfaces between mediums (like the
+      glass and the liquid in the image on the right).
       </p>
     </div>
 
@@ -164,13 +226,34 @@
       <h2>Objective 6: Soft Shadows</h2>
       <div class='hexo'><div class='hex'><div class='hexi'>
         <div class="ex">
-          <a href='shadows.png'>
-            <img src='shadows_thumb.png'/>
+          <a href='shadow1_1x1.png'>
+            <img src='shadow1_1x1_thumb.png'/>
           </a>
-          <p></p>
+          <p>No soft shadows. Render time: 8.9s.</p>
+        </div>
+        <div class="ex">
+          <a href='shadow1_4x4.png'>
+            <img src='shadow1_4x4_thumb.png'/>
+          </a>
+          <p>Soft shadows with sampling in a 4x4 grid. Render time: 95.0s.</p>
+        </div>
+        <div class="ex">
+          <a href='shadow1_8x8.png'>
+            <img src='shadow1_8x8_thumb.png'/>
+          </a>
+          <p>Soft shadows with sampling in a 16x16 grid. Render time: 370.9s.</p>
         </div>
       </div></div></div>
       <p>
+      Without soft shadows, this scene is terribly unrealistic as the light is
+      very close to the occluding object and has a large radius. Notice that
+      simulating soft shadows by sampling in a regular 4x4 grid produces
+      artifacts. Using an 8x8 grid improves things. Normal scenes tend to not
+      have these sorts of disagreeable situations.
+      </p>
+      <p>
+      Notice that producing reasonable soft shadows in this particular scene is
+      very expensive computationally.
       </p>
     </div>
 
@@ -180,13 +263,16 @@
       <h2>Objective 7: Constructive Solid Geometry</h2>
       <div class='hexo'><div class='hex'><div class='hexi'>
         <div class="ex">
-          <a href='csg.png'>
-            <img src='csg_thumb.png'/>
+          <a href='csg1.png'>
+            <img src='csg1_thumb.png'/>
           </a>
-          <p></p>
+          <p>Some CSG objects.
+          Render time: 5.9s.</p>
         </div>
       </div></div></div>
       <p>
+      Constructive solid geometry is a feature that was very important to my
+      laboratory final scene; this isn't the last you'll see of it.
       </p>
     </div>
 
@@ -196,13 +282,25 @@
       <h2>Objective 8: Caustics</h2>
       <div class='hexo'><div class='hex'><div class='hexi'>
         <div class="ex">
-          <a href='caustics.png'>
-            <img src='caustics_thumb.png'/>
+          <a href='caustics1.png'>
+            <img src='caustics1_thumb.png'/>
           </a>
-          <p></p>
+          <p>Some typical caustics. Notice the faint light on the wall
+          behind the glass ball due to reflected light from the mirror-surface
+          sphere. Render time: 92.5s.</p>
+        </div>
+        <div class="ex">
+          <a href='caustics2.png'>
+            <img src='caustics2_thumb.png'/>
+          </a>
+          <p>A colourful caustic effect. Render time: 85.6s.</p>
         </div>
       </div></div></div>
       <p>
+      The ray tracer computes caustics via photon mapping. Noise-free caustics
+      require that a large number of photons are used in the map and that large
+      numbers of photons are retrieved in nearest neighbours searches;
+      estimating caustic radiance is a major performance factor in many scenes.
       </p>
     </div>
 
@@ -212,25 +310,33 @@
       <h2>Objective 9: Projection Maps</h2>
       <div class='hexo'><div class='hex'><div class='hexi'>
         <div class="ex">
-          <a href='projmap.png'>
-            <img src='projmap_thumb.png'/>
+          <a href='prmap1.png'>
+            <img src='prmap1_thumb.png'/>
           </a>
-          <p></p>
+          <p>An outline of the projection map for my first caustic image.</p>
+        </div>
+        <div class="ex">
+          <a href='prmap2.png'>
+            <img src='prmap2_thumb.png'/>
+          </a>
+          <p>And for my second caustic image.</p>
         </div>
       </div></div></div>
       <p>
+      Projection maps are used during the photon mapping preprocessing phase to
+      avoid shooting photons in directions that don't have specular objects.
+      This speeds up things a bit. In many scenes, though, rendering is a
+      bigger performance factor than the preprocessing phase.
       </p>
       <p>Here are some timings:</p>
       <div class="hexo"><div class="hex"><div class="hexi">
         <div class="tex">
-          <b>Core i5-3317U @ 1.70GHz (2 cores hyperthreaded)</b>
+          <b>AMD FX-6100</b>
           <center>
           <table>
-            <tr class="header"><td># threads</td><td>User time</td><td>Clock time</td></tr>
-            <tr><td>6</td><td>127.1s</td><td>33.1s</td></tr>
-            <tr><td>4</td><td>127.0s</td><td>32.8s</td></tr>
-            <tr><td>2</td><td>84.3s</td><td>42.4s</td></tr>
-            <tr><td>1</td><td>83.3s</td><td>83.1s</td></tr>
+            <tr class="header"><td>Scene</td><td>Without map</td><td>With map</td><td>Speedup</td></tr>
+            <tr><td>caustics1.png</td><td>127.1s</td><td>33.1s</td></tr>
+            <tr><td>caustics2.png</td><td>127.0s</td><td>32.8s</td></tr>
           </table>
         </center>
         </div>
@@ -250,26 +356,68 @@
         </div>
       </div></div></div>
       <p>
+      My final scene is a dark, sterile laboratory with plenty of glass
+      containers filled with coloured liquids. The idea is to show off the ray
+      tracer's caustic effects.
       </p>
     </div>
 
     <div class="obj">
       <br>
       <hr>
-      <h2>Objective 11: Global Illumination</h2>
+      <h2>Extra Objective: Hierarchal Bounding Boxes</h2>
       <div class='hexo'><div class='hex'><div class='hexi'>
         <div class="ex">
-          <a href='lab.png'>
-            <img src='lab_thumb.png'/>
+          <a href='csgbb1.png'>
+            <img src='csgbb1_thumb.png'/>
           </a>
           <p></p>
         </div>
       </div></div></div>
       <p>
+      Because CSG algorithms are so expensive compared to the primitive intersection
+      tests, I decided to implement hierarchal bounding boxes for CSG objects.
+      To demonstrate the feature, I rendered the above image with them enabled
+      and disabled. As you can see, the bounding boxes can have a significant
+      impact on runtime (although this example is specifically designed to
+      illustrate this).
       </p>
+      <center>
+      <table>
+        <tr class="header"><td>CPU</td><td>No bounding boxes</td><td>Bounding boxes</td><td>Speedup</td></tr>
+        <tr><td>Core i5-3317U</td><td></td><td></td></tr>
+        <tr><td>FX-6100</td><td>35.7s</td><td>3.8s</td><td>9.39x</td></tr>
+      </table>
+    </center>
     </div>
 
+    <div class="obj">
+      <br>
+      <hr>
+      <h2>Experiments with Global Illumination</h2>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='gi2.png'>
+            <img src='gi2_thumb.png'/>
+          </a>
+          <p>A noisy attempt at global illumination.</p>
+        </div>
+        <div class="ex">
+          <a href='gi1.png'>
+            <img src='gi1_thumb.png'/>
+          </a>
+          <p>Notice all of the caustics caused by diffusely reflected
+          light.</p>
+        </div>
+      </div></div></div>
 
+      <p>
+      Since I was already nine tenths of the way there, I tried my hand at
+      global illumination via photon mapping. The resulting images are quite
+      noisy, but I expect that they could be improved a great deal through the
+      application of simple techniques like filtering.
+      </p>
+    </div>
   </div>
   </body>
 </html>

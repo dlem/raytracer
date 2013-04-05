@@ -192,12 +192,44 @@ Matrix4x4 NonhierBox::get_transform()
     Matrix4x4::scale(Vector3D(m_size, m_size, m_size));
 }
 
-bool Cylinder::intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const
+bool Cylinder::intersect(const Point3D &eye, const Point3D &dst, HitReporter &hr) const
 {
-  if(!Quadric::intersect(eye, ray, hr))
-    return false;
+  Polynomial<2> x, y, z;
+  const Vector3D ray = dst - eye;
+  x[0] = eye[0];
+  x[1] = ray[0];
+  y[0] = eye[1];
+  y[1] = ray[1];
+  z[0] = eye[2];
+  z[1] = ray[2];
+  
+  const Polynomial<2> eqn = x * x + y * y + (-1);
 
-  const Vector3D _ray = ray - eye;
+  double ts[2];
+  auto nhits = eqn.solve(ts);
+
+  if(nhits > 0)
+  {
+    for(int i = 0; i < nhits; i++)
+    {
+      const double t = ts[i];
+      const Point3D pt = eye + t * ray;
+
+      if(!predicate(pt))
+        continue;
+
+      const Vector3D normal(pt - Point3D(0, 0, pt[2]));
+
+      // Figure out the uv.
+      Vector3D u, v;
+      Point2D uv;
+      get_uv(pt, normal, uv, u, v);
+
+      if(!hr.report(ts[i], normal, uv, u, v))
+	return false;
+    }
+  }
+
   const int circles[] = {AAFACE_PZ, AAFACE_NZ};
   const double offsets[] = {1., -1.};
 
@@ -206,10 +238,10 @@ bool Cylinder::intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr
     const int face = circles[i];
     const int axis = face / 2;
     const double offset = offsets[i];
-    const double t = axis_aligned_plane_intersect(eye, _ray, axis, offset);
+    const double t = axis_aligned_plane_intersect(eye, ray, axis, offset);
     if(t < numeric_limits<double>::max())
     {
-      const Point3D p = eye + t * _ray;
+      const Point3D p = eye + t * ray;
       if(axis_aligned_circle_contains(p, face, 1.))
       {
 	Vector3D normal;

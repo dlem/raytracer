@@ -2,6 +2,8 @@ require 'misc'
 require 'cbox'
 require 'cup'
 
+gr.option('--hires')
+
 --cbox.mb:set_texture(gr.texture('whitecheck'))
 
 liq = misc.liquid({0, 0.8, 0.9})

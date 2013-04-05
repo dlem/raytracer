@@ -7,14 +7,13 @@ mtorso = misc.black()
 mlegs = misc.black()
 
 srleg = 0.005
-sfleg = 0.2
-sbleg = 0.15
+sfleg = 0.1
+sbleg = 0.075
 rtorso = 0.04
 wtorso = 0.02
 
 function mkleg()
-  fleg = gr.cylinder('spider_fleg')
-  fleg:set_material(mlegs)
+  fleg = gr.cylinder('spider_fleg', mlegs)
   fleg:translate(0, -sfleg/2, 0)
   fleg:scale(srleg, sfleg/2, srleg)
   n = gr.node('')
@@ -26,8 +25,7 @@ function mkleg()
   cs_bleg:translate(0, -sbleg/2, 0)
   cs_bleg:add_child(n)
 
-  bleg = gr.cylinder('spider_bleg')
-  bleg:set_material(mlegs)
+  bleg = gr.cylinder('spider_bleg', mlegs)
   cs_bleg:add_child(bleg)
   bleg:scale(srleg, sbleg/2, srleg)
 

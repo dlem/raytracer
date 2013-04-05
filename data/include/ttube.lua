@@ -14,9 +14,8 @@ h = 1.3
 fullness = 0.5
 
 function mk_cylsphere(mat, r, h)
-  cyl = gr.cylinder('ttube_cyl')
+  cyl = gr.cylinder('ttube_cyl', mat)
   cyl:scale(r, h, r)
-  cyl:set_material(mat)
   sph = gr.sphere('ttube_sph')
   sph:translate(0, -h, 0)
   sph:scale(r, r, r)
