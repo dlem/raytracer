@@ -260,7 +260,7 @@ void RayTracer::raytrace_russian(const Point3D &src,
 
     // Things might look better if, instead of just using the reflected
     // direction, I distributed diffusely reflected rays according to a cosine
-    // distribution contered on the reflective direction. But that's difficult.
+    // distribution centered on the reflective direction. But that's difficult.
     outgoing = ray_reflected;
 
     raytrace_russian(p, outgoing, acc * cdiffuse, fn, depth + 1);

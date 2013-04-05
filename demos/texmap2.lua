@@ -4,12 +4,10 @@ require 'plane'
 
 root = gr.node('root')
 
-cyl = misc.cylinder()
-cyl:set_material(misc.texture('redcheck'));
+cyl = gr.cylinder('cyl', misc.texture('redcheck'));
 root:add_child(cyl)
 
-cone = misc.cone()
-cone:set_material(misc.texture('bluecheck'));
+cone = gr.cone('cone', misc.texture('bluecheck'));
 root:add_child(cone)
 
 cube = gr.cube('cube')

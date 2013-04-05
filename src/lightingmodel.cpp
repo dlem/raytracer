@@ -64,7 +64,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
   const PhongMaterial &mat = hi.tomat();
   const Colour phong_kd = use_proj ? projc * mat.kd(uv).Y() : mat.kd(uv);
 
-  Vector3D phong_n = hi.normal;
+  Vector3D phong_n = hi.tonorm();
   const Colour &phong_ks = refl_attn * mat.ks(uv);
   const double phong_p = mat.shininess(uv);
   Vector3D phong_v = src - phong_P;

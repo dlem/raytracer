@@ -11,10 +11,9 @@ bot = 0.1
 
 function grad(liq, fullness, bubbles)
   bubbles = bubbles or false
-  cyl = misc.cylinder('grad_cyl')
-  cyl:set_material(misc.glass()) 
+  cyl = gr.cylinder('grad_cyl', misc.glass())
   cyl:scale(r, h, r)
-  cinner = misc.cylinder('grad_cinner')
+  cinner = gr.cylinder('grad_cinner', gr.air())
   cinner:set_material(gr.air())
   cinner:translate(0, bot / 2, 0)
   cinner:scale(rinner, h - bot / 2, rinner)
@@ -23,8 +22,7 @@ function grad(liq, fullness, bubbles)
   if fullness > 0 then
     s = h - bot/2
 
-    cliq = misc.cylinder('grad_liq')
-    cliq:set_material(liq)
+    cliq = gr.cylinder('grad_liq', liq)
     cliq:scale(rinner, s * fullness, rinner)
 
     if bubbles then

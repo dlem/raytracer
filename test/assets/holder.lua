@@ -35,15 +35,14 @@ function holder()
   botr:set_material(holder_mat)
   botr:scale(tl/2, sh/2, tw/2)
 
-  left = misc.cylinder('left')
+  left = gr.cylinder('left', holder_mat)
   root:add_child(left)
   left:set_material(holder_mat)
   left:translate(-tl/2 + ssides, th/2, 0)
   left:scale(ssides, th/2, ssides)
 
-  right = misc.cylinder('right')
+  right = gr.cylinder('right', holder_mat)
   root:add_child(right)
-  right:set_material(holder_mat)
   right:translate(tl/2 - ssides, th/2, 0)
   right:scale(ssides, th/2, ssides)
 

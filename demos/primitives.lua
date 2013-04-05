@@ -1,14 +1,13 @@
 require 'misc'
 require 'base'
 
-mcone = gr.material({0, 0.8, 0.95}, {0, 0, 0}, 20)
-mcyl = misc.green()
+mcone = gr.material({0, 0.8, 0.95}, {0, 0.4, 0.5}, 10)
+mcyl = gr.material({0, 1, 0}, {0, 0.4, 0}, 10)
 
 root = gr.node('root')
 
 function cone(x, y, z, rx)
-  c = misc.cone()
-  c:set_material(mcone)
+  c = gr.cone('cone', mcone)
   c:translate(x, y, z)
   c:rotate('x', rx)
   c:scale(0.5, 2, 0.5)
@@ -16,8 +15,7 @@ function cone(x, y, z, rx)
 end
 
 function cylinder(x, y, z, rx)
-  c = misc.cylinder()
-  c:set_material(mcyl)
+  c = gr.cylinder('cyl', mcyl)
   c:translate(x, y, z)
   c:rotate('x', rx)
   c:scale(0.5, 1, 0.5)

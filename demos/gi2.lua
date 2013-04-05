@@ -11,12 +11,11 @@ c:translate(-1.5, -2, 0)
 c:scale(0.5, 1, 0.5)
 root:add_child(c)
 
-c = gr.cylinder('cylinder')
-c:set_material(gr.material({0.6, 0.5, 1}, {0, 0, 0}, 30))
+c = gr.cylinder('cylinder', gr.material({0.6, 0.5, 1}, {0, 0, 0}, 30))
 c:translate(1.5, -2, -1)
 c:scale(0.7, 1, 0.7)
 root:add_child(c)
 
-gr.option('--gi --gi-num-photons 3000000 --gi-num-neighbours 600')
+gr.option('--gi --gi-num-photons 1000000 --gi-num-neighbours 200')
 
 cbox.cbox(root)

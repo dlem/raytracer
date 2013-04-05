@@ -4,15 +4,14 @@ require 'misc'
 require 'cbox'
 
 mring = gr.material({0, 0, 0}, {232/255, 194/255, 90/255}, 30)
+mring:set_reflective()
 
 function ring()
   w = 0.03
   s = {x=0.6, y=0.1, z=0.6}
 
-  co = misc.cylinder('co')
-  ci = misc.cylinder('ci')
-  co:set_material(mring)
-  ci:set_material(mring)
+  co = gr.cylinder('co', mring)
+  ci = gr.cylinder('ci', mring)
   co:scale(s.x, s.y, s.z)
   ci:scale(s.x - w, s.y * 1.5, s.z - w)
 

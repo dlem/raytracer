@@ -1,6 +1,6 @@
 module(..., package.seeall)
 
-white = gr.material({1, 1, 1}, {0, 0, 0}, 10)
+white = gr.material({0.8, 0.8, 0.8}, {0.2, 0.2, 0.2}, 10)
 black = gr.material({0, 0, 0}, {0, 0, 0}, 10)
 
 s_body = {x=10, y=20, z=10}

@@ -3,21 +3,14 @@ module("wikithing", package.seeall)
 require 'misc'
 require 'cbox'
 
-spec = {0.0, 0.0, 0.0}
-shin = 20
-green = gr.material({0, 0.8, 0}, {0.3, 0.2, 0.3}, shin)
-blue = gr.material({0, 0, 0.9}, spec, shin)
-pink = gr.material({0.9, 0.2, 0.1}, spec, shin)
-
-tube = gr.cylinder('wt_tube')
+tube = gr.cylinder('wt_tube', misc.green())
 tube:scale(0.5, 1, 0.5)
 cube = gr.cube('wt_cube')
 cube:scale(0.75, 0.75, 0.75)
 sphere = gr.sphere('wt_sphere')
 
-tube:set_material(green)
-cube:set_material(pink)
-sphere:set_material(blue)
+cube:set_material(misc.pink())
+sphere:set_material(misc.blue())
 
 n1 = gr.intersection(cube, sphere)
 n2 = gr.node('wt_n2')

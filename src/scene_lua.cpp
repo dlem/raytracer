@@ -203,9 +203,15 @@ int gr_cylinder_cmd(lua_State* L)
   
   gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
   data->node = 0;
+
+  gr_material_ud* matdata = (gr_material_ud*)luaL_checkudata(L, 2, "gr.material");
+  luaL_argcheck(L, matdata != 0, 3, "Material expected");
   
   const char* name = luaL_checkstring(L, 1);
-  data->node = new GeometryNode(name, new Cylinder());
+  data->node = new SceneNode(name);
+  auto gn = new GeometryNode(name, new Cylinder());
+  gn->set_material(matdata->material);
+  data->node->add_child(gn);
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -220,9 +226,15 @@ int gr_cone_cmd(lua_State* L)
   
   gr_node_ud* data = (gr_node_ud*)lua_newuserdata(L, sizeof(gr_node_ud));
   data->node = 0;
-  
+
+  gr_material_ud* matdata = (gr_material_ud*)luaL_checkudata(L, 2, "gr.material");
+  luaL_argcheck(L, matdata != 0, 3, "Material expected");
+
   const char* name = luaL_checkstring(L, 1);
-  data->node = new GeometryNode(name, new Cone());
+  data->node = new SceneNode(name);
+  auto gn = new GeometryNode(name, new Cone());
+  gn->set_material(matdata->material);
+  data->node->add_child(gn);
 
   luaL_getmetatable(L, "gr.node");
   lua_setmetatable(L, -2);
@@ -536,6 +548,15 @@ int gr_material_set_ri_cmd(lua_State *L)
   return 0;
 }
 
+extern "C"
+int gr_material_set_reflective_cmd(lua_State *L)
+{
+  GRLUA_DEBUG_CALL;
+  gr_material_ud* selfdata = (gr_material_ud*)luaL_checkudata(L, 1, "gr.material");
+  luaL_argcheck(L, selfdata != 0, 1, "Material expected");
+  selfdata->material->set_reflective(true);
+  return 0;
+}
 
 // Create a material
 extern "C"
@@ -847,6 +868,7 @@ static const luaL_reg grlib_material_methods[] = {
   {"set_texture", gr_material_set_texture_cmd},
   {"set_bumpmap", gr_material_set_bumpmap_cmd},
   {"set_ri", gr_material_set_ri_cmd},
+  {"set_reflective", gr_material_set_reflective_cmd},
 };
 
 static const luaL_reg grlib_texture_methods[] = {

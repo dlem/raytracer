@@ -15,21 +15,18 @@ function cup(fullness, ripple, mat_liq, straw)
 
   n = gr.node('cup')
 
-  cyl = gr.cylinder('cup_outer')
-  cyl:set_material(misc.glass())
+  cyl = gr.cylinder('cup_outer', misc.glass())
   ncyl = gr.node('ncyl')
   ncyl:add_child(cyl)
   ncyl:scale(r, 1, r)
 
-  inner = gr.cylinder('cup_inner')
-  inner:set_material(gr.air())
+  inner = gr.cylinder('cup_inner', gr.air())
   ninner = gr.node('ninner')
   ninner:add_child(inner)
   ninner:translate(0, bot * 0.5, 0)
   ninner:scale(r_inner, 1 - bot * 0.5, r_inner)
 
-  liq = gr.cylinder('cup_liq')
-  liq:set_material(mat_liq)
+  liq = gr.cylinder('cup_liq', mat_liq)
   nliq = gr.node('nliq')
   nliq:add_child(liq)
   nliq:translate(0, bot * 0.5 - (1 - fullness), 0)
@@ -42,8 +39,7 @@ function cup(fullness, ripple, mat_liq, straw)
   end
 
   if(straw) then
-    straw = misc.cylinder('straw')
-    straw:set_material(gr.material({0.3, 0.3, 0.3}, {0, 0, 0}, 30))
+    straw = gr.cylinder('straw', gr.material({0.3, 0.3, 0.3}, {0, 0, 0}, 30))
     straw:translate(0, 0.3, 0)
     straw:rotate('z', -25)
     straw:scale(0.03, 0.8, 0.03)

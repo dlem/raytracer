@@ -4,6 +4,10 @@ mat1 = gr.material({0.7, 1.0, 0.7}, {0.5, 0.7, 0.5}, 25)
 mat2 = gr.material({0.5, 0.5, 0.5}, {0.5, 0.7, 0.5}, 25)
 mat3 = gr.material({1.0, 0.6, 0.1}, {0.5, 0.7, 0.5}, 25)
 mat4 = gr.material({0.7, 0.6, 1.0}, {0.5, 0.4, 0.8}, 25)
+mat1:set_reflective()
+mat2:set_reflective()
+mat3:set_reflective()
+mat4:set_reflective()
 
 scene_root = gr.node('root')
 

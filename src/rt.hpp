@@ -30,6 +30,8 @@ public:
 
   const PhongMaterial &tomat() const { return to ? *to->mat : PhongMaterial::air; }
   const PhongMaterial &frommat() const { return from ? *from->mat : PhongMaterial::air; }
+  Vector3D tonorm() const { return to == primary ? normal : -normal; }
+  Vector3D fromnorm() const { return to == primary ? -normal : normal; }
 };
 
 // Callback type that gets passed to my main raytracing function.
