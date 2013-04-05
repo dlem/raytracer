@@ -296,6 +296,20 @@
           <p>A colourful caustic effect. Render time: 85.6s.</p>
         </div>
       </div></div></div>
+      <div class='hexo'><div class='hex'><div class='hexi'>
+        <div class="ex">
+          <a href='cmap1.png'>
+            <img src='cmap1_thumb.png'/>
+          </a>
+          <p>The photon map for the first scene.</p>
+        </div>
+        <div class="ex">
+          <a href='cmap2.png'>
+            <img src='cmap2_thumb.png'/>
+          </a>
+          <p>The photon map for the second scene.</p>
+        </div>
+      </div></div></div>
       <p>
       The ray tracer computes caustics via photon mapping. Noise-free caustics
       require that a large number of photons are used in the map and that large
@@ -334,9 +348,9 @@
           <b>AMD FX-6100</b>
           <center>
           <table>
-            <tr class="header"><td>Scene</td><td>Without map</td><td>With map</td><td>Speedup</td></tr>
-            <tr><td>caustics1.png</td><td>127.1s</td><td>33.1s</td></tr>
-            <tr><td>caustics2.png</td><td>127.0s</td><td>32.8s</td></tr>
+            <tr class="header"><td>Scene</td><td>Occupied %</td><td>Without map</td><td>With map</td><td>Speedup</td></tr>
+            <tr><td>caustics1.png</td><td>10%</td><td>32.5s</td><td>10.1s</td><td>3.22x</td></tr>
+            <tr><td>caustics2.png</td><td>4%</td><td>20.9s</td><td>28.7s</td><td>0.73x</td></tr>
           </table>
         </center>
         </div>
