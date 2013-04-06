@@ -1,1 +1,30 @@
+Name: Daniel Lemmond
+Student Number: 20302247
+User-id: dlemmond
+Assignment A5
+
+The final executable was compiled on this machine:
+gl11
+
+How to invoke my program:
+./rt [options] [scene-file]
+
+Where the options are described in the program manual and scene-file is a LUA
+scene script. It scene-file is unspecified, scene.lua is used.
+
+No assumptions were made beyond the user specifying reasonable values for
+program options (see the manual for more information).
+
+Also: to run the test files under the data/ directory, you must run 'source
+.setup' from the data/ directory. This adds the data/include/ directory to your
+LUA include path and aliases my binary to the 'rt' command. It may not work if
+you use a shell other than the bash shell.
+
+Data files:
+
+I prepared several data files other than screenshot01.png for use in my demo.
+These are the PNG files at data/demos/*.png.
+
+My demo webpage itself is under data/docs/demo.html, if you wish to view it.
+
 http://commons.wikimedia.org/wiki/File:PSM_V71_D201_Graph_of_the_growth_of_boston_schoolchildren_in_height_and_weight.png
