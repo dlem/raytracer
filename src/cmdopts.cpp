@@ -106,6 +106,7 @@ void CmdOptsBase::add_parameter(const char *name, char shrt, const function<int(
 
 CmdOpts::CmdOpts()
 {
+  // Default values for program options.
   aa = bv = true;
   aa_jitter = 0;
   aa_grid = 3;
@@ -139,6 +140,7 @@ CmdOpts::CmdOpts()
   dbgs = &clog;
   clog.clear(ios_base::badbit);
 
+  // Add the arguments with their lambda handlers.
   add_flag("disable-aa", [=]() { aa = false; });
   add_flag("disable-bv", [=]() { bv = false; });
   add_flag("disable-csg-bb", [=]() { disable_csg_bb = true; });

@@ -1,3 +1,12 @@
+/*
+ * This module exposes the texture and bumpmap typedefs as well as the 'get'
+ * functions to retrieve textures from LUA C++ callbacks.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
+**/
+
 #ifndef __TEXTURE_HPP__
 #define __TEXTURE_HPP__
 

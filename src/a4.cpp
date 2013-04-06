@@ -32,12 +32,15 @@ void a4_render(// What to render
                const std::list<Light*>& lights
                )
 {
+  // Override dimensions if they're specified on the command line.
   if(GETOPT(height) != 0)
     height = GETOPT(height);
   if(GETOPT(width) != 0)
     width = GETOPT(width);
 
+  // ANSII code to prepare for ProgressTimer output.
   outs() << "\033]?25l";
+
   Vector3D up(_up);
   Vector3D view(_view);
   up.normalize();
@@ -48,6 +51,7 @@ void a4_render(// What to render
   const double fov_x = M_PI / 180 * fov_deg;
   const double fov_y = fov_x / aspect;
 
+  // Get our geomtry list and instantiate our ray tracer.
   FlatList geometry;
   root->flatten(geometry);
 
@@ -55,6 +59,7 @@ void a4_render(// What to render
   
   if(GETOPT(bgstyle) == BGS_RAYS)
   {
+    // We want the rays BG. Set the miss_fn appropriately.
     miss_fn = [fov_x, fov_y, &right, &up, &view](const Point3D &src, const Vector3D &ray)
     {
       const Colour darker(1., 0.29, 0);
@@ -70,6 +75,7 @@ void a4_render(// What to render
     };
   }
 
+  // Our ray tracer object.
   RayTracer rt(geometry, miss_fn);
 
   // Build the caustic photon map.
@@ -77,6 +83,7 @@ void a4_render(// What to render
   if(GETOPT(use_caustic_map))
     caustic_map.build(rt, lights);
 
+  // Build the gimap if we want to use it.
   GIPhotonMap *gimap = 0;
   if(GETOPT(use_gi_map) || GETOPT(draw_gi_map) || GETOPT(draw_gi_only))
   {
@@ -84,6 +91,7 @@ void a4_render(// What to render
     gimap->build(rt, lights);
   }
 
+  // Choose our lighting model based on command-line args.
   LightingModel *model;
   
   if(GETOPT(draw_caustics_only))

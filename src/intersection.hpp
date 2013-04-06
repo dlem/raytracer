@@ -1,3 +1,13 @@
+/*
+ * This module defines some fast intersection functions which are used in
+ * several places in the code.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
+**/
+
+
 #include <limits>
 #include "algebra.hpp"
 

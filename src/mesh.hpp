@@ -1,7 +1,11 @@
 /**
  * Code for polygonal mesh objects.
  *
- * Donated code; modified by Daniel Lemmond, dlemmond, 20302247.
+ * Modified donated code.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
 **/
 
 #ifndef CS488_MESH_HPP

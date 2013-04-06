@@ -1,3 +1,14 @@
+/*
+ * This module contains definitions for the few programmatical textures and bump
+ * maps that I have defined. It also exposes a 'remapping' interface, which
+ * allows us to map textures to parts of primitives rather than the whole
+ * primitive.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
+**/
+
 #ifndef __TEXDEFS_HPP__
 #define __TEXDEFS_HPP__
 

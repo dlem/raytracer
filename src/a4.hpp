@@ -1,7 +1,11 @@
 /**
  * Main A4 render function.
  *
- * Donated code; modified by dlemmond.
+ * Donated code.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
 **/
 
 #ifndef CS488_A4_HPP

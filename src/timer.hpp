@@ -1,3 +1,19 @@
+/*
+ * Timer class: useful for timing certain stages of rendering so that
+ * performance can be recorded.
+ *
+ * ProgressTimer class: like the timer, but provides functionality for calling
+ * into it with your current progress with a task, and prints progress and times
+ * to the screen. Great for user-friendliness.
+ *
+ * Only one ProgressTimer can exist at a time, because they monopolize the output stream!
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
+**/
+
+
 #ifndef __TIMER_HPP__
 #define __TIMER_HPP__
 

@@ -1,3 +1,12 @@
+/*
+ * This module defines the LightingModel interface as well as several
+ * implementations.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
+**/
+
 #include <functional>
 #include <list>
 #include "light.hpp"

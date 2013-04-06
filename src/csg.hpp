@@ -1,3 +1,12 @@
+/*
+ * This module contains support for CSG objects. C++ LUA callbacks can create
+ * and use CSG(Union|Intersection|Difference)Node objects.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
+**/
+
 #ifndef __CSG_HPP__
 #define __CSG_HPP__
 

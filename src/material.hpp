@@ -1,3 +1,15 @@
+/*
+ * Material objects.
+ *
+ * Modifed donated code.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
+**/
+
+
+
 #ifndef CS488_MATERIAL_HPP
 #define CS488_MATERIAL_HPP
 

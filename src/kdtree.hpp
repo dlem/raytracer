@@ -1,7 +1,9 @@
-/**
- * Daniel Lemmond
- * dlemmond
- * 20302247
+/*
+ * This header file defines the KDTree template.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
 **/
 
 #ifndef __KD_TREE_HPP__

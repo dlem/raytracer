@@ -1,7 +1,11 @@
 /**
  * Modeling hierarchy code.
  *
- * Donated code; modified by Daniel Lemmond, dlemmond, 20302247.
+ * Donated code.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
 **/
 
 #ifndef SCENE_HPP

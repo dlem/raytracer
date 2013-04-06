@@ -1,3 +1,12 @@
+/*
+ * Code for projection maps, the photon mapping preprocessing step, and
+ * radiation estimates for caustics and global illumination.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
+**/
+
 #ifndef __PHOTONMAP_HPP__
 #define __PHOTONMAP_HPP__
 

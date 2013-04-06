@@ -1,7 +1,9 @@
 /**
  * Ray path tracing code.
  *
- * Daniel Lemmond, dlemmond, 20302247.
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
 **/
 
 #ifndef __RT_HPP__

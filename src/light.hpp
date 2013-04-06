@@ -1,3 +1,14 @@
+/*
+ * This module defines light objects.
+ *
+ * Modified donated code.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
+**/
+
+
 #ifndef CS488_LIGHT_HPP
 #define CS488_LIGHT_HPP
 

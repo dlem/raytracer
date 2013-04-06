@@ -1,7 +1,11 @@
 /**
  * Code for geometric primitives.
  *
- * Donated code; modified by Daniel Lemmond, dlemmond, 20302247.
+ * Donated code.
+ *
+ * Name: Daniel Lemmond
+ * User-id: dlemmond
+ * Student id: 20302247
 **/
 
 #ifndef CS488_PRIMITIVE_HPP
