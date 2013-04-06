@@ -1,7 +1,0 @@
-#!/bin/bash
-
-cp ../data/demos/*.png .
-
-for pngfile in *.png ; do
-  convert -thumbnail 200 "$pngfile" `echo "$pngfile" | sed s/.png$/_thumb.png/g`
-done

@@ -1,0 +1,348 @@
+\documentclass{article}
+
+\usepackage[nottoc,numbib]{tocbibind}
+
+\newcommand{\mrm}[1]{\mathrm{#1}}
+
+\begin{document}
+
+\begin{center}{\bf \LARGE Implementation}\end{center}
+
+\tableofcontents
+
+\section{Data Structures and Algorithms}
+
+\subsection{Caustics}
+
+I achieved caustics via the photon mapping method described in detail by Jensen
+et al. in
+\cite{coursenotes}. The method requires a forward ray tracing preprocessing
+step during which light-surface interactions are recorded. It also mandates
+modifications to lighting computations during the normal rendering step. As
+Jensen recommends, I used the k-D tree data structure for performance reasons.
+Also for performance reasons, I implemented projection maps for the
+preprocessing step.
+
+Code related to the preprocessing step, radiance estimates, and projection maps
+is in {\tt photonmap.[ch]pp}. My k-D tree implementation is in {\tt kdtree.hpp}.
+Forward ray tracing code is {\tt rt.[ch]pp}. In particular, see the {\tt
+RayTracer::raytrace\_russian} method.
+
+\subsubsection{Forward Ray Tracing}
+
+The photon mapping preprocessing step entails shooting a set number of rays
+(`photons') from each light in the scene and recording the interactions of the
+photons with diffuse surfaces. It is a Monte Carlo algorithm; photons are shot
+in random directions, and their subsequent behaviour is randomly decided (in the
+Russian Roulette style briefly discussed in class). The intensity of each photon
+must be chosen based on several factors, such as the user-specified unit
+distance, the number of photons to be shot, and the fullness of the projection
+map.
+
+Instead of generating multiple recursive rays in the reflective and refractive
+directions at every specular event -- as is done in backward ray tracing
+-- we choose to have photons perform diffuse or specular interactions -- or,
+alternatively, be absorbed -- based on the
+attenuation that would be applied to the light in each case. For example, if a
+material has diffuse colour $(0.3, 0.3,
+0.3)$ and specular colour $(0.1, 0.1, 0.1)$, then
+
+$$P(\mrm{diffuse\; reflection}) = 0.9 / 3 = 0.3$$
+$$P(\mrm{specular\; interaction}) = 0.3 / 3 = 0.1$$
+$$P(\mrm{absorb}) = 1 - 0.3 - 0.1 = 0.6$$
+
+Note that this imposes the constraint that the specular plus diffuse coefficients
+f a material cannot exceed $1$; this is also a true in the real world.
+
+Every time we hit a diffuse surface, we store the photon's intensity, along with
+the hit coordinates, in a k-D tree which is used later in the rendering phase.
+To simulate caustics, we are only concerned with photons that hit diffuse
+surfaces after going through at least one specular interaction; these are the
+only photons we store in the map.
+
+% TODO: photon struct here?
+
+\subsubsection{Projection Maps}
+
+During the caustic photon map preprocessing phase, we spend time shooting a
+photon in a given direction only after checking that there are specular objects
+in that direction by querying the light's projection map.
+
+Projection maps are bit arrays in which individual entries are mapped to areas on
+a conceptual sphere wrapped around the light. If an entry is set, then there are
+specular objects in that direction. The mapping uses polar coordinates (and so
+is non-uniform).
+
+To fill in projection maps, we shoot rays in the directions corresponding
+to each entry and see whether they hit specular objects. All entries
+neighbouring an entry set in this way are also set to guarantee that we don't
+miss anything despite sparse sampling.
+
+% TODO: projection map timing.
+
+\subsubsection{Computing Caustic Radiance}
+
+We integrate caustics into our lighting model by simply adding `radiance
+estimates' retrieved from our caustic photon map to our other diffuse surface
+colour computations (ie, the Phong model).
+
+Given a point, we compute the radiance estimate for that point by querying our
+caustic map k-D tree for the $N$ nearest neighbours, where $N$ is a
+user-specified parameter. We then return the area-average of the results; that
+is, we sum the resulting intensities, and divide by the area
+of the smallest disc that includes all of the photons. Given that photon
+intensities are initially chosen based on the number of photons to be shot, this
+computation yields a reasonable estimate of the true caustic radiance.
+
+\subsubsection{The k-D Tree}
+
+For images with caustics or global illumination, the photon map k-D tree
+structure is often the major performance bottleneck (as high quality
+effects require that massive number of photons are stored and high numbers of
+neighbours are queried).
+
+% Idea: k-D tree/node structure here.
+
+Before the ray tracer's rendering step, it must build the caustic photon k-D
+tree from the photons produced by the photon shooting preprocessing step.
+This involves repeatedly finding median points on the $x$, $y$, and $z$ axes. My
+relatively naive implementation sorts the points to find the median, which
+results in an $O(n\lg^2{n})$ algorithm.
+
+Finding the $N$ nearest neighbours of a point in a k-D tree entails a recursive
+algorithm that traverses the binary tree, checking at each level whether the
+node's point is closer than the current candidates to the target, and deciding
+to visit children nodes based on whether the children on that side of the split
+can possibly be closer than the current candidates. Usually, we'll need to visit
+many leaf nodes before we find the desired number of points. The resulting
+algorithm has complexity $O(k\lg{n})$, where $k$ is the number of neighbours to
+be retrieved.
+
+\subsection{Constructive Solid Geometry}
+
+Our constructive geometry algorithms iterate through pairs of lists
+of line segments (one list for each operand), determining where the next segment
+begins or ends and pushing new segments into an output list based on the
+operation type (union, difference, or intersection) and the interactions between
+the lists. The relevant code is in {\tt csg.[ch]pp}.
+
+The nature of our proposed final scene required us to implement
+interfaces between materials other than air for the purpose of refraction (for
+example, we needed to be able to accurately model transmission of light from a
+glass to a liquid inside the glass and back). We found that the constructive
+solid geometry union function provided us with a perfect opportunity to acquire
+the necessary information about adjacent mediums.
+
+Thus, our constructive solid geometry union function returns information about a
+`from' medium and a `to' medium. In particular, the function records an
+interface between two materials when
+
+\begin{itemize}
+  \item A line segment for the second operand begins during a line segment for
+    the first operand
+  \item A line segment for the second operand ends during a line segment for the
+    first operand
+  \item A line segment for one operand ends within $\epsilon$ units of the
+    beginning of a line segment for the other (for some small $\epsilon$)
+\end{itemize}
+
+Note that the resulting semantics have the second union operand ``override" the
+first in places where they overlap. We did not augment the constructive solid
+geometry difference and intersection functions in this way, as coming up with
+consistent and intuitive semantics (and writing code for them) was
+difficult; moreover, the union functionality was sufficient for our purposes.
+
+Note also that this feature has no effect whatsoever unless the materials
+involved are transparent.
+
+To accomodate this feature, our ray tracing code had to be modified to be aware
+of the possibility of a `from' medium.
+
+\subsection{Reflection and Refraction}
+
+Reflection and refraction both involve shooting recursive rays in
+specific directions. In the case of refraction into a coloured medium, the
+light intensity is attenuated as a function of the distance travelled in the
+medium.
+
+In our implementation, a single colour dictates the intensities of reflection and
+refraction for a material (though either feature can be individually disabled).
+The relative proportions of this coefficient that contribute to reflection and
+refraction, respectively, are determined by the \emph{Fresnel equations}. In
+particular: given an incident angle away from the normal of $\theta_i$,
+a transmitted angle away from the normal of $\theta_t$, and refractive indices
+$n_1$ and $n_2$ for the incident and transmission materials respectively, the
+proportion of specular light which is reflected -- the rest is transmitted -- is
+given by
+
+$$\frac{1}{2} \cdot \left(\left(\frac{n_1 \cos\theta_i - n_2 \cos\theta_t}{n_1
+\cos\theta_i + n_2\cos\theta_t}\right)^2 + \left(\frac{n_2 \cos\theta_i -
+n_1\cos\theta_t}{n_2\cos\theta_i + n_1\cos\theta_t}\right)^2\right)$$
+
+We were motivated to use the Fresnel equations since our important features as
+well as our final scene were heavily dependent on refraction, and the Fresnel
+equation avoids the discontinuities that arise in simple refraction models
+when total internal reflection occurs.
+
+Our primary reference on the Fresnel equations was de Greve \cite{degreve}. The
+relevant code is in {\tt rt.cpp}. In particular, see the {\tt fresnel} function.
+
+\subsection{Parallelism}
+
+In assignment 4, I took advantage of the ``embarassing parallelism" of ray
+tracing by making my ray tracer multithreaded. In particular, I spawn a number
+of threads, each of which repeatedly queries a threadsafe queue data structure.
+This structure doles out rows of the image being rendered, and each thread, upon
+receiving a row, renders it before asking for another. The result is a
+significant speedup.
+
+% TODO: timings.
+
+I have not parallelized the photon mapping preprocessing stage, due to both time
+constraints and the fact that the rendering stage is the main bottleneck.
+
+\section{Methodology and Tools}
+
+\subsection{Language and Style}
+
+While writing my ray tracer, I made extensive use of C++11 features. The program
+is compiled with gcc's {\tt -std=c++0x} option. Of particular note is my use of {\tt
+std::function} and C++11 lambdas in my ray tracing and primitive ray intersection
+functions.
+
+I made use of standard library data structures and algorithms whenever
+appropriate. Dynamic memory allocation was never a performance issue.
+
+\subsection{Configurability}
+
+The ray tracer has on the order of $20$ different user-specifiable options that
+govern the appearance of generated images. These include things like the sampling
+resolutions for various features, the number of photons to shoot for photon mapping,
+whether to do special renderings meant to demonstrate certain features, et
+cetera.
+
+There are two ways to control every option: you may specify them on the
+command line, or you may specify them in a LUA script via the {\tt gr.option}
+call. {\tt gr.option} accepts as its argument a string which is interpreted as a
+sequence of command-line arguments.
+
+Having {\tt gr.option} is advantageous because it frees the user from having to
+remember the desired command-line parameters for a given image. Requiring the
+user to pass a command-line string to {\tt gr.option} (rather than having
+dedicated LUA functions for every option) gets around the need to
+add boilerplate to {\tt scene\_lua.cpp} every time we want to add a new
+option.
+
+All of the code related to program options and command-line arguments is in
+{\tt cmdopts.cpp}.
+
+\subsection{Performance}
+
+I spent a good deal of time attempting to improve the performance of my ray
+tracer in ways unrelated to my project goals. Currently, the biggest performance
+bottleneck for caustic-enabled scenes is the k-D tree $N$ nearest neighbours
+function, which is usally invoked with values of $N$ on the order of $100$ and
+must search through a binary tree containing hundreds of thousands to millions
+of photons.
+
+I was able to significantly reduce the time spent in the nearest neighbour
+search by adding a maximum distance to the search; beyond this distance, we simply give up
+and return whatever we have. This allows us to return early when we search for
+photons in dark areas of the scene rather than wasting time gathering photons
+which will be too far away to influence the radiance.
+
+Constructive solid geometry objects significantly impacted performance before I
+implemented hierarchal bounding boxes (which are now automatically placed around
+CSG primitives).
+
+Perhaps unsurprisingly, I doubled the speed of my sphere intersection function
+by converting it from a generalized quadric intersection function into one
+specific to spheres.
+
+There was one case where initializing a {\tt std::function} with a C++11
+lambda caused a dynamic allocation in a hot loop, and initializing
+the function outside the loop improved performance by about 10\%. In general,
+though, dynamic memory allocation was not a significant contributor to
+performance issues, despite my frequent use of standard library containers.
+
+\subsection{Tools}
+
+I made use of the following tools:
+
+\begin{itemize}
+  \item I used Valgrind's callgrind tool in order determine the best targets for
+optimization (given reasonable k-D tree sizes, the program is CPU-bound).
+
+  \item I used GNU's gdb whenever I needed to debug a crash (although I generally used
+print statements for other types of debugging).
+
+  \item I used Gimp, the GNU image manipulation program, to generate several textures
+that I used for testing and in demo images.
+
+  \item I used Git for version control. For general interest, I had made $68$ commits
+in my project {\tt src} directory at the time of writing.
+\end{itemize}
+
+\section{Bugs and Assumptions}
+
+% TODO
+
+\section{Future Possibilities}
+
+Several extensions to photon mapping are described in great detail by Jensen in
+\cite{coursenotes}. I am most interested in experimenting with the use of photon
+mapping for global illumination, as the images produced through the use of
+global illumination techniques can be very impressive. There is also a discussion
+of the use of photon mapping to render participating media such as fog; smoke would
+be a great addition to my final scene. Subsurface scattering is another possible
+extension of photon mapping.
+
+\section{Code Map}
+
+What follows is a brief description of what you can find in the various source
+files, ordered by approximate importance. I have omitted files which were
+present in the assignment 4 base code and which haven't been significantly
+changed.
+
+\newcommand{\cmditem}[1]{\item {\tt #1}}
+
+\begin{itemize}
+    \cmditem{a4.cpp} -- {\tt a4\_render}, the main render function.
+    \cmditem{rt.cpp} -- The {\tt RayTracer} class, which encapsulates most of
+    the logic for recursive ray tracing (including reflection and refraction).
+    \cmditem{primitive.cpp} -- Primitive definitions, including intersection
+    testing functions.
+    \cmditem{lightingmodel.cpp} -- Lighting computations, including soft shadows
+    (in particular, see the {\tt occlusion} function).
+    \cmditem{csg.cpp} -- Code for constructive solid geometry.
+    \cmditem{photonmap.cpp} -- Photon map creation, radiance estimation, and
+    projection map code.
+    \cmditem{kdtree.hpp} -- The {\tt kdtree} template class.
+    \cmditem{textures.cpp} -- Texture and bump map definitions; support for
+    PNG image textures and bump maps.
+    \cmditem{texdefs.cpp} -- UV Remapping code and procedural textures and bump
+    maps.
+    \cmditem{intersection.hpp} -- Some fast intersection functions that are used
+    in several places.
+    \cmditem{threading.hpp} -- Multithreading support.
+    \cmditem{timer.cpp} -- The {\tt ProgressTimer} class, which prints rendering
+    time and progress.
+    \cmditem{stats.cpp} -- Support for recording and printing statistics.
+    \cmditem{cmdopts.cpp} -- Program options and command-line argument parsing.
+\end{itemize}
+
+\begin{thebibliography}{9}
+
+\bibitem{coursenotes}
+ Henrik Wann Jensen,
+ \emph{A practical guide to global illumination using ray tracing and photon mapping}.
+ ACM SIGGRAPH 2004 Course Notes, 2004 [ exceptionally detailed, thorough, and readable SIGGRAPH course notes on photon mapping and its extensions ]
+
+\bibitem{degreve}
+Bram de Greve, \emph{Reflections and Refractions in Ray Tracing}. November 2006
+[ information on using the Fresnel equations for reflection and refraction ]
+
+\end{thebibliography}
+
+
+\end{document}
