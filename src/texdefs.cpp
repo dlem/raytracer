@@ -3,6 +3,7 @@
 
 using namespace std;
 
+// The list of remapping types that the 'get' function understands.
 static map<const string, REMAPTYPE> s_remaptypes =
 {
   { "cubetop", REMAP_CUBETOP },
@@ -12,6 +13,8 @@ static map<const string, REMAPTYPE> s_remaptypes =
   { "conetop", REMAP_CONETOP },
 };
 
+// Constructs a UV remapping by searching for the provided string in the list of
+// remap types.
 template<typename TMapped>
 UVRemapper<TMapped>::UVRemapper(UVMapper<TMapped> &tex, const std::string &ty)
   : m_tex(tex)
@@ -29,6 +32,8 @@ UVRemapper<TMapped>::UVRemapper(UVMapper<TMapped> &tex, const std::string &ty)
   m_ty = rmtype->second;
 }
 
+// Actually compute the remapping. These are all just linear transformations
+// based on the nature of my UV mappings for the primitives involved.
 template<typename TMapped>
 TMapped UVRemapper<TMapped>::operator()(const Point2D &uv)
 {
@@ -95,26 +100,29 @@ TMapped UVRemapper<TMapped>::operator()(const Point2D &uv)
 template class UVRemapper<Point2D>;
 template class UVRemapper<Colour>;
 
-
 Point2D SineWavesBm::operator()(const Point2D &uv)
 {
+  // Compute the distance from the center of the ripple (ie, the center of the
+  // UV map).
   const Point2D offset(uv[0] - 0.5, uv[1] - 0.5);
   const double len = sqrt(sqr(offset[0]) + sqr(offset[1]));
+
+  // Dirvec ~ vector pointing away from the center.
   const Point2D dirvec(offset[0] / max(len, 0.0001), offset[1] / max(len, 0.0001));
   const double factor = 3 * 2 * M_PI / 0.2;
   const double rad = factor * len;
+
+  // The slope of a sine ripple is given by the cos function.
   const double slope = cos(rad);
+
+  // Perturb the normal according to the slope.
   Point2D rv(slope * dirvec[0], slope * dirvec[1]);
   return rv;
 }
 
-Point2D BubblesBm::operator()(const Point2D &uv)
-{
-  return Point2D();
-}
-
 Colour CheckerTexture::operator()(const Point2D &uv)
 {
+  // Divisible by both 3 and four => aligned properly with edges of a square.
   const double resolution = 24;
   const int n = (int)(uv[0] * resolution) + (int)(uv[1] * resolution);
   return n % 2 ? m_c : Colour(0);

@@ -20,6 +20,10 @@
 #include <ctime>
 #include <mutex>
 
+// Stopwatch; call start and stop to manage it; call lap to get the current user
+// and real times. Also reports times if you give it a name and set report, and
+// stores the times in a name-indexed map. Dumps the map via the dump_timings
+// method.
 class Timer
 {
 public:
@@ -38,14 +42,24 @@ protected:
   const char *m_name;
 };
 
+// Timer that monopolizes cout by constantly printing how long the task is
+// taking as well as the progress, taking advantage of ANSI codes to make it
+// look good.
 class ProgressTimer : public Timer
 {
 public:
+  // Create timer with given name and 'total' for total progress.
   ProgressTimer(const char *name, int total);
   virtual ~ProgressTimer();
+
+  // Set the current progress that'll get printed to cout.
   void set_progress(int amount);
+
+  // Increment current progress by one.
   void increment() { set_progress(m_progress + 1); }
   double get_progress();
+
+  // Print time/progress to cout.
   void report();
 
 private:

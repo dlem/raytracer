@@ -16,6 +16,8 @@
 
 class RayTracer;
 
+// Lighting model: basically just an implementation of the compute_lighting
+// method, which determines the colour of lighting for a point.
 class LightingModel
 {
 public:
@@ -29,6 +31,7 @@ public:
 				) const = 0;
 };
 
+// The phong model.
 class PhongModel : public LightingModel
 {
 public:

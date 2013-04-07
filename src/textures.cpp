@@ -8,9 +8,11 @@
 
 using namespace std;
 
+// Lists of the programmatical textures and bump maps which are exposed through
+// the 'get' functions.
+
 static map<const string, function<Bumpmap *()>> s_bumpmaps = {
   { "sinewaves", []() { return new SineWavesBm(); } },
-  { "bubbles", []() { return new BubblesBm(); } },
 };
 
 static map<const string, function<Texture *()>> s_textures = {
@@ -20,17 +22,22 @@ static map<const string, function<Texture *()>> s_textures = {
   { "whitecheck", []() { return new CheckerTexture(Colour(1, 1, 1)); } },
 };
 
+void gradients(Image &grad, const Image &img);
+
+// Bump map made from a PNG image.
 class ImageBumpmap : public Bumpmap
 {
 public:
   ImageBumpmap(const Image &img)
     : m_bumpmap(img.width(), img.height(), 2)
   {
+    // Use the gradients, not the image itself.
     gradients(m_bumpmap, img);
   }
 
   virtual Point2D operator()(const Point2D &uv)
   {
+    // u -> x in image, v -> -y in image.
     const int u = clamp<double>(uv[0] * m_bumpmap.width(), 0, m_bumpmap.width() - 1);
     // Make sure we invert the y coordinate for PNGs!
     const int v = clamp<double>((1 - uv[1]) * m_bumpmap.height(), 0, m_bumpmap.height() - 1);
@@ -43,6 +50,7 @@ private:
   Image m_bumpmap;
 };
 
+// Texture made from a PNG image.
 class ImageTexture : public Texture
 {
 public:
@@ -53,6 +61,7 @@ public:
 
   virtual Colour operator()(const Point2D &uv)
   {
+    // u -> x, v -> -y
     const int u = clamp<double>(uv[0] * m_texture.width(), 0, m_texture.width() - 1);
     // Make sure we invert the y coordinate for PNGs!
     const int v = clamp<double>((1 - uv[1]) * m_texture.height(), 0, m_texture.height() - 1);
@@ -94,6 +103,8 @@ Texture *Texture::get(const string &name)
   }
 }
 
+// Compute the x and y gradients for every pixel in an image, storing them in
+// the corresponding pixels of a depth-2 image.
 void gradients(Image &grad, const Image &img)
 {   
   assert(grad.width() == img.width());
@@ -101,10 +112,7 @@ void gradients(Image &grad, const Image &img)
   assert(img.elements() == 1);
   assert(grad.elements() >= 2);
 
-  auto intensity = [&img](int x, int y)
-  {
-    return img(x, y, 0);
-  };
+  auto intensity = [&img](int x, int y) { return img(x, y, 0); };
 
   // Compute x gradients.
   for(int ixrow = 0; ixrow < img.height(); ixrow++)

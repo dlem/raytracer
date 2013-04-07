@@ -14,6 +14,7 @@
 
 #include "textures.hpp"
 
+// Different ways of remapping UVs.
 enum REMAPTYPE
 {
   REMAP_CUBETOP,
@@ -23,6 +24,8 @@ enum REMAPTYPE
   REMAP_CONETOP,
 };
 
+// The texture/bumpmap UV remapping class. Works for both textures and bumpmaps
+// because it's a template.
 template<typename TMapped>
 class UVRemapper : public UVMapper<TMapped>
 {
@@ -39,6 +42,9 @@ private:
 typedef UVRemapper<Point2D> BmRemapper;
 typedef UVRemapper<Colour> TexRemapper;
 
+///////////////////////////////////////////////////////////////////////////////
+// Programmatically defined bump maps and textures.
+
 #define DECLARE_BUMPMAP(name) \
   class name : public Bumpmap \
   { public: virtual Point2D operator()(const Point2D &uv); }
@@ -47,8 +53,8 @@ typedef UVRemapper<Colour> TexRemapper;
   class name : public Texture \
   { public: virtual Colour operator()(const Point2D &uv); }
 
+// Ripple-like effect.
 DECLARE_BUMPMAP(SineWavesBm);
-DECLARE_BUMPMAP(BubblesBm);
 
 class CheckerTexture : public Texture
 {

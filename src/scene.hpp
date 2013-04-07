@@ -16,6 +16,7 @@
 #include "primitive.hpp"
 #include "material.hpp"
 
+// Represents a single flattened primitive.
 struct FlatGeo
 {
   FlatGeo() {}
@@ -43,7 +44,6 @@ struct FlatGeo
 };
 
 typedef std::vector<FlatGeo> FlatList;
-
 
 class GeometryNode;
 

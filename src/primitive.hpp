@@ -16,9 +16,12 @@
 
 class HitReporter;
 
+// Represents a bounding box. The methods are meant to make it really easy to
+// bring this bounding box up through a hierarchy.
 struct Box
 {
   Box() {}
+  // Apply a transform to the bounding box.
   void apply(const Matrix4x4 &m)
   {
     for(int i = 0; i < NUMELMS(pts); i++)
@@ -31,12 +34,14 @@ struct Box
     while(i < NUMELMS(pts) && it < list.end())
       pts[i++] = *it++;
   }
+  // Create a box at (0, 0, 0) with size 'size'.
   static Box centred(double size)
   {
     Box rv;
     rv.set(Point3D(-1, -1, -1), Point3D(1, 1, 1));
     return rv;
   }
+  // Set the bounding box according to the specified axis-aligned box.
   void set(const Point3D &mins, const Point3D &maxes)
   {
     pts[0] = pts[1] = pts[2] = pts[3] = mins;
@@ -74,21 +79,25 @@ static inline std::ostream &operator<<(std::ostream &os, Box &b)
 
 class Primitive {
 public:
-  typedef std::function<bool(double t, const Vector3D &normal,
-                             const Point2D &uv, const Vector3D &u,
-                             const Vector3D &v)> IntersectFn;
+  // Have the primitive report intersections of the ray with itself.
   virtual bool intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const = 0;
+
+  // Get a bounding box for the primitive.
   virtual void bounding_box(Box &b) const = 0;
+
+  // Determine whether it's a CSG primitive. This replaces a surprisingly
+  // expensive dynamic cast.
   virtual bool is_csg() const { return false; }
+
+  // Transforms to be applied to a primitive automatically. Used for
+  // nonhierachal primitives and to make my life easier with cones and
+  // cylinders.
   virtual Matrix4x4 get_transform() { return Matrix4x4(); }
 };
 
-class Circle : public Primitive
-{
-public:
-  virtual bool intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const;
-};
-
+// Quadric primitive. The UV's must be implemented manually by overriding
+// get_uv. Note that the compiler won't be able to optimize this nearly as well
+// as a special-case class.
 class Quadric : public Primitive
 {
 public:

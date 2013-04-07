@@ -5,6 +5,9 @@
 
 using namespace std;
 
+// Computes the occlusion of a point with respect to a light -- ie, an amount by
+// which to attenuate light from that light. In other words, this function
+// computes soft shadows.
 static double occlusion(RayTracer &rt, Light *light, const Point3D &pt)
 {
   const int resolution = GETOPT(shadow_grid);
@@ -20,18 +23,35 @@ static double occlusion(RayTracer &rt, Light *light, const Point3D &pt)
     return 1;
   }
 
-  const double maxd = radius / dist;
+  // We're going to trace rays towards nodes in a resolution x resolution grid
+  // around the center of the light, where the width of the grid is 2 x the
+  // radius of the light. We'll throw away points that aren't actually inside
+  // the projected circle.
+
+  // Opposite over adjacent -- ie, sin(o), where o is the angle between a ray
+  // straight towards the light and a ray towards the edge of it.
+  const double sintheta = radius / dist;
+
+  // # of rays that _don't_ get to the light.
   double occ = 0;
+
+  // Number of rays we cast.
   int count = 0;
+
+  // Create a wuv orthonormal coordinate system, where w is towards the light.
   Vector3D u(w[1], -w[0], 0);
   u.normalize();
   const Vector3D v(w.cross(u));
+
+  // Iterate through our grid, linearly interpolating the direction in which we
+  // shoot the light with respect to our u direction (for the outer loop) and
+  // our v direction (for the inner loop).
   for(int i = 0; i < resolution; i++)
   {
-    const double du = maxd * (-1 + (i + 0.5) * 2. / resolution);
+    const double du = sintheta * (-1 + (i + 0.5) * 2. / resolution);
     for(int j = 0; j < resolution; j++)
     {
-      const double dv = maxd * (-1 + (j + 0.5) * 2. / resolution);
+      const double dv = sintheta * (-1 + (j + 0.5) * 2. / resolution);
 
       const double sumsqr = du * du + dv * dv;
       if(sumsqr < 1)
@@ -44,6 +64,9 @@ static double occlusion(RayTracer &rt, Light *light, const Point3D &pt)
       }
     }
   }
+
+  // The desired attenuation is given by the proportion of rays that actually
+  // arrive at the light.
   return occ / count;
 }
 
@@ -60,6 +83,9 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
   const Colour projc(1, 0, 0);
   const bool use_proj = GETOPT(draw_caustic_prm) &&
 			m_caustics.test_pm(rt, phong_P, hi.normal);
+
+  // Set up Phong model variables.
+
   const Point2D &uv = hi.uv;
   const PhongMaterial &mat = hi.tomat();
   const Colour phong_kd = use_proj ? projc * mat.kd(uv).Y() : mat.kd(uv);

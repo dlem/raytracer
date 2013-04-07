@@ -1,5 +1,5 @@
 /**
- * This header file exposes a function for recording (and possibly printing)
+ * This module exposes a function for recording (and possibly printing)
  * statistics about what we're doing.
  *
  * Name: Daniel Lemmond

@@ -18,6 +18,7 @@ enum AXIS
   AXIS_Z,
 };
 
+// Represents the six faces of an axis-aligned box; positive X, negative X, etc.
 enum AAFACE
 {
   AAFACE_PX=0,
@@ -28,6 +29,8 @@ enum AAFACE
   AAFACE_NZ,
 };
 
+// If we intersect the infinite plane whose normal is the given axis, offset by
+// 'offset' in that directin, return the corresponding t-value.
 static inline double axis_aligned_plane_intersect(const Point3D &eye, const Vector3D &ray,
 				    int axis, double offset)
 {
@@ -40,6 +43,8 @@ static inline double axis_aligned_plane_intersect(const Point3D &eye, const Vect
   return (offset - at) / dir;
 }
 
+// Check whether the point is within the bounds of the square corresponding to
+// the specified face (AAFACE) of the axis-aligned cube given by mins, maxes.
 static inline bool axis_aligned_square_contains(const Point3D &p, int face,
 				const Point3D &mins, const Point3D &maxes)
 {
@@ -50,6 +55,7 @@ static inline bool axis_aligned_square_contains(const Point3D &p, int face,
 	 inrange(p[c2], mins[c2], maxes[c2]);
 }
 
+// Same, but a circle rather than a square.
 static inline bool axis_aligned_circle_contains(const Point3D &p, int face, double radius)
 {
   const int coord = face / 2;
@@ -58,6 +64,8 @@ static inline bool axis_aligned_circle_contains(const Point3D &p, int face, doub
   return p[c1] * p[c1] + p[c2] * p[c2] <= radius;
 }
 
+// Check whether the axis-aligned box specified by mins, maxes is intersected by
+// the specified ray (doesn't return a t-value).
 static inline bool axis_aligned_box_check(const Point3D &eye, const Point3D &ray_end,
 			    const Point3D &mins, const Point3D &maxes)
 {

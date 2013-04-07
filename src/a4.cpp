@@ -147,6 +147,8 @@ void a4_render(// What to render
     viewport2world = world2view.invert() * viewport2world;
   }
 
+  // Anti-aliasing stuff. offs is a vector of offsets from the center of each
+  // pixel to use with anti-aliasing.
   const int aa_grid = GETOPT(aa) ? GETOPT(aa_grid) : 1;
   const double jitter = GETOPT(aa_jitter) / (4 * aa_grid);
   vector<Vector3D> offs(aa_grid * aa_grid);
@@ -158,6 +160,9 @@ void a4_render(// What to render
     }
   }
 
+  // Make sure the four corners of the grid are the first four entires in the
+  // offs array. We use the corners for adaptive anti-aliasing to determine
+  // whether we should supersample.
   if(aa_grid > 2)
   {
     auto swap = [&offs](int x, int y)
@@ -171,6 +176,8 @@ void a4_render(// What to render
     swap(3, 0 + aa_grid - 1);
   }
 
+  // do_lighting takes a (real) point in 2D view grid and does the lighting
+  // calculations for that point.
   auto do_lighting = [model, &eye, &rt, jitter, &viewport2world]
     (const Point3D &pt)
   {
@@ -183,6 +190,7 @@ void a4_render(// What to render
     return rt.raytrace_recursive(*model, eye, ray);
   };
 
+  // trace_row performs lighting calculations for a row of the image.
   auto trace_row = [width, height, &do_lighting, aa_grid, &offs, &img]
     (int ixrow)
   {
@@ -195,6 +203,7 @@ void a4_render(// What to render
 
       if(aa_grid <= 2)
       {
+	// Small aa grid => just use a single sample.
 	for(const Vector3D &off : offs)
 	{
           c = c + do_lighting(centre + off) * (1./offs.size());
@@ -202,8 +211,9 @@ void a4_render(// What to render
       }
       else
       {
+	// Do colour computations for first four points in the grid array, which
+	// are the extreme points.
 	Colour first_four[4] = {0, 0, 0, 0};
-
 	for(int i = 0; i < 4; i++)
 	{
 	  auto &off = offs[i];
@@ -212,6 +222,8 @@ void a4_render(// What to render
 	  c = c + sample * (1./offs.size());
 	}
 
+	// Find the maximal "colour distance" between the extreme points; we use
+	// this to determine whether to supersample.
 	double delta = 0;
         for(int i = 0; i < NUMELMS(first_four); i++)
         {
@@ -219,19 +231,22 @@ void a4_render(// What to render
           {
             const Colour &c1 = first_four[i], &c2 = first_four[j];
             Colour diff(c1.R() - c2.R(), c1.G() - c2.G(), c1.B() - c2.B());
-            diff = diff * diff;
+	    diff = diff * diff;
             delta += diff.R() + diff.G() + diff.B();
           }
         }
 		   
 	if(delta > GETOPT(aa_threshold))
 	{
+	  // We want AA.
           if(GETOPT(draw_aa))
           {
+	    // Draw red where we're doing AA.
             c = Colour(1, 0, 0);
           }
           else
           {
+	    // Do the supersampling; sample every point in the grid.
             for(int i = 4; i < offs.size(); i++)
             {
               auto &off = offs[i];
@@ -241,6 +256,8 @@ void a4_render(// What to render
 	}
 	else
 	{
+	  // No AA; just use the average of the grid extremeties that we've
+	  // already computed.
 	  c = c * (offs.size()/4.);
 	}
       }
@@ -251,14 +268,21 @@ void a4_render(// What to render
     }
   };
 
+  // We've defined our functions for computing colours. Now we're going to start
+  // some threads and have them continuously call these functions.
+
+  // Create a vector of row numbers, which is used by the multithreading
+  // implementation to generate arguments to trace_row.
   vector<int> count;
   count.resize(height);
   for(int ix = 0; ix < count.size(); ix++)
     count[ix] = ix;
 
+  // Create a parfor object which will handle the threads.
   auto it = count.begin();
   auto pf = parfor<decltype(it), int>(it, count.end(), trace_row);
 
+  // Run and time the parfor, setting progress as we consume rows.
   {
     ProgressTimer timer("rendering", height);
     pf.go(GETOPT(threads), true, [height, &timer](int i)
@@ -267,8 +291,6 @@ void a4_render(// What to render
 	});
     timer.set_progress(height);
   }
-
-  outs() << "Done!" << endl;
 
   img.savePng(filename);
 

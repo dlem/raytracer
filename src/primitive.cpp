@@ -116,6 +116,9 @@ void Sphere::bounding_box(Box &b) const
 
 void cube_uv(int facenum, const Point3D &p, Point2D &uv, Vector3D &u, Vector3D &v)
 {
+  // Get the UV's for a cube intersection with the given face. This is painful,
+  // as my cube UV mapping isn't fun to work with programatically.
+
   double cu = 1/4.;
   double cv = 1/3.;
 
@@ -185,7 +188,6 @@ void Cube::bounding_box(Box &b) const
   b = Box::centred(1);
 }
 
-
 Matrix4x4 NonhierBox::get_transform()
 {
   return Matrix4x4::translate(m_pos - Point3D()) *
@@ -194,6 +196,8 @@ Matrix4x4 NonhierBox::get_transform()
 
 bool Cylinder::intersect(const Point3D &eye, const Point3D &dst, HitReporter &hr) const
 {
+  // Part 1: test for intersection with the non-planar surface using the
+  // cylinder equation.
   Polynomial<2> x, y, z;
   const Vector3D ray = dst - eye;
   x[0] = eye[0];
@@ -230,6 +234,7 @@ bool Cylinder::intersect(const Point3D &eye, const Point3D &dst, HitReporter &hr
     }
   }
 
+  // Next, test intersection with the two planar circle surfaces.
   const int circles[] = {AAFACE_PZ, AAFACE_NZ};
   const double offsets[] = {1., -1.};
 
@@ -287,18 +292,16 @@ void Cylinder::get_uv(const Point3D &pt, const Vector3D &normal,
 
 Matrix4x4 Cylinder::get_transform()
 {
-#if 1
   return Matrix4x4::rotate('x', 90);
-#else
-  return Matrix4x4();
-#endif
 }
 
 bool Cone::intersect(const Point3D &eye, const Point3D &ray, HitReporter &hr) const
 {
+  // Test intersection with the non-planar surface.
   if(!Quadric::intersect(eye, ray, hr))
     return false;
 
+  // Test intersection with the planar circle surface.
   const Vector3D _ray = ray - eye;
   const int circles[] = {AAFACE_PZ};
   const double offsets[] = {1.};
@@ -344,6 +347,7 @@ bool Cone::predicate(const Point3D &pt) const
 void Cone::get_uv(const Point3D &pt, const Vector3D &normal,
 		  Point2D &uv, Vector3D &u, Vector3D &v) const
 {
+  // This function handles UV's for the non-planar surface.
   const double theta = atan2(pt[1], pt[0]);
   const double z = pt[2];
   uv[0] = 0.5 + theta / 2 / M_PI;

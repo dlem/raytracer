@@ -13,6 +13,7 @@
 #include "scene.hpp"
 #include "rt.hpp"
 
+// Primitive class for CSG objects.
 class CSGPrimitive : public Primitive
 {
 public:
@@ -20,9 +21,10 @@ public:
     : m_lhs(0)
     , m_rhs(0)
   {}
-
+ 
   void init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans);
 
+  // Prim overrides.
   virtual bool intersect(const Point3D &eye, const Point3D &dst, HitReporter &hr) const;
   virtual void bounding_box(Box &b) const { b.set(m_mins, m_maxes); }
   virtual bool is_csg() const { return true; }
@@ -32,15 +34,22 @@ protected:
   typedef HitInfo SegInterface;
   typedef std::vector<SegInterface> SegmentList;
 
+  // Get the line segments for intersections with this object.
   void get_segments(SegmentList &out, const Point3D &eye, const Point3D &dst) const;
+
+  // Derived must override and implement depending on how it handles its
+  // operands (union vs intersection vs difference).
   virtual void adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const = 0;
   virtual void combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const = 0;
 
 private:
+  // Operands.
   FlatList m_lhs_list;
   FlatList m_rhs_list;
   FlatGeo *m_lhs;
   FlatGeo *m_rhs;
+
+  // Bounding box info.
   Point3D m_mins;
   Point3D m_maxes;
   Box m_box;
@@ -67,6 +76,8 @@ protected:
   virtual void combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const;
 };
 
+// Node representing a CSG object. Instantiated by LUA callbacks. Gets
+// instantiated for different CSG primitive types.
 template<typename TPrim>
 class CSGNode : public SceneNode
 {

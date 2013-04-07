@@ -15,7 +15,7 @@
 
 using namespace std;
 
-static mutex s_mutex;
+static mutex s_mutex; // guards access to s_timings
 static map<const string, time_t> s_timings;
 
 int current_time_ms()
@@ -94,8 +94,11 @@ void Timer::dump_timings()
 
 static ProgressTimer *s_pt = 0;
 static thread *s_reporter = 0;
+// Guards access to the state of s_pt.
 static mutex s_pmutex;
 
+// Loop forever, sleeping and occassionally calling the report method on the
+// current ProgressTimer if there is one.
 void reporter()
 {
   for(;;)
@@ -109,6 +112,7 @@ void reporter()
   }
 }
 
+// We assume that there's only one ProgressTimer at a time.
 ProgressTimer::ProgressTimer(const char *name, int total)
   : m_total(total)
   , m_progress(0)
@@ -118,6 +122,8 @@ ProgressTimer::ProgressTimer(const char *name, int total)
   start();
   report();
   s_pt = this;
+
+  // Creates a reporter if there isn't already one.
   if(!s_reporter)
   {
     s_reporter = new thread(reporter);
@@ -147,7 +153,9 @@ void ProgressTimer::report()
 {
   int real, user;
   lap(user, real);
-  outs() << "\033[1G";
+
+  // Report time and progress.
+  outs() << "\033[1G"; // Go to start of current line.
   outs() << setw(6) << setprecision(2) << fixed << 100 * get_progress()
 	 << "% " << setw(25) << m_name << " (user" << setw(8) << user
 	 << "ms, real: " << setw(4) << real << "ms)";

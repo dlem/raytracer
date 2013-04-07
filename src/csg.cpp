@@ -7,11 +7,12 @@ using namespace std;
 
 void CSGPrimitive::init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans)
 {
+  // Flatten our operands.
   lhs->flatten(m_lhs_list, trans);
   rhs->flatten(m_rhs_list, trans);
   if(m_lhs_list.size() != 1 || m_rhs_list.size() != 1)
   {
-    errs() << "CSG object doesn't have exactly one child!" << endl;
+    errs() << "CSG operand contains more than one primitive!" << endl;
     errs() << "Aborting" << endl;
     exit(1);
   }
@@ -19,7 +20,7 @@ void CSGPrimitive::init(SceneNode *lhs, SceneNode *rhs, const Matrix4x4 &trans)
   m_lhs = &m_lhs_list[0];
   m_rhs = &m_rhs_list[0];
 
-  // Now compute the bounding box.
+  // Compute our bounding box.
   Box box, bl, br;
   m_lhs->prim->bounding_box(bl);
   m_rhs->prim->bounding_box(br);
@@ -41,6 +42,8 @@ bool CSGPrimitive::intersect(const Point3D &src, const Point3D &dst, HitReporter
   SegmentList segments;
   get_segments(segments, src, dst);
 
+  // Each interface between our component volumes counts is a hit. Caller can
+  // sort the mess out by checking their t-values.
   for(auto &seg : segments)
   {
     hr.report(seg);
@@ -56,6 +59,9 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
   SegmentList *lists[] = {&lhs, &rhs};
   FlatGeo *geos[] = {m_lhs, m_rhs};
 
+  // We'll first build the two segment lists for our two children, then we'll
+  // combine them using derived's overrides.
+
   for(int i = 0; i < NUMELMS(lists); i++)
   {
     SegmentList &l = *lists[i];
@@ -63,11 +69,18 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
 
     if(geo.prim->is_csg())
     {
+      // We don't want to repeatedly convert back and forth between normal hits
+      // and line segments; so if one of our children is a CSG object, use its
+      // get_segments method.
       auto prim = static_cast<const CSGPrimitive *>(geo.prim);
       prim->get_segments(l, src, dst);
     }
     else
     {
+      // If it's a primitive, do a normal raytrace and record each hit as an
+      // interface to/from air (depending on the normal direction). Note that
+      // bump mapping won't have been applied at this point.
+
       const Point3D srcprime = geo.invtrans * src;
       const Point3D dstprime = geo.invtrans * dst;
       const Vector3D rayprime = dstprime - srcprime;
@@ -92,6 +105,9 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
       hr.to = hr.primary = &geo;
       geo.prim->intersect(srcprime, dstprime, hr);
 
+      // Sort primitive interfaces so that they're in ascending order of their
+      // t-value. This is required by our adjust_segments function.
+
       struct SortCriteria
       {
 	bool operator()(const SegInterface &si1, const SegInterface &si2)
@@ -108,6 +124,15 @@ void CSGPrimitive::get_segments(SegmentList &out, const Point3D &src, const Poin
 
 void CSGUnion::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c2) const
 {
+  // The segment adjustment for the CSG Union function. Preserves interfaces
+  // between the two primitives, which allows us to model crosses between
+  // different transparent mediums. The right operand always takes precedence
+  // over the left operand when they intersect.
+  
+  // We iterate through both segment lists, each time checking which of the
+  // subsequent interections has the lowest t-value and adding an interface to
+  // our output list as necessary.
+
   const double epsilon = 0.001;
   auto i1 = c1.begin(), i2 = c2.begin();
   const FlatGeo *cur1 = 0, *cur2 = 0;
@@ -119,6 +144,10 @@ void CSGUnion::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c
 
     if(abs(i2->t - i1->t) < epsilon)
     {
+      // Interfaces happen in (approximately) the same place, so count them as
+      // just one; this makes refraction between non-air mediums work out for
+      // objects with touching surfaces.
+
       cur1 = i1->to;
       cur2 = i2->to;
 
@@ -134,6 +163,8 @@ void CSGUnion::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c
       cur2 = i2->to;
       if(!i2->from && i2->to)
       {
+	// Second child begins here. Push the interface unless we're already
+	// inside first child and it's the same material.
 	if(!cur1 || cur1 != i2->to)
 	{
 	  out.push_back(*i2);
@@ -142,11 +173,16 @@ void CSGUnion::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c
       }
       else if(i2->from && !i2->to)
       {
-	out.push_back(*i2);
-	out.back().to = cur1;
+	// Second child ends.
+	//if(!cur1 || cur1 != i2->from)
+	//{
+	  out.push_back(*i2);
+	  out.back().to = cur1;
+	//}
       }
       else
       {
+	// Interface inside second child.
 	out.push_back(*i2);
       }
       i2++;
@@ -154,6 +190,8 @@ void CSGUnion::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c
     else
     {
       cur1 = i1->to;
+      // Second child overrides first, so only do anything if second is
+      // inactive.
       if(!cur2)
       {
 	out.push_back(*i1);
@@ -162,22 +200,26 @@ void CSGUnion::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c
     }
   }
 
+  // Shove in any leftovers.
   out.insert(out.end(), i1, c1.end());
   out.insert(out.end(), i2, c2.end());
 }
 
 void CSGUnion::combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const
 {
+  // For union, combine the bounding boxes.
   out.set(cw_min(bl.mins(), br.mins()), cw_max(bl.maxes(), br.maxes()));
 }
 
 void CSGIntersection::combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const
 {
+  // For intersection, intersect them (sort of).
   out.set(cw_max(bl.mins(), br.mins()), cw_min(bl.maxes(), br.maxes())); 
 }
 
 void CSGDifference::combine_bounding_boxes(Box &out, const Box &bl, const Box &br) const
 {
+  // For difference, just use the bb of the first operand.
   out = bl;
 }
 
@@ -186,12 +228,15 @@ void CSGIntersection::adjust_segments(SegmentList &out, SegmentList &c1, Segment
   auto i1 = c1.begin(), i2 = c2.begin();
   bool inside_i1 = false, inside_i2 = false;
 
+  // Iterate through both segment lists, at each step checking which interface
+  // occurs next and pushing and output interface as appropriate.
   while(i1 != c1.end() && i2 != c2.end())
   {
     if(i1->t < i2->t)
     {
       if(!i1->from && i1->to)
       {
+	// 1st operand begins. We begin iff 2nd operand is active.
 	inside_i1 = true;
 	if(inside_i2)
 	{
@@ -200,6 +245,7 @@ void CSGIntersection::adjust_segments(SegmentList &out, SegmentList &c1, Segment
       }
       else if(i1->from && !i1->to)
       {
+	// 1st operand ends. We end if we were active.
 	inside_i1 = false;
 	if(inside_i2)
 	{
@@ -212,6 +258,7 @@ void CSGIntersection::adjust_segments(SegmentList &out, SegmentList &c1, Segment
     {
       if(!i2->from && i2->to)
       {
+	// 2nd operand begins. We begin if 1st is active.
 	inside_i2 = true;
 	if(inside_i1)
 	{
@@ -220,6 +267,7 @@ void CSGIntersection::adjust_segments(SegmentList &out, SegmentList &c1, Segment
       }
       else if(i2->from && !i2->to)
       {
+	// 2nd operand ends. We end if 1st is active.
 	inside_i2 = false;
 	if(inside_i1)
 	{
@@ -236,6 +284,7 @@ void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentLi
   auto i1 = c1.begin(), i2 = c2.begin();
   const FlatGeo *cur1 = 0, *cur2 = 0;
 
+  // Same idea as union and intersection, except we use difference semantics.
   while(i1 != c1.end() || i2 != c2.end())
   {
     if(i1 != c1.end() && (i2 == c2.end() || i1->t < i2->t))
@@ -243,6 +292,7 @@ void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentLi
       cur1 = i1->to;
       if(!i1->from && i1->to)
       {
+	// 1st operand begins. If 2nd isn't currently active, we can begin.
 	if(!cur2)
 	{
 	  out.push_back(*i1);
@@ -250,6 +300,7 @@ void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentLi
       }
       else if(i1->from && !i1->to)
       {
+	// 1st operand ends. If we're active, we end.
 	if(!cur2)
 	{
 	  out.push_back(*i1);
@@ -262,8 +313,10 @@ void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentLi
       cur2 = i2->to;
       if(!i2->from && i2->to)
       {
+	// 2nd operand begins. If we were active, we end.
 	if(cur1)
 	{
+	  // Make sure to invert the interfaces and the normal!
 	  assert(out.size() > 0);
 	  out.push_back(*i2);
 	  out.back().from = out.back().primary = i2->to;
@@ -273,6 +326,7 @@ void CSGDifference::adjust_segments(SegmentList &out, SegmentList &c1, SegmentLi
       }
       else if(i2->from && !i2->to)
       {
+	// 2nd operand ends. If 1st is active, we begin.
 	if(cur1)
 	{
 	  out.push_back(*i2);
