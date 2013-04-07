@@ -1,2 +1,2 @@
-alias rt="`pwd`/../src/rt -S"
+alias rt="`pwd`/../rt -S"
 export LUA_PATH="`pwd`/include/?.lua;`pwd`/demos/?.lua"
