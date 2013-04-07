@@ -29,7 +29,7 @@ r:rotate('x', 90)
 r:scale(4, 6, 4)
 root:add_child(r)
 
-gr.option('--caustic-num-photons 12000000 --caustic-num-neighbours 200')
+gr.option('--caustic-num-photons 24000000 --caustic-num-neighbours 300')
 
 base.ambient = {0.1, 0.1, 0.1}
 
