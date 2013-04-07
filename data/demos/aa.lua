@@ -4,6 +4,8 @@ require 'misc'
 require 'ghost'
 require 'base'
 
+gr.option('--lores')
+
 function aa()
   g = ghost.ghost()
   g:translate(0, -1.5, 4)

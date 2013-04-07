@@ -39,6 +39,14 @@ must be chosen based on several factors, such as the user-specified unit
 distance, the number of photons to be shot, and the fullness of the projection
 map.
 
+\label{intensity}
+
+Determining the right intensity to assign to each photon was very difficult, and required me to fiddle with parameters and add new ones until it worked well in the general case. I compute the energy of each photon as
+
+$$E = \frac{4 \pi d_u^2 \cdot C_{\mrm{light}}}{f_{\mrm{light}}P}$$
+
+where $d_u$ is the user-specified unit distance (which depends on the scale of the scene); $C_{\mrm{light}}$ is the intensity (or colour) of the light; $f_{\mrm{light}}$ is the $r^2$ falloff coefficient of the light; and $P$ is the user-specified number of photons to be shot. Note that $4\pi d_u^2$ is the area of a unit sphere around the light. Note also that if we use projection maps, then we must reduce the number of photons shot based on the occupied area of the projection map.
+
 Instead of generating multiple recursive rays in the reflective and refractive
 directions at every specular event -- as is done in backward ray tracing
 -- we choose to have photons perform diffuse or specular interactions -- or,
@@ -60,8 +68,6 @@ To simulate caustics, we are only concerned with photons that hit diffuse
 surfaces after going through at least one specular interaction; these are the
 only photons we store in the map.
 
-% TODO: photon struct here?
-
 \subsubsection{Projection Maps}
 
 During the caustic photon map preprocessing phase, we spend time shooting a
@@ -78,21 +84,50 @@ to each entry and see whether they hit specular objects. All entries
 neighbouring an entry set in this way are also set to guarantee that we don't
 miss anything despite sparse sampling.
 
-Here are the timings of the photon mapping proprocessing phase for a simple image with three specular objects
-with and without using projection maps (see {\tt caustics1.lua}):
+Projection maps were one of my most difficult features to implement, as projecting vectors onto a unit sphere and mapping the sphere to an array required several error-prone bi-directional trigonometric conversions. Take a look at my {\tt ProjectionMap} class in {\tt photonmap.cpp} to see what I mean. It was only after implementing a debugging feature to draw the outline of my projection map that I was able to get things right. Due to the non-uniformity of my parametrization of the spherical map, it was also difficult to compute the proportion of the occupied area of the map. This computation is required for proper caustic intensities (see section \ref{intensity}).
 
+Here are the timings of the photon mapping proprocessing phase for a simple
+image with three specular objects with and without using projection maps (see
+{\tt caustics1.png}). 10\% of the light's spherical projection map is occupied
+in this scene.
+
+\begin{center}
 \begin{tabular}{|l|r|r|r|} \hline
  System & Without map & With map & Speedup \\\hline
  FX-6100 & 32.5s & 10.1s & 3.22x \\\hline
  Core i5-3317U & 26.4s & 8.3s & 3.18x \\\hline
 \end{tabular} \\
+\end{center}
 
 As you can see, the use of projection maps can significantly reduce the runtime
-of this preprocessing step. Often, though, the main rendering phase often accounts for
+of this preprocessing step. Often, though, the main rendering phase accounts for
 the brunt of the program's runtime and so this optimization makes little
 difference overall. The optimization is most useful when you want high-quality
 caustic effects, as these require large numbers of generated photons.
 
+I found that for sparse projection maps, the speedup is highly dependent on the distribution of randomly generated rays, as the runtime depends on how quickly we are able to generate the requisite number of rays in directions occupied in the projection map. In {\tt caustics2.png}, 4\% of the light's projection map is occupied; here are the timings for running the preprocessing step many times with different random seeds on my Core i5-3317U. Notice the high variability.
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|} \hline
+  Run \# & Runtime \\\hline
+       1 & 22.3s \\\hline
+       2 & 14.6s \\\hline
+      3 & 23.4s \\\hline
+      4 & 19.1s \\\hline
+    5 & 28.7s \\\hline
+\end{tabular} \\
+\end{center}
+
+If we average these values and compare them with the runtime without projection maps, we see that the benefits of using projection maps are reduced for this scene; this is because there are fewer objects, and so the ray intersection code is less costly.
+
+\begin{center}
+\begin{tabular}{|l|r|r|r|} \hline
+ System & Without map & With map (average of five runs) & Speedup \\\hline
+ Core i5-3317U & 34.4s & 21.6s & 1.59x \\\hline
+\end{tabular} \\
+\end{center}
+
+Even for sparse scenes, though, the projection map is beneficial, as it guarantees that the specular objects get their fair share of photons.
 
 \subsubsection{Computing Caustic Radiance}
 
@@ -214,10 +249,10 @@ I have not parallelized the photon mapping preprocessing stage, due to both time
 constraints and the fact that the rendering stage is the main bottleneck.
 
 Here are some timings for different systems using different numbers of threads
-while rendering my {\tt threading.lua} scene:
+while rendering my {\tt threading.png} scene:
 
 \begin{center}
-\noindent\textbf{Core i5-3317U (2 cores hyperthreaded)} \\
+\noindent\textbf{Core i5-3317U (two cores hyperthreaded)} \\
 \begin{tabular}{|r|r|r|r|} \hline
   \# threads & User time & Clock time & Speedup \\\hline
            6 & 127.1s & 33.1s & 2.51x \\\hline
@@ -226,7 +261,7 @@ while rendering my {\tt threading.lua} scene:
   1 & 83.3s & 83.1s & 1.00x \\\hline
 \end{tabular} \\
 
-\noindent\textbf{FX-6100} \\
+\noindent\textbf{FX-6100 (six cores)} \\
   \begin{tabular}{|r|r|r|r|} \hline
   \# threads & User time & Clock time & Speedup \\\hline
            6 & 28.9s & 4.9s & 4.59x \\\hline
@@ -238,7 +273,7 @@ while rendering my {\tt threading.lua} scene:
 \end{center}
 
 As you can see, multithreading my program increased its performance
-considerably. Moreover, the improvement is scene-independent.
+considerably. Moreover, the improvement is mostly scene-independent.
 
 \section{Methodology and Tools}
 
@@ -293,13 +328,15 @@ which will be too far away to influence the radiance.
 Constructive solid geometry objects significantly impacted performance before I
 implemented hierarchal bounding boxes (which are now automatically placed around
 CSG primitives). Here are some timings with and without these bounding boxes for
-my {\tt csgbb1.lua} script: \\
+my {\tt csgbb1.png} script: \\
 
+\begin{center}
 \begin{tabular}{|l|r|r|r|} \hline
  System & No bounding boxes & Bounding boxes & Speedup \\\hline
  FX-6100 & 35.7s & 3.8s & 9.39x \\\hline
  Core i5-3317U & 54.6s & 5.8s & 9.41x \\\hline
 \end{tabular} \\
+\end{center}
 
 Clearly, this optimization has a significant impact on performance in scenes
 with characteristics.
@@ -325,16 +362,18 @@ optimization (given reasonable k-D tree sizes, the program is CPU-bound).
   \item I used GNU's gdb whenever I needed to debug a crash (although I generally used
 print statements for other types of debugging).
 
-  \item I used Gimp, the GNU image manipulation program, to generate several textures
+  \item I used GIMP, the GNU image manipulation program, to generate several textures
 that I used for testing and in demo images.
 
   \item I used Git for version control. For general interest, I had made $68$ commits
 in my project {\tt src} directory at the time of writing.
+
+  \item I used {\tt bitbucket.com} for free private Git hosting.
 \end{itemize}
 
 \section{Bugs and Assumptions}
 
-% TODO
+I have run into bugs with CSG objects being clipped. This may be a bug in my CSG hierarchal bounding boxes. The bug rarely surfaces, and so I haven't devoted much of my precious time to fixing it. Nor have I disabled CSG bounding boxes, as they provide an excellent speedup.
 
 \section{Future Possibilities}
 
@@ -345,6 +384,18 @@ global illumination techniques can be very impressive. There is also a discussio
 of the use of photon mapping to render participating media such as fog; smoke would
 be a great addition to my final scene. Subsurface scattering is another possible
 extension of photon mapping.
+
+I have already put some effort into achieving global illumination, as there is very little I need to implement in addition to what I already have for caustics. The resulting images are promisig, though not polished yet (see for example {\tt gi1.png} and {\tt gi2.png}).
+
+\section{Acknowledgements}
+
+\begin{itemize}
+  \item I received help from Lucie Lemmond with improving my final scene.
+
+  \item One of the textures I used in my final scene was a public domain image I retrieved from the Wikimedia Foundation \cite{wikimedia}.
+
+  \item I'd also like to point out my dependence on the GIMP's excellent features for texture and bump map generation.
+\end{itemize}
 
 \section{Code Map}
 
@@ -391,7 +442,9 @@ changed.
 Bram de Greve, \emph{Reflections and Refractions in Ray Tracing}. November 2006
 [ information on using the Fresnel equations for reflection and refraction ]
 
-\end{thebibliography}
+\bibitem{wikimedia}
+  Wikimedia Commons (unknown author), \emph{Graph of the Growth of Boston Schoolchildren in Height and Weight}. 1907 [ public domain image used in my final scene ]
 
+\end{thebibliography}
 
 \end{document}

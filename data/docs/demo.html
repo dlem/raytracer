@@ -20,7 +20,7 @@
             <img src='aa_none_thumb.png'/>
           </a>
           <p>Low-resolution ghost rendering. Notice the visible jaggies. Render
-          time: 2.1s.</p>
+          time: 0.5s.</p>
         </div>
         <div class="ex">
           <a href='aa_draw.png'>
@@ -33,13 +33,16 @@
             <img src='aa_4x4_thumb.png'/>
           </a>
           <p>The same low-resolution image after 4x4 anti-aliasing. Render time:
-          7.0s.</p>
+          2.5s.</p>
         </div>
   </div></div></div>
       <p class='desc'>Pixels are selected for anti-aliasing when the maximal
       "distance" between the colours of their corners surpasses a threshold. The
       ray tracer performs anti-aliasing by averaging samples in an NxN grid
       inside the pixel. My attempts at jittering samples added noise.
+      </p>
+      <p>
+      Notice how the render time grows when anti-aliasing is used.
       </p>
     </div>
 
@@ -328,7 +331,13 @@
             <img src='prmap1_thumb.png'/>
           </a>
           <p>An outline of the projection map for my first caustic image. 10% of
-          the spherical map is occupied.</p>
+          the spherical projection map is occupied.</p>
+        </div>
+        <div class="ex">
+          <a href='prmap2.png'>
+            <img src='prmap2_thumb.png'/>
+          </a>
+          <p>An outline for the second scene. 4% of the projection map is occupied.</p>
         </div>
       </div></div></div>
       <p>
@@ -337,7 +346,7 @@
       This speeds up things a bit. In many scenes, though, rendering is a
       bigger performance factor than the preprocessing phase.
       </p>
-      <p>Here are some timings for the above image:</p>
+      <p>Here are some timings for the above images. Notice the significant speedup for both images. The runtime with projection maps for sparse scenes was highly variable, as the random seed determines how long it takes to shoot the requisite number of photons into those small areas of the photon map; the given value for the second image is therefore an average of five runs. Note also that the second scene has fewer objects, so the benefit of avoiding the ray intersection code via projection maps is reduced.</p>
       <div class="hexo"><div class="hex"><div class="hexi">
         <div class="tex">
           <center>
@@ -345,6 +354,14 @@
             <tr class="header"><td>System</td><td>Without map</td><td>With map</td><td>Speedup</td></tr>
             <tr><td>FX-6100</td><td>32.5s</td><td>10.1s</td><td>3.22x</td></tr>
             <tr><td>Core i5-3317U</td><td>26.4s</td><td>8.3s</td><td>3.18x</td></tr>
+          </table>
+        </center>
+        </div>
+        <div class="tex">
+          <center>
+          <table>
+            <tr class="header"><td>System</td><td>Without map</td><td>With map</td><td>Speedup</td></tr>
+            <tr><td>Core i5-3317U</td><td>34.4s</td><td>21.6s</td><td>1.59x</td></tr>
           </table>
         </center>
         </div>
@@ -367,6 +384,9 @@
       My final scene is a dark, sterile laboratory with plenty of glass
       containers filled with coloured liquids. The idea is to show off the ray
       tracer's caustic effects.
+      </p>
+      <p>
+      I used <a href="http://commons.wikimedia.org/wiki/File:PSM_V71_D201_Graph_of_the_growth_of_boston_schoolchildren_in_height_and_weight.png">this image</a> for the graph.
       </p>
     </div>
 
@@ -408,21 +428,24 @@
           <a href='gi2.png'>
             <img src='gi2_thumb.png'/>
           </a>
-          <p>A noisy attempt at global illumination.</p>
+          <p>A noisy attempt at global illumination. The global photon map
+          contains 6.6 million photons, and 600 neighbours are used in radiance
+          estimations. Render time: 197s.</p>
         </div>
         <div class="ex">
           <a href='gi1.png'>
             <img src='gi1_thumb.png'/>
           </a>
-          <p>Notice all of the caustics caused by diffusely reflected
-          light.</p>
+          <p>4.4 milion photons were used in the global photon map, and 100
+          neighbours in the radiance estimate. Render time: 530s.
+          light. </p>
         </div>
       </div></div></div>
 
       <p>
       Since I was already nine tenths of the way there, I tried my hand at
-      global illumination via photon mapping. The resulting images are quite
-      noisy.
+      global illumination via photon mapping. The resulting images still have
+      issues, and take a long time to render.
       </p>
     </div>
   </div>
