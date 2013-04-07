@@ -78,7 +78,21 @@ to each entry and see whether they hit specular objects. All entries
 neighbouring an entry set in this way are also set to guarantee that we don't
 miss anything despite sparse sampling.
 
-% TODO: projection map timing.
+Here are the timings of the photon mapping proprocessing phase for a simple image with three specular objects
+with and without using projection maps (see {\tt caustics1.lua}):
+
+\begin{tabular}{|l|r|r|r|} \hline
+ System & Without map & With map & Speedup \\\hline
+ FX-6100 & 32.5s & 10.1s & 3.22x \\\hline
+ Core i5-3317U & 26.4s & 8.3s & 3.18x \\\hline
+\end{tabular} \\
+
+As you can see, the use of projection maps can significantly reduce the runtime
+of this preprocessing step. Often, though, the main rendering phase often accounts for
+the brunt of the program's runtime and so this optimization makes little
+difference overall. The optimization is most useful when you want high-quality
+caustic effects, as these require large numbers of generated photons.
+
 
 \subsubsection{Computing Caustic Radiance}
 
@@ -196,10 +210,35 @@ This structure doles out rows of the image being rendered, and each thread, upon
 receiving a row, renders it before asking for another. The result is a
 significant speedup.
 
-% TODO: timings.
-
 I have not parallelized the photon mapping preprocessing stage, due to both time
 constraints and the fact that the rendering stage is the main bottleneck.
+
+Here are some timings for different systems using different numbers of threads
+while rendering my {\tt threading.lua} scene:
+
+\begin{center}
+\noindent\textbf{Core i5-3317U (2 cores hyperthreaded)} \\
+\begin{tabular}{|r|r|r|r|} \hline
+  \# threads & User time & Clock time & Speedup \\\hline
+           6 & 127.1s & 33.1s & 2.51x \\\hline
+  4 & 127.0s & 32.8s & 2.53x \\\hline
+  2 & 84.3s & 42.4s & 1.96x \\\hline
+  1 & 83.3s & 83.1s & 1.00x \\\hline
+\end{tabular} \\
+
+\noindent\textbf{FX-6100} \\
+  \begin{tabular}{|r|r|r|r|} \hline
+  \# threads & User time & Clock time & Speedup \\\hline
+           6 & 28.9s & 4.9s & 4.59x \\\hline
+           4 & 27.3s & 6.8s & 3.31x \\\hline
+           2 & 23.4s & 11.7s & 1.92x \\\hline
+           1 & 22.5s & 22.5s & 1.00x \\\hline
+  \end{tabular}
+
+\end{center}
+
+As you can see, multithreading my program increased its performance
+considerably. Moreover, the improvement is scene-independent.
 
 \section{Methodology and Tools}
 
@@ -253,7 +292,17 @@ which will be too far away to influence the radiance.
 
 Constructive solid geometry objects significantly impacted performance before I
 implemented hierarchal bounding boxes (which are now automatically placed around
-CSG primitives).
+CSG primitives). Here are some timings with and without these bounding boxes for
+my {\tt csgbb1.lua} script: \\
+
+\begin{tabular}{|l|r|r|r|} \hline
+ System & No bounding boxes & Bounding boxes & Speedup \\\hline
+ FX-6100 & 35.7s & 3.8s & 9.39x \\\hline
+ Core i5-3317U & 54.6s & 5.8s & 9.41x \\\hline
+\end{tabular} \\
+
+Clearly, this optimization has a significant impact on performance in scenes
+with characteristics.
 
 Perhaps unsurprisingly, I doubled the speed of my sphere intersection function
 by converting it from a generalized quadric intersection function into one

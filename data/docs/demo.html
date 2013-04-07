@@ -77,7 +77,7 @@
         </center>
         </div>
         <div class="tex">
-          <b>AMD FX-6100</b>
+          <b>FX-6100</b>
           <center>
           <table>
             <tr class="header"><td># threads</td><td>User time</td><td>Clock
@@ -327,13 +327,8 @@
           <a href='prmap1.png'>
             <img src='prmap1_thumb.png'/>
           </a>
-          <p>An outline of the projection map for my first caustic image.</p>
-        </div>
-        <div class="ex">
-          <a href='prmap2.png'>
-            <img src='prmap2_thumb.png'/>
-          </a>
-          <p>And for my second caustic image.</p>
+          <p>An outline of the projection map for my first caustic image. 10% of
+          the spherical map is occupied.</p>
         </div>
       </div></div></div>
       <p>
@@ -342,15 +337,14 @@
       This speeds up things a bit. In many scenes, though, rendering is a
       bigger performance factor than the preprocessing phase.
       </p>
-      <p>Here are some timings:</p>
+      <p>Here are some timings for the above image:</p>
       <div class="hexo"><div class="hex"><div class="hexi">
         <div class="tex">
-          <b>AMD FX-6100</b>
           <center>
           <table>
-            <tr class="header"><td>Scene</td><td>Occupied %</td><td>Without map</td><td>With map</td><td>Speedup</td></tr>
-            <tr><td>caustics1.png</td><td>10%</td><td>32.5s</td><td>10.1s</td><td>3.22x</td></tr>
-            <tr><td>caustics2.png</td><td>4%</td><td>20.9s</td><td>28.7s</td><td>0.73x</td></tr>
+            <tr class="header"><td>System</td><td>Without map</td><td>With map</td><td>Speedup</td></tr>
+            <tr><td>FX-6100</td><td>32.5s</td><td>10.1s</td><td>3.22x</td></tr>
+            <tr><td>Core i5-3317U</td><td>26.4s</td><td>8.3s</td><td>3.18x</td></tr>
           </table>
         </center>
         </div>
@@ -398,9 +392,9 @@
       </p>
       <center>
       <table>
-        <tr class="header"><td>CPU</td><td>No bounding boxes</td><td>Bounding boxes</td><td>Speedup</td></tr>
-        <tr><td>Core i5-3317U</td><td></td><td></td></tr>
+        <tr class="header"><td>System</td><td>No bounding boxes</td><td>Bounding boxes</td><td>Speedup</td></tr>
         <tr><td>FX-6100</td><td>35.7s</td><td>3.8s</td><td>9.39x</td></tr>
+        <tr><td>Core i5-3317U</td><td>54.6s</td><td>5.8s</td><td>9.41x</td></tr>
       </table>
     </center>
     </div>
@@ -428,8 +422,7 @@
       <p>
       Since I was already nine tenths of the way there, I tried my hand at
       global illumination via photon mapping. The resulting images are quite
-      noisy, but I expect that they could be improved a great deal through the
-      application of simple techniques like filtering.
+      noisy.
       </p>
     </div>
   </div>

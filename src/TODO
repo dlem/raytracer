@@ -9,3 +9,7 @@ Comments
 --What is the deal with refl_attn...?
 --outgoing.dot(ph.outgoing) computation in photon map
 Fix gi? Meh.
+
+Improve some of the demos
+--Better projection map demo
+Timings to implementation
