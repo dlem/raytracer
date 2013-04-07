@@ -26,3 +26,26 @@ I prepared several data files other than screenshot01.png for use in my demo.
 These are the PNG files at data/demos/*.png.
 
 My demo webpage itself is at cs488/handin/A5_docs/demo.html, if you wish to view it.
+
+My objectives:
+ 
+1. Cylinder and cone primitives have been added.
+
+2. Texture mapping works for all primitives. Textures are loaded from png files.
+
+3. Bump mapping works. Bump maps can be specified via png files (in the same manner
+as textures), but there is at least one procedurally defined mapping.
+
+4. Reflection has been accomplished.
+
+5. Refraction and transparency have been accomplished.
+
+6. Soft shadows have been accomplished.
+
+7. Constructive solid geometry has been accomplished.
+
+8. Caustic effects have been accomplished via photon mapping.
+
+9. Projection maps have been used to improve the efficiency of forward ray tracing for caustics.
+
+10. My laboratory final scene has been modelled and rendered.
