@@ -52,8 +52,8 @@ approximately equal to the number of logical cores on the machine.
 
 It is possible to create cone and cylinder primitives via the {\tt gr.cone} and
 {\tt gr.cylinder} commands. These primitives are hierarchal and both have heights
-2 and radii 1. The same actions may be performed
-upon them as on any other primitive.
+2 and radii 1. The material to be attached to the primitive must be passed in
+when it is created.
 
 \subsection{Texture Mapping}
 \label{texture_mapping}
@@ -279,10 +279,11 @@ components of assignment 4 will be ommitted (though they are also available).
 
 \begin{itemize}
 
-  \cmditem{gr.cone(name)} -- Return an hierarchal cone with the specified name.
+  \cmditem{gr.cone(name, material)} -- Return an hierarchal cone with the
+  specified name and material.
 
-  \cmditem{gr.cylinder(name)} -- Return an hierarchal cylinder with the
-  specified name.
+  \cmditem{gr.cylinder(name, material)} -- Return an hierarchal cylinder with the
+  specified name and material.
 
   \cmditem{gr.texture(str)} -- Return the texture object described by {\tt str}.
   {\tt str} may be either the relative path of an RBG PNG image file or one of the
@@ -310,6 +311,8 @@ components of assignment 4 will be ommitted (though they are also available).
 
   \cmditem{material:set\_ri(ri)} -- Sets the refractive index of the object to
   {\tt ri}. See section \ref{rrt}.
+
+  \cmditem{material:set\_reflective()} -- Makes a material reflective.
 
   \cmditem{gr.union(c1, c2)} -- Creates a constructive solid geometry node representing
   the union of {\tt c1} and {\tt c2}. See section \ref{csg}.
