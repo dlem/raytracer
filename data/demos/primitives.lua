@@ -42,7 +42,6 @@ end
 light1 = gr.light({0, -1.8, 4}, {0.9, 0.9, 0.9}, {0, 0, 0.15})
 light2 = gr.light({0, 1.8, 4}, {0.9, 0.9, 0.9}, {0, 0, 0.15})
 
-gr.option('--midres')
 gr.option('--unit-distance 1')
 gr.set_miss_colour({0, 0, 0})
 gr.render(root, misc.png_name, 256, 256, {0, 0, 8}, {0, 0, -1}, {0, 1, 0}, 50,
