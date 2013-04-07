@@ -5,7 +5,7 @@ Florence clipping cube funniness? -- Bounding boxes?
 --Refraction distance attenuation?
 Comments
 
-Bug in CSG union function, second child ends, may not want interface.
-What is the deal with refl_attn...?
-outgoing.dot(ph.outgoing) computation in photon map
-Fix gi?
+--Bug in CSG union function, second child ends, may not want interface.
+--What is the deal with refl_attn...?
+--outgoing.dot(ph.outgoing) computation in photon map
+Fix gi? Meh.
