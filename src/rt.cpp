@@ -278,10 +278,17 @@ void RayTracer::raytrace_russian(const Point3D &src,
     assert(action == RT_DIFFUSE);
     Vector3D outgoing;
 
+    Vector3D p1(ray_reflected[1], -ray_reflected[0], 0);
+    p1.normalize();
+    Vector3D p2(ray_reflected.cross(p1));
+    const double phi = sin(M_PI / 2. * rand() / (double)RAND_MAX);
+    const double theta = 2 * M_PI * rand() / (double)RAND_MAX;
+    outgoing = cos(phi) * ray_reflected + sin(phi) * (cos(theta) * p1 + sin(theta) * p2);
+
     // Things might look better if, instead of just using the reflected
     // direction, I distributed diffusely reflected rays according to a cosine
     // distribution centered on the reflective direction. But that's difficult.
-    outgoing = ray_reflected;
+    //outgoing = ray_reflected;
 
     raytrace_russian(p, outgoing, acc * cdiffuse, fn, depth + 1);
   }

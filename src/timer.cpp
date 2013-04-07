@@ -133,6 +133,7 @@ ProgressTimer::ProgressTimer(const char *name, int total)
 ProgressTimer::~ProgressTimer()
 {
   unique_lock<mutex> lk(s_pmutex);
+  m_progress = m_total;
   report();
   outs() << endl;
   s_pt = 0;
