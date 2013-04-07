@@ -25,4 +25,4 @@ Data files:
 I prepared several data files other than screenshot01.png for use in my demo.
 These are the PNG files at data/demos/*.png.
 
-My demo webpage itself is under data/docs/demo.html, if you wish to view it.
+My demo webpage itself is at cs488/handin/A5_docs/demo.html, if you wish to view it.
