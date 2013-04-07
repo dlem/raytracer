@@ -174,11 +174,11 @@ void CSGUnion::adjust_segments(SegmentList &out, SegmentList &c1, SegmentList &c
       else if(i2->from && !i2->to)
       {
 	// Second child ends.
-	//if(!cur1 || cur1 != i2->from)
-	//{
+	if(!cur1 || cur1 != i2->from)
+	{
 	  out.push_back(*i2);
 	  out.back().to = cur1;
-	//}
+	}
       }
       else
       {
