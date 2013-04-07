@@ -9,12 +9,12 @@ CXXFLAGS = $(CPPFLAGS) -Wall -Wextra -Wno-sign-compare -Wno-reorder -Wno-unused-
 CXX = g++
 MAIN = rt
 
-all: $(MAIN) manual.pdf
+all: $(MAIN)
 
 depend: $(DEPENDS)
 
 clean:
-	rm -f *.o *.d *.log *.aux $(MAIN) manual.pdf
+	rm -f *.o *.d $(MAIN)
 
 $(MAIN): $(OBJECTS)
 	@echo Creating $@...
@@ -29,8 +29,5 @@ $(MAIN): $(OBJECTS)
 	@set -e; $(CC) -M $(CPPFLAGS) $< \
                   | sed 's/\($*\)\.o[ :]*/\1.o $@ : /g' > $@; \
                 [ -s $@ ] || rm -f $@
-
-%.pdf : %.tex
-	pdflatex $< -o $@
 
 include $(DEPENDS)
