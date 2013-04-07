@@ -281,7 +281,7 @@ void RayTracer::raytrace_russian(const Point3D &src,
     Vector3D p1(ray_reflected[1], -ray_reflected[0], 0);
     p1.normalize();
     Vector3D p2(ray_reflected.cross(p1));
-    const double phi = sin(M_PI / 2. * rand() / (double)RAND_MAX);
+    const double phi = asin(rand() / (double)RAND_MAX);
     const double theta = 2 * M_PI * rand() / (double)RAND_MAX;
     outgoing = cos(phi) * ray_reflected + sin(phi) * (cos(theta) * p1 + sin(theta) * p2);
 
