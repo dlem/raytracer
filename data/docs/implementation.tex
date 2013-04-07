@@ -105,25 +105,16 @@ the brunt of the program's runtime and so this optimization makes little
 difference overall. The optimization is most useful when you want high-quality
 caustic effects, as these require large numbers of generated photons.
 
-I found that for sparse projection maps, the speedup is highly dependent on the distribution of randomly generated rays, as the runtime depends on how quickly we are able to generate the requisite number of rays in directions occupied in the projection map. In {\tt caustics2.png}, 4\% of the light's projection map is occupied; here are the timings for running the preprocessing step many times with different random seeds on my Core i5-3317U. Notice the high variability.
+There is no benefit, or even a slowdown, if we use projection maps in sparse
+scenes, as it is less useful to avoid the ray intersection code. {\tt
+caustics2.png} is such a scene. Here are its timings with and without projection
+maps:
 
 \begin{center}
 \begin{tabular}{|l|r|r|r|} \hline
-  Run \# & Runtime \\\hline
-       1 & 22.3s \\\hline
-       2 & 14.6s \\\hline
-      3 & 23.4s \\\hline
-      4 & 19.1s \\\hline
-    5 & 28.7s \\\hline
-\end{tabular} \\
-\end{center}
-
-If we average these values and compare them with the runtime without projection maps, we see that the benefits of using projection maps are reduced for this scene; this is because there are fewer objects, and so the ray intersection code is less costly.
-
-\begin{center}
-\begin{tabular}{|l|r|r|r|} \hline
- System & Without map & With map (average of five runs) & Speedup \\\hline
- Core i5-3317U & 34.4s & 21.6s & 1.59x \\\hline
+ System & Without map & With map & Speedup \\\hline
+ Core i5-3317U & 25.6s & 37.5s & 0.68x \\\hline
+       FX-6100 & 21.6s & 30.3s & 0.71x \\\hline
 \end{tabular} \\
 \end{center}
 
