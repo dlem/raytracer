@@ -64,6 +64,10 @@
       I did not bother to parallelize the photon shooting preprocessing phase of
       my ray tracer as a much greater part of the runtime is spent rendering.
       </p>
+      <p>
+      My photon mapping code is not multi-threaded, as it is not usually the
+      biggest performance factor (though it sometimes is).
+      </p>
       <p>Here are some timings:</p>
       <div class="hexo"><div class="hex"><div class="hexi">
         <div class="tex">
@@ -290,13 +294,17 @@
           </a>
           <p>Some typical caustics. Notice the faint light on the wall
           behind the glass ball due to reflected light from the mirror-surface
-          sphere. Render time: 92.5s.</p>
+          sphere. 1.08 million photons were used in the caustic photon map, and
+          300 neighbours were used in every radiance estimate. Render time:
+          124.4s.</p>
         </div>
         <div class="ex">
           <a href='caustics2.png'>
             <img src='caustics2_thumb.png'/>
           </a>
-          <p>A colourful caustic effect. Render time: 85.6s.</p>
+          <p>A colourful caustic effect. 600 thousand photons were used in the
+          caustic photon map, and 200 neighbours were used in every radiance
+          estimate. Render time: 155.1s.</p>
         </div>
       </div></div></div>
       <div class='hexo'><div class='hex'><div class='hexi'>
@@ -346,7 +354,10 @@
       This speeds up things a bit. In many scenes, though, rendering is a
       bigger performance factor than the preprocessing phase.
       </p>
-      <p>Here are some timings for the above images. Notice the significant speedup for both images. The runtime with projection maps for sparse scenes was highly variable, as the random seed determines how long it takes to shoot the requisite number of photons into those small areas of the photon map; the given value for the second image is therefore an average of five runs. Note also that the second scene has fewer objects, so the benefit of avoiding the ray intersection code via projection maps is reduced.</p>
+      <p>Here are some timings for the above images. The runtime with projection maps for sparse
+      scenes (like the second scene tested here) is much worse, as there is
+      little benefit to avoiding the ray intersection code (note that my
+      hierarchal CSG bounding boxes make this doubly true here).</p>
       <div class="hexo"><div class="hex"><div class="hexi">
         <div class="tex">
           <center>
@@ -361,7 +372,8 @@
           <center>
           <table>
             <tr class="header"><td>System</td><td>Without map</td><td>With map</td><td>Speedup</td></tr>
-            <tr><td>Core i5-3317U</td><td>34.4s</td><td>21.6s</td><td>1.59x</td></tr>
+            <tr><td>FX-6100</td><td>21.6s</td><td>30.3s</td><td>0.71x</td></tr>
+            <tr><td>Core i5-3317U</td><td>25.6s</td><td>37.5s</td><td>0.68x</td></tr>
           </table>
         </center>
         </div>
@@ -438,7 +450,7 @@
           </a>
           <p>4.4 milion photons were used in the global photon map, and 100
           neighbours in the radiance estimate. Render time: 530s.
-          light. </p>
+          </p>
         </div>
       </div></div></div>
 
