@@ -6,6 +6,7 @@
 
 #include "a4.hpp"
 #include <limits>
+#include <cstdlib>
 #include "image.hpp"
 #include "threading.hpp"
 #include "cmdopts.hpp"
@@ -32,6 +33,8 @@ void a4_render(// What to render
                const std::list<Light*>& lights
                )
 {
+  srand(time(0));
+
   // Override dimensions if they're specified on the command line.
   if(GETOPT(height) != 0)
     height = GETOPT(height);
