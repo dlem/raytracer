@@ -254,8 +254,7 @@ Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
     nl.pop();
     // Ignore photons which were travelling in the opposite direction of the
     // outgoing vector (which is to the viewer).
-    double fr = outgoing.dot(ph.outgoing);
-    fr = fr < 0 ? 0 : 1;
+    const double fr = 1.;
     //const double wp = 1 - 0.25 * node.dist / maxdist;
     intensity += max(fr, 0.) * ph.colour;
   }
