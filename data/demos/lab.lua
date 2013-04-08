@@ -11,7 +11,7 @@ require 'spider'
 
 mbench = gr.material({0.5, 0.5, 0.5}, {0.3, 0.3, 0.3}, 10)
 mbench:set_reflective()
-mwall = gr.material({0.6, 0.6, 0.6}, {0.4, 0.4, 0.4}, 10)
+mwall = gr.material({0.9, 0.9, 0.9}, {0.0, 0.0, 0.0}, 10)
 mceil = mwall
 mfloor = mwall
 
@@ -125,7 +125,9 @@ function lab(scene, name)
   web:scale(0.003, 5, 0.003)
   root:add_child(web)
 
-  gr.option("--unit-distance 1")
+  gr.option('--caustic-num-photons 24000000')
+  gr.option('--caustic-num-neighbours 350')
+  gr.option('--unit-distance 1')
   light = gr.light({1, 2, 2}, {0.9, 0.9, 0.9}, {0, 0, 0.03})
   light:set_radius(0.15)
   gr.set_miss_colour({0, 0, 0})
