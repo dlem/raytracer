@@ -97,7 +97,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
   phong_v.normalize();
 
   const Colour ambient = m_gimap ?
-    m_gimap->query_radiance(phong_P, -ray) : m_ambient;
+    m_gimap->query_radiance(phong_P, -ray) * phong_n.dot(Vector3D() - ray) : m_ambient;
 
   Colour rv = ambient * phong_kd;
 
@@ -143,7 +143,7 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
   // This is expensive, so try to only do it when necessary.
   if(m_caustics.size() > 50 && phong_kd.Y() > 0.2)
   {
-    Colour c = m_caustics.query_radiance(phong_P, -ray);
+    Colour c = m_caustics.query_radiance(phong_P, -ray) * phong_n.dot(Vector3D() - ray);
     rv += c;
   }
 

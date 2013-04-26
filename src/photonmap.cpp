@@ -252,11 +252,10 @@ Colour PhotonMap::query_radiance(const Point3D &pt, const Vector3D &outgoing)
     const Photon &ph = *static_cast<Photon *>(node.node);
     maxdist2 = max(maxdist2, node.dist2);
     nl.pop();
-    // Ignore photons which were travelling in the opposite direction of the
-    // outgoing vector (which is to the viewer).
-    const double fr = 1.;
-    //const double wp = 1 - 0.25 * node.dist / maxdist;
-    intensity += max(fr, 0.) * ph.colour;
+
+    // Assume Lambertian model. If we were using another model, we'd want to
+    // have the intensity be some function of the outgoing vector.
+    intensity += ph.colour;
   }
 
   // Compute the area average of the intensity -- ie, divide our intensity sum
