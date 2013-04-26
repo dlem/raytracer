@@ -273,26 +273,16 @@ void a4_render(// What to render
 
   // We've defined our functions for computing colours. Now we're going to start
   // some threads and have them continuously call these functions.
-
-  // Create a vector of row numbers, which is used by the multithreading
-  // implementation to generate arguments to trace_row.
-  vector<int> count;
-  count.resize(height);
-  for(int ix = 0; ix < count.size(); ix++)
-    count[ix] = ix;
-
-  // Create a parfor object which will handle the threads.
-  auto it = count.begin();
-  auto pf = parfor<decltype(it), int>(it, count.end(), trace_row);
-
-  // Run and time the parfor, setting progress as we consume rows.
   {
     ProgressTimer timer("rendering", height);
-    pf.go(GETOPT(threads), true, [height, &timer](int i)
-	{
-	  timer.set_progress(height - i);
-	});
-    timer.set_progress(height);
+    Parallelize par;
+    for(int i = 0; i < height; i++)
+      par.add_task([i, height, &timer, &trace_row]() {
+	  trace_row(i);
+	  timer.increment();
+      });
+
+    par.go();
   }
 
   img.savePng(filename);
