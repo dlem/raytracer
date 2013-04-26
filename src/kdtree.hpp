@@ -11,6 +11,8 @@
 
 #include <queue>
 #include <limits>
+#include <future>
+#include <thread>
 #include "algebra.hpp"
 
 /*
@@ -158,7 +160,7 @@ private:
   }
 
   template<typename TIt>
-  KDNode *build(TIt start, TIt end, int depth)
+  static KDNode *build(TIt start, TIt end, int depth)
   {
     const int split = depth % 3;
 
@@ -173,14 +175,40 @@ private:
       int split;
     };
 
-    // Sort the list to find the median wrt the current split dimension. Recurse
-    // on both sides of the list.
+    struct Recurser
+    {
+      Recurser(TIt start, TIt end, int depth)
+	: start(start), end(end), depth(depth)
+      {}
+
+      KDNode *operator()()
+      { return KDTree::build(start, end, depth); }
+
+      TIt start, end;
+      int depth;
+    };
+
     SortCriteria sc(split);
     std::sort(start, end, sc);
+
     auto median = start + (end - start) / 2;
     KDNode *node = *median;
-    node->lchild = build(start, median, depth + 1);
-    node->rchild = build(median + 1, end, depth + 1);
+
+    Recurser half1(start, median, depth + 1);
+    Recurser half2(median + 1, end, depth + 1);
+
+    if(median - start > 100000)
+    {
+      auto fut = std::async(std::launch::async, half1);
+      node->rchild = half2();
+      node->lchild = fut.get();
+    }
+    else
+    {
+      node->lchild = half1();
+      node->rchild = half2();
+    }
+
     return node;
   }
 
