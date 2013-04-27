@@ -79,7 +79,8 @@ typedef std::function<Colour(const Point3D &, const Vector3D &)> MissColourFn;
 enum RT_ACTION
 {
   RT_DIFFUSE=0,	  // Diffuse reflection.
-  RT_SPECULAR,	  // Specular reflection (Fresnel eqns => reflection or transmission)
+  RT_REFLECT,	  // Specular reflection (Fresnel eqns => reflection or transmission)
+  RT_TRANSMIT,
   RT_ABSORB,	  // The light gets absorbed by the material.
   RT_ACTION_COUNT
 };
@@ -87,10 +88,10 @@ enum RT_ACTION
 // Function type used as an argument to the Russian roulette ray tracing
 // function. It gets called with every hit, and must return the next action to
 // take.
-typedef std::function<RT_ACTION(const Point3D &p,     // the hit point
+typedef std::function<bool(const Point3D &p,     // the hit point
 			   const Vector3D &incident,  // the incident vector
 			   const Colour &photon,      // the colour of the photon _after_ it hits
-			   double *prs		      // the probababilities for each action, indexed by the RT_ACTION enums
+			   RT_ACTION action	      // the probababilities for each action, indexed by the RT_ACTION enums
 			   )> RussianFn;
 
 
@@ -122,6 +123,7 @@ public:
   void raytrace_russian(const Point3D &src,
 			const Vector3D &ray,
 			const Colour &acc,		// the accumulated colour
+			std::default_random_engine &rng,
 			const RussianFn &fn,		// determines next action to take, processes hits	
 			int depth = 0);
 
@@ -150,11 +152,12 @@ private:
 };
 
 // Generates a random ray.
-static inline Vector3D generate_ray()
+template<typename RNG>
+static inline Vector3D generate_ray(RNG &rng)
 {
-  return Vector3D(-1 + rand() * 2. / RAND_MAX,
-		  -1 + rand() * 2. / RAND_MAX,
-		  -1 + rand() * 2. / RAND_MAX);
+  return Vector3D(-1 + rng() * (2. / rng.max()),
+		  -1 + rng() * (2. / rng.max()),
+		  -1 + rng() * (2. / rng.max()));
 }
 
 #endif

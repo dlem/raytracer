@@ -210,6 +210,7 @@ Colour RayTracer::raytrace_recursive(const LightingModel &model,
 
 void RayTracer::raytrace_russian(const Point3D &src,
 		      const Vector3D &incident, const Colour &acc,
+		      default_random_engine &rng,
 		      const RussianFn &fn, int depth)
 {
   assert(normalized(incident));
@@ -236,60 +237,48 @@ void RayTracer::raytrace_russian(const Point3D &src,
   if(!hi.tomat().reflective() && !hi.tomat().transmissive())
     cspecular = Colour(0);
 
-  // Compute the probabilities for diffuse/specular interaction and absorbtion
-  // based on the luminances of the given coefficients.
-  double prs[RT_ACTION_COUNT];
-  prs[RT_DIFFUSE] = cdiffuse.Y();
-  prs[RT_SPECULAR] = cspecular.Y();
-
-  for(int i = 1; i < RT_ACTION_COUNT - 1; i++)
-    prs[i] += prs[i - 1];
-
-  static_assert(RT_ABSORB == RT_ACTION_COUNT - 1, "");
-  prs[RT_ABSORB] = 1;
-
-  if(prs[RT_SPECULAR] > 1.01)
+  // Figure out what we want to do next.
+  RT_ACTION action = RT_ABSORB;
+  double roll = rng() / (double)rng.max() - cdiffuse.Y();
+  if(roll < 0)
   {
-    errs() << "Warning: diffuse plus specular coefficients are greater than 1"
-	    << " -- theoretically, this breaks photons mapping" << endl;
-    errs() << cdiffuse << ", " << cspecular << endl;
+    action = RT_DIFFUSE;
+  }
+  else if(roll < cspecular.Y())
+  {
+    if(rng() / (double)rng.max() < r)
+      action = RT_REFLECT;
+    else
+      action = RT_TRANSMIT;
   }
 
-  // Call the callback to determine which action to take (the callback will
-  // process the hit whatever way it wants, possibly storing the info).
-  const RT_ACTION action = fn(p, ray_reflected, acc * cdiffuse, prs);
-
-  if(action == RT_ABSORB)
+  if(!fn(p, ray_reflected, acc * cdiffuse, action))
     return;
 
-  if(action == RT_SPECULAR)
+
+  switch(action)
   {
-    if((rand() % 101) * 0.01 > r)
+    case RT_REFLECT:
+      raytrace_russian(p, ray_reflected, acc * cspecular, rng, fn, depth + 1);
+      break;
+    case RT_TRANSMIT:
+      raytrace_russian(p, ray_transmitted, acc * cspecular, rng, fn, depth + 1);
+      break;
+    case RT_DIFFUSE:
     {
-      // Refraction.
-      raytrace_russian(p, ray_transmitted, acc * cspecular, fn, depth + 1);
+      Vector3D outgoing;
+
+      Vector3D p1(ray_reflected[1], -ray_reflected[0], 0);
+      p1.normalize();
+      Vector3D p2(ray_reflected.cross(p1));
+      const double phi = asin(rng() / (double)rng.max());
+      const double theta = 2 * M_PI * rng() / (double)rng.max();
+      outgoing = cos(phi) * ray_reflected + sin(phi) * (cos(theta) * p1 + sin(theta) * p2);
+
+      raytrace_russian(p, outgoing, acc * cdiffuse, rng, fn, depth + 1);
+      break;
     }
-    else
-      // Reflection.
-      raytrace_russian(p, ray_reflected, acc * cspecular, fn, depth + 1);
-  }
-  else
-  {
-    assert(action == RT_DIFFUSE);
-    Vector3D outgoing;
-
-    Vector3D p1(ray_reflected[1], -ray_reflected[0], 0);
-    p1.normalize();
-    Vector3D p2(ray_reflected.cross(p1));
-    const double phi = asin(rand() / (double)RAND_MAX);
-    const double theta = 2 * M_PI * rand() / (double)RAND_MAX;
-    outgoing = cos(phi) * ray_reflected + sin(phi) * (cos(theta) * p1 + sin(theta) * p2);
-
-    // Things might look better if, instead of just using the reflected
-    // direction, I distributed diffusely reflected rays according to a cosine
-    // distribution centered on the reflective direction. But that's difficult.
-    //outgoing = ray_reflected;
-
-    raytrace_russian(p, outgoing, acc * cdiffuse, fn, depth + 1);
+    case RT_ABSORB: break;
+    default: assert(false); break;
   }
 }

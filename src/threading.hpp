@@ -18,6 +18,8 @@
 
 using namespace std;
 
+extern __thread unsigned int g_worker_thread_num;
+
 template<typename T>
 class Parallelize
 {
@@ -43,8 +45,8 @@ public:
   {
     vector<thread *> threads(GETOPT(threads));
     m_active = threads.size();
-    for(auto &t : threads)
-      t = new thread(mem_fn(&Parallelize::worker), this);
+    for(int i = 0; i < threads.size(); i++)
+      threads[i] = new thread(mem_fn(&Parallelize::worker), this, i);
 
     for(auto t : threads)
     {
@@ -57,8 +59,9 @@ private:
   typedef std::packaged_task<T()> task_t;
   typedef std::queue<task_t> TaskList;
 
-  void worker()
+  void worker(int thread_num)
   {
+    g_worker_thread_num = thread_num;
     auto delay = std::chrono::milliseconds(5);
     bool active = true;
     for(;;)
@@ -99,10 +102,43 @@ private:
     }
   }
 
-
   std::mutex m_mutex;
   TaskList m_tasks;
   int m_active;
+};
+
+template<typename T>
+class ThreadLocal
+{
+public:
+  typedef std::function<T *()> factory_t;
+
+  ThreadLocal(const factory_t &factory)
+    : m_factory(factory)
+  {}
+
+  ~ThreadLocal()
+  {
+    for(auto t : m_ts)
+      delete t;
+  }
+
+  T &get()
+  {
+    unique_lock<mutex> lk(m_mutex);
+    if(m_ts.size() < g_worker_thread_num + 1)
+      m_ts.resize((g_worker_thread_num + 1) * 2);
+
+    if(!m_ts[g_worker_thread_num])
+      m_ts[g_worker_thread_num] = m_factory();
+
+    return *m_ts[g_worker_thread_num];
+  }
+
+private:
+  vector<T *> m_ts;
+  factory_t m_factory;
+  mutex m_mutex;
 };
 
 #endif
