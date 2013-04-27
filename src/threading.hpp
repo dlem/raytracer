@@ -1,6 +1,4 @@
 /**
- * Multiple-consumer-style multithreading templates.
- *
  * Name: Daniel Lemmond
  * User-id: dlemmond
  * Student id: 20302247
@@ -12,23 +10,28 @@
 #include <mutex>
 #include <functional>
 #include <vector>
+#include <queue>
+#include <future>
 
 class Parallelize
 {
 public:
-  Parallelize() : m_current(m_tasks.end()) {}
+  typedef std::function<void()> func_t;
 
-  void add_task(const std::function<void()> &t) { m_tasks.push_back(t); }
+  Parallelize() {}
+
+  std::future<void> add_task(const func_t &t);
   void go();
 
 private:
-  typedef std::vector<std::function<void()>> TaskList;
+  typedef std::packaged_task<void()> task_t;
+  typedef std::queue<task_t> TaskList;
 
   void worker();
 
   std::mutex m_mutex;
   TaskList m_tasks;
-  TaskList::iterator m_current;
+  int m_active;
 };
 
 #endif
