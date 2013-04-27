@@ -275,7 +275,7 @@ void a4_render(// What to render
   // some threads and have them continuously call these functions.
   {
     ProgressTimer timer("rendering", height);
-    Parallelize par;
+    Parallelize<void> par;
     for(int i = 0; i < height; i++)
       par.add_task([i, height, &timer, &trace_row]() {
 	  trace_row(i);

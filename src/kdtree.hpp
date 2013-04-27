@@ -13,6 +13,7 @@
 #include <limits>
 #include <future>
 #include <thread>
+#include "threading.hpp"
 #include "algebra.hpp"
 
 /*
@@ -67,7 +68,14 @@ public:
 
   // Build tree from an iterator of node pointers.
   template<typename TIt>
-  void build(TIt start, TIt end) { m_root = (TNode *)build(start, end, 0); }
+  void build(TIt start, TIt end)
+  {
+    KDNode *root;
+    Parallelize<void> par;
+    par.add_task([=, &root, &par] { return this->build(start, end, root, par, 0); });
+    par.go();
+    m_root = static_cast<TNode *>(root);
+  }
 
   // Find a point in the tree (exact match or nothing).
   TNode *find(const Point3D &pt) { return find(pt, m_root, 0); }
@@ -160,12 +168,15 @@ private:
   }
 
   template<typename TIt>
-  static KDNode *build(TIt start, TIt end, int depth)
+  static void build(TIt start, TIt end, KDNode *&out, Parallelize<void> &par, int depth)
   {
     const int split = depth % 3;
 
     if(start == end)
-      return 0;
+    {
+      out = 0;
+      return;
+    }
 
     struct SortCriteria
     {
@@ -175,41 +186,16 @@ private:
       int split;
     };
 
-    struct Recurser
-    {
-      Recurser(TIt start, TIt end, int depth)
-	: start(start), end(end), depth(depth)
-      {}
-
-      KDNode *operator()()
-      { return KDTree::build(start, end, depth); }
-
-      TIt start, end;
-      int depth;
-    };
-
     SortCriteria sc(split);
     std::sort(start, end, sc);
 
     auto median = start + (end - start) / 2;
     KDNode *node = *median;
 
-    Recurser half1(start, median, depth + 1);
-    Recurser half2(median + 1, end, depth + 1);
+    par.add_task([=, &par] { return KDTree::build(start, median, node->lchild, par, depth + 1); });
+    par.add_task([=, &par] { return KDTree::build(median + 1, end, node->rchild, par, depth + 1); });
 
-    if(median - start > 100000)
-    {
-      auto fut = std::async(std::launch::async, half1);
-      node->rchild = half2();
-      node->lchild = fut.get();
-    }
-    else
-    {
-      node->lchild = half1();
-      node->rchild = half2();
-    }
-
-    return node;
+    out = node;
   }
 
   TNode *m_root;
