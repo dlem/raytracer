@@ -306,7 +306,8 @@ void CausticMap::build_light(RayTracer &rt, const Light &light, const Colour &en
 
   {
   ProgressTimer timer("shoot caustic photons", nphotons);
-  for(int i = 0; i < nphotons; i++)
+  mutex mtx;
+  auto shoot_photon = [this, &timer, &pm, &rt, &light, &photon_energy, &mtx]()
   {
     Vector3D ray;
     // Generate random rays until you get one inside the unit sphere -- keeps
@@ -334,11 +335,14 @@ void CausticMap::build_light(RayTracer &rt, const Light &light, const Colour &en
     // been through a caustic interaction. If we ever decide to do a diffuse
     // interaction, just let it get absorbed because it's no longer of interest
     // to us for caustics.
-    rt.raytrace_russian(light.position, ray, photon_energy, [&seen_specular, this]
+    rt.raytrace_russian(light.position, ray, photon_energy, [this, &seen_specular, &mtx]
 	(const Point3D &p, const Vector3D &outgoing, const Colour &cdiffuse, double *prs)
 	{
 	  if(seen_specular && prs[RT_DIFFUSE] > 0)
+	  {
+	    unique_lock<mutex> lk(mtx);
 	    this->m_photons.push_back(Photon(p, cdiffuse, outgoing));
+	  }
 	  const double pr = rand() / (double)RAND_MAX;
 	  if(pr > prs[RT_DIFFUSE] && pr <= prs[RT_SPECULAR])
 	  {
@@ -349,7 +353,13 @@ void CausticMap::build_light(RayTracer &rt, const Light &light, const Colour &en
 	    return RT_ABSORB;
 	});
     timer.increment();
-  }
+  };
+
+  Parallelize<void> par;
+  for(int i = 0; i < nphotons; i++)
+    par.add_task(shoot_photon);
+  par.go();
+
   }
 
   add_stat("caustic photon count", m_photons.size());
@@ -384,43 +394,51 @@ void GIPhotonMap::build_light(RayTracer &rt, const Light &light, const Colour &e
   // Russian roulette ray tracing algorithm is a bit different.
   const int nphotons = GETOPT(gi_num_photons);
   const Colour photon_energy = energy * (1./nphotons);
+  ProgressTimer timer("shoot gi photons", nphotons);
+  mutex mtx;
 
+  auto shoot_photon = [this, &mtx, &rt, &light, &photon_energy, &timer]
   {
-    ProgressTimer timer("shoot gi photons", nphotons);
-    for(int i = 0; i < nphotons; i++)
+    Vector3D ray;
+    do
     {
-      Vector3D ray;
-      do
-      {
-	ray = generate_ray();
-      }
-      while(ray.length() > 1);
-      ray.normalize();
-
-      bool diffusely_reflected = false;
-
-      // Only store interactions with diffuse surfaces where the photon has
-      // already been diffusely reflected at least once (since we don't want
-      // to be adding direct illumination).
-      rt.raytrace_russian(light.position, ray, photon_energy, [&diffusely_reflected, this]
-	  (const Point3D &p, const Vector3D &outgoing, const Colour &cdiffuse, double *prs)
-	  {
-	    if(prs[RT_DIFFUSE] > 0 && diffusely_reflected)
-	      this->m_photons.push_back(Photon(p, cdiffuse, outgoing));
-
-	    const double pr = rand() / (double)RAND_MAX;
-	    for(int i = 0; i < RT_ACTION_COUNT; i++)
-	      if(pr <= prs[i])
-	      {
-		if(i == RT_DIFFUSE)
-		  diffusely_reflected = true;
-		return (RT_ACTION)i;
-	      }
-	    return RT_ABSORB;
-	  });
-      timer.increment();
+      ray = generate_ray();
     }
-  }
+    while(ray.length() > 1);
+    ray.normalize();
+
+    bool diffusely_reflected = false;
+
+    // Only store interactions with diffuse surfaces where the photon has
+    // already been diffusely reflected at least once (since we don't want
+    // to be adding direct illumination).
+    rt.raytrace_russian(light.position, ray, photon_energy, [=, &mtx, &diffusely_reflected]
+	(const Point3D &p, const Vector3D &outgoing, const Colour &cdiffuse, double *prs)
+	{
+	  if(prs[RT_DIFFUSE] > 0 && diffusely_reflected)
+	  {
+	    unique_lock<mutex> lk(mtx);
+	    this->m_photons.push_back(Photon(p, cdiffuse, outgoing));
+	  }
+
+	  const double pr = rand() / (double)RAND_MAX;
+	  for(int i = 0; i < RT_ACTION_COUNT; i++)
+	    if(pr <= prs[i])
+	    {
+	      if(i == RT_DIFFUSE)
+		diffusely_reflected = true;
+	      return (RT_ACTION)i;
+	    }
+	  return RT_ABSORB;
+	});
+    timer.increment();
+  };
+
+  Parallelize<void> par;
+  for(int i = 0; i < nphotons; i++)
+    par.add_task(shoot_photon);
+
+  par.go();
 
   add_stat("gi photon count", m_photons.size());
 }

@@ -191,11 +191,19 @@ private:
 
     auto median = start + (end - start) / 2;
     KDNode *node = *median;
-
-    par.add_task([=, &par] { return KDTree::build(start, median, node->lchild, par, depth + 1); });
-    par.add_task([=, &par] { return KDTree::build(median + 1, end, node->rchild, par, depth + 1); });
-
     out = node;
+
+    if(median - start > 1000)
+    {
+      par.add_task([=, &par] { return KDTree::build(start, median, node->lchild, par, depth + 1); });
+      par.add_task([=, &par] { return KDTree::build(median + 1, end, node->rchild, par, depth + 1); });
+    }
+    else
+    {
+      build(start, median, node->lchild, par, depth + 1);
+      build(median + 1, end, node->rchild, par, depth + 1);
+    }
+
   }
 
   TNode *m_root;
