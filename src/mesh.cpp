@@ -139,3 +139,31 @@ std::ostream& operator<<(std::ostream& out, const Mesh& mesh)
   std::cerr << "});" << std::endl;
   return out;
 }
+
+#include "isodecahedron.hpp"
+
+static vector<Point3D> iso_verts;
+static vector<vector<int>> iso_faces;
+
+static struct init_dummy_t
+{
+  init_dummy_t()
+  {
+    iso_verts.resize(NUMELMS(isodecahedron::vertices));
+    iso_faces.resize(NUMELMS(isodecahedron::faces));
+    for(int i = 0; i < NUMELMS(isodecahedron::vertices); i++)
+      iso_verts[i] = Point3D() + isodecahedron::vertices[i];
+    for(int i = 0; i < NUMELMS(isodecahedron::faces); i++)
+    {
+      iso_faces[i].resize(3);
+      iso_faces[i][0] = isodecahedron::faces[i].v0;
+      iso_faces[i][1] = isodecahedron::faces[i].v1;
+      iso_faces[i][2] = isodecahedron::faces[i].v2;
+    }
+  }
+} init_dummy;
+
+Isodecahedron::Isodecahedron()
+  : Mesh(iso_verts, iso_faces)
+{
+}

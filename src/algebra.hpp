@@ -27,6 +27,8 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+static const double phi = 1.61803398875;
+
 #define NUMELMS(x) (sizeof(x)/sizeof(*(x)))
 
 template<typename T>

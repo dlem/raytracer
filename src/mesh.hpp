@@ -37,4 +37,8 @@ private:
   friend std::ostream& operator<<(std::ostream& out, const Mesh& mesh);
 };
 
+// This primitive is only here so that I can make sure my Isodecahedron mesh
+// (used for spherical subdivision in photon mapping) is correct.
+class Isodecahedron : public Mesh { public: Isodecahedron(); };
+
 #endif
