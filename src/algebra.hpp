@@ -460,7 +460,12 @@ public:
 
   static Matrix4x4 scale(const Vector3D &scale);
   static Matrix4x4 translate(const Vector3D &displacement);
+
+  // Rotatation matrix about the x, y, or z axis.
   static Matrix4x4 rotate(char axis, double angle);
+
+  // Rotation matrix about an arbitrary line.
+  static Matrix4x4 rotate(const Point3D &pt, const Vector3D &dir, double angle);
 		
 private:
   double v_[16];

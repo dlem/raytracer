@@ -56,7 +56,7 @@ public:
   void set_progress(int amount);
 
   // Increment current progress by one.
-  void increment() { set_progress(m_progress + 1); }
+  void increment(int amount = 1);
   double get_progress();
 
   // Print time/progress to cout.

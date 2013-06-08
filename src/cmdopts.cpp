@@ -154,7 +154,7 @@ CmdOpts::CmdOpts()
   add_flag("draw-caustic-map", [=]() { draw_caustic_map = true; });
   add_flag("draw-caustic-prm", [=]() { draw_caustic_prm = true; });
   add_flag("draw-caustics-only", [=]() { draw_caustics_only = true; });
-  add_flag("debug", [=]() { dbgs = &cout; outs = &clog; }, 'd');
+  add_flag("debug", [=]() { dbgs = &cout; outs = &clog; threads = 1; }, 'd');
   add_flag("gi", [=]() { use_gi_map = true; });
   add_flag("draw-gi-only", [=]() { draw_gi_only = true; });
   add_flag("draw-gi-map", [=]() {draw_gi_map = true; });

@@ -145,6 +145,12 @@ void ProgressTimer::set_progress(int amount)
   m_progress = amount;
 }
 
+void ProgressTimer::increment(int amount)
+{
+  unique_lock<mutex> lk(s_pmutex);
+  m_progress += amount;
+}
+
 double ProgressTimer::get_progress()
 {
   return m_progress / (double)max(m_total, 1);

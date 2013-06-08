@@ -375,17 +375,16 @@ int gr_light_cmd(lua_State* L)
   gr_light_ud* data = (gr_light_ud*)lua_newuserdata(L, sizeof(gr_light_ud));
   data->light = 0;
 
+  Light *l = new PointLight();
   
-  Light l;
-
   double col[3];
-  get_tuple(L, 1, &l.position[0], 3);
+  get_tuple(L, 1, &l->position[0], 3);
   get_tuple(L, 2, col, 3);
-  get_tuple(L, 3, l.falloff, 3);
+  get_tuple(L, 3, l->falloff, 3);
 
-  l.colour = Colour(col[0], col[1], col[2]);
+  l->colour = Colour(col[0], col[1], col[2]);
   
-  data->light = new Light(l);
+  data->light = l;
 
   luaL_newmetatable(L, "gr.light");
   lua_setmetatable(L, -2);

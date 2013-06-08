@@ -30,14 +30,14 @@ public:
 
   future<T> add_task_future(const func_t &t)
   {
-    unique_lock<mutex> lk(m_mutex);
+    lock_guard<mutex> lk(m_mutex);
     m_tasks.push(std::packaged_task<T()>(t));
     return m_tasks.back().get_future();
   }
 
   void add_task(const func_t &t)
   {
-    unique_lock<mutex> lk(m_mutex);
+    lock_guard<mutex> lk(m_mutex);
     m_tasks.push(std::packaged_task<T()>(t));
   }
 
@@ -70,7 +70,7 @@ private:
       bool found = false;
 
       {
-	unique_lock<mutex> lk(m_mutex);
+	lock_guard<mutex> lk(m_mutex);
 
 	found = m_tasks.size() > 0;
 	if(found)
@@ -125,7 +125,7 @@ public:
 
   T &get()
   {
-    unique_lock<mutex> lk(m_mutex);
+    lock_guard<mutex> lk(m_mutex);
     if(m_ts.size() < g_worker_thread_num + 1)
       m_ts.resize((g_worker_thread_num + 1) * 2);
 

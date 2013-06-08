@@ -14,7 +14,7 @@
  *  of that (as long as it's not a subset).
  *
  *  2. Generate random surface normals distributed uniformly over the surface of
- *  the patch. Obviously useful for photon mapping.
+ *  the patch. Obviously useful for photon mapping. Hard in general.
 **/
 
 #ifndef __SUBDIV_HPP__
@@ -33,11 +33,14 @@ public:
   virtual void set(unsigned int nsubdiv) = 0;
  
   // The extreme point list.
-  virtual unsigned int num_extreme_points() const = 0;
-  virtual Point3D get_extreme_point(unsigned int n) const = 0;
+  virtual unsigned int num_extreme_rays() const = 0;
+  virtual void extreme_ray(unsigned int n, Point3D &src, Vector3D &ray) const = 0;
+  
+  // Subdivisions don't necessarily have the same areas. Area sums to 1.
+  virtual double area() const = 0;
 
   // Generate a normal vector uniformmly distributed over the light's surface.
-  virtual Vector3D generate_ray(std::default_random_engine &rng) const = 0;
+  virtual void generate_ray(std::default_random_engine &rng, Point3D &src, Vector3D &ray) const = 0;
 };
 
 // Sphere SurfaceSubdiv implementation (spherical and point lights). Each patch
@@ -48,28 +51,43 @@ class SphereSubdiv : public SurfaceSubdiv
 public:
   static unsigned int num_subdivs(unsigned int nrecs);
 
-  SphereSubdiv(unsigned int nrecs);
+  SphereSubdiv(const Point3D &center, unsigned int nrecs);
 
   virtual void set(unsigned int nsubdiv);
-  virtual unsigned int num_extreme_points() const { return 3; }
-  virtual Point3D get_extreme_point(unsigned int i) const { return m_points[i]; }
-  virtual Vector3D generate_ray(std::default_random_engine &rng) const;
+  virtual unsigned int num_extreme_rays() const { return 3; }
+  virtual void extreme_ray(unsigned int i, Point3D &src, Vector3D &ray) const
+	       { src = m_center; ray = m_points[i] - Point3D(); }
+  virtual double area() const { return m_area; }
+  virtual void generate_ray(std::default_random_engine &rng, Point3D &src, Vector3D &ray) const;
 
 private:
+  // Sphere center.
+  Point3D m_center;
+
   // Number of recursive subdivisions. Each one quadruples the number of surface
   // polygons.
   const unsigned int m_nrecs;
 
-  // Minimum value for a random variable we use in ray generation. Depends only
-  // on m_nrecs.
-  const double m_randlo;
-
-  // We generate rays wrt a fixed surface patch and then apply this
-  // transformation to get rays wrt the current patch.
-  Matrix4x4 m_trans;
-
-  // Extreme points for the current surface.
+   // Points in the current spherical triangle.
   Point3D m_points[3];
+
+  // We generate points in a, er, partial hemisphere whose top is this point
+  // (and drop the ones that don't belong in the patch).
+  Point3D m_patch_center;
+
+  // Angle away from m_center beyond which there are no patch points.
+  double m_randlo;
+
+  double m_area;
+
+  // After generating a ray in our partial hemisphere, we clip it to three
+  // planes (an infinite pyramid whose top is at the center of the sphere).
+  Point3D m_plane_points[3];
+  Vector3D m_plane_normals[3];
+
+  // Rotation to move generated rays from the top of a sphere to the proper
+  // patch.
+  Matrix4x4 m_rotation;
 };
 
 #endif

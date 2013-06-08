@@ -281,100 +281,95 @@ Colour PhotonMap::query_photon(const Point3D &pt, Vector3D &pos_rel)
 
 void CausticMap::build_light(RayTracer &rt, const Light &light, const Colour &energy)
 {
-  ProjectionMap pm(GETOPT(caustic_pm_gran));
-  double proportion;
+  const int total_nphotons = GETOPT(caustic_num_photons);
+  const Colour photon_energy = energy * (1/(double)total_nphotons);
+  const unsigned int nsubdivs = light.num_subdivs();
+
+  add_stat("projection map patches", nsubdivs);
 
   {
-    SCOPED_TIMER("build caustic projection map");
-    proportion = pm.build(rt, light.position, [](const HitInfo &hi)
+    ProgressTimer timer("shoot caustic photons", total_nphotons);
+    ThreadLocal<default_random_engine> _rng([]
+	{ return new default_random_engine(time(0) ^ g_worker_thread_num); });
+    ThreadLocal<SurfaceSubdiv> _ss([&light] { return light.subdiv().release(); });
+    mutex mtx;
+
+    auto shoot_photons = [this, total_nphotons, &_rng,
+			  &timer, &rt, &photon_energy, &_ss, &mtx]
+      (unsigned int next_subdiv)
     {
-      const Colour ks = hi.primary->mat->ks(hi.uv);
-      const bool rv = ks.Y() > 0.2;
-      return rv;
-    });
-  }
+      auto &rng = _rng.get();
+      auto &ss = _ss.get();
 
-  // Modulate the # photons based on the occupied % of the projection map.
-  const int nphotons = (int)(proportion * GETOPT(caustic_num_photons));
-  const Colour photon_energy = energy * (1/(double)GETOPT(caustic_num_photons));
+      ss.set(next_subdiv);
 
-  add_stat("occupied fraction of projection map", proportion);
-  add_stat("number of caustic photons being shot", nphotons);
+      const int nphotons = total_nphotons * ss.area();
 
-  if(proportion <= 0)
-    return;
-
-  {
-  ProgressTimer timer("shoot caustic photons", nphotons);
-  ThreadLocal<default_random_engine> _rng([]
-      { return new default_random_engine(time(0) ^ g_worker_thread_num); });
-  mutex mtx;
-  enum {SHOTS_PER_CALL=1000};
-  auto shoot_photon = [this, &_rng, &timer, &pm, &rt, &light, &photon_energy, &mtx]()
-  {
-    auto &rng = _rng.get();
-    for(int i = 0; i < SHOTS_PER_CALL; i++)
-    {
-      Vector3D ray;
-      // Generate random rays until you get one inside the unit sphere -- keeps
-      // the distribution uniform.
-      for(;;)
+      // Before shooting massive quantities of random rays from this patch, we
+      // want to make sure that there are objects of interest (ie, specular
+      // objects for caustic effects). Assume such an object exists if we hit it
+      // from any of the extreme points of the patch. This assumes that objects
+      // are large enough and/or the light's surface subdivision is granular
+      // enough.
+      for(int i = 0; i < ss.num_extreme_rays(); i++)
       {
-	ray = generate_ray(rng);
-
-	if(ray.length() > 1)
-	  continue;
-
-	// Only shoot in directions occupied in the photon map. We've already
-	// modified our intensity based on this, so it works out.
-	if(!pm(ray))
-	  continue;
-
-	break;
+	Point3D src;
+	Vector3D ray;
+	ss.extreme_ray(i, src, ray);
+	HitInfo hi;
+	if(rt.raytrace_min(src, ray, 0, hi))
+	{
+	  const Colour ks = hi.primary->mat->ks(hi.uv);
+	  if(ks.Y() > 0.2)
+	    goto needs_caustics;
+	}
       }
 
-      ray.normalize();
-      bool seen_specular = false;
+      timer.increment(nphotons);
+      return;
 
-      // Do Russian roulette ray tracing for this photon. Add its current
-      // intensity to the map whenever we hit a diffuse surface _if_ it's already
-      // been through a caustic interaction. If we ever decide to do a diffuse
-      // interaction, just let it get absorbed because it's no longer of interest
-      // to us for caustics.
-      rt.raytrace_russian(light.position, ray, photon_energy, rng, [this, &seen_specular, &mtx]
-	  (const Point3D &p, const Vector3D &outgoing, const Colour &cdiffuse, RT_ACTION action)
+needs_caustics:
+
+      for(int i = 0; i < nphotons; i++)
+      {
+	Point3D src;
+	Vector3D ray;
+	ss.generate_ray(rng, src, ray);
+	
+	bool seen_specular = false;
+
+	// Do Russian roulette ray tracing for this photon. Add its current
+	// intensity to the map whenever we hit a diffuse surface _if_ it's already
+	// been through a caustic interaction. If we ever decide to do a diffuse
+	// interaction, just let it get absorbed because it's no longer of interest
+	// to us for caustics.
+	rt.raytrace_russian(src, ray, photon_energy, rng, [this, &seen_specular, &mtx]
+	    (const Point3D &p, const Vector3D &outgoing, const Colour &cdiffuse, RT_ACTION action)
+	{
+	  if(seen_specular && cdiffuse.Y() > 0)
 	  {
-	    if(seen_specular && cdiffuse.Y() > 0)
-	    {
-	      unique_lock<mutex> lk(mtx);
-	      this->m_photons.push_back(Photon(p, cdiffuse, outgoing));
-	    }
-	    if(action == RT_TRANSMIT || action == RT_REFLECT)
-	    {
-	      seen_specular = true;
-	      return true;
-	    }
-	    return false;
-	  });
-      timer.increment();
-    }
-  };
+	    lock_guard<mutex> lk(mtx);
+	    this->m_photons.push_back(Photon(p, cdiffuse, outgoing));
+	  }
+	  if(action == RT_TRANSMIT || action == RT_REFLECT)
+	  {
+	    seen_specular = true;
+	    return true;
+	  }
+	  return false;
+	});
 
-  Parallelize<void> par;
-  for(int i = 0; i < nphotons/SHOTS_PER_CALL; i++)
-    par.add_task(shoot_photon);
-  par.go();
+	timer.increment();
+      }
+    };
 
+    Parallelize<void> par;
+    for(int i = 0; i < light.num_subdivs(); i++)
+      par.add_task([&shoot_photons, i] { shoot_photons(i); });
+    par.go();
   }
 
   add_stat("caustic photon count", m_photons.size());
-
-  // Part of the hack to support the draw--caustic--prm option.
-  if(GETOPT(draw_caustic_prm) && !s_caustic_pm)
-  {
-    s_caustic_pm_centre = light.position;
-    s_caustic_pm = new ProjectionMap(pm);
-  }
 }
 
 bool CausticMap::test_pm(RayTracer &rt, const Point3D &pt, const Vector3D &normal)

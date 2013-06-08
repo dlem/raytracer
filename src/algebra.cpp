@@ -202,6 +202,37 @@ Matrix4x4 Matrix4x4::rotate(char axis, double angle)
   return r;
 }
 
+Matrix4x4 Matrix4x4::rotate(const Point3D &pt, const Vector3D &dir, double rads)
+{
+  assert(normalized(dir));
+
+  const double a = pt[0], b = pt[1], c = pt[2];
+  const double u = dir[0], v = dir[1], w = dir[2];
+  Matrix4x4 r;
+
+  // See inside.mines.edu/~gmurray/ArbitraryAxisRotation
+
+  r[0][0] = sqr(u) + (sqr(v) + sqr(w)) * cos(rads);
+  r[0][1] = u * v * (1 - cos(rads)) - w * sin(rads);
+  r[0][2] = u * w * (1 - cos(rads)) + v * sin(rads);
+  r[0][3] = (a * (sqr(v) + sqr(w)) - u * (b * v + c * w)) * (1 - cos(rads)) + (b * w - c * v) * sin(rads);
+  
+  r[1][0] = u * v * (1 - cos(rads)) + w * sin(rads);
+  r[1][1] = sqr(v) + (sqr(u) + sqr(w)) * cos(rads);
+  r[1][2] = v * w * (1 - cos(rads)) - u * sin(rads);
+  r[1][3] = (b * (sqr(u) + sqr(w)) - v * (a * u + c * w)) * (1 - cos(rads)) + (c * u - a * w) * sin(rads);
+
+  r[2][0] = u * w * (1 - cos(rads)) - v * sin(rads);
+  r[2][1] = v * w * (1 - cos(rads)) + u * sin(rads);
+  r[2][2] = sqr(w) + (sqr(u) + sqr(v)) * cos(rads);
+  r[2][3] = (c * (sqr(u) + sqr(v)) - w * (a * u + b * v)) * (1 - cos(rads)) + (a * v - b * u) * sin(rads);
+
+  r[3][0] = r[3][1] = r[3][2] = 0;
+  r[3][3] = 1;
+
+  return r;
+}
+
 template<>
 size_t Polynomial<2>::solve(double roots[2]) const
 {
