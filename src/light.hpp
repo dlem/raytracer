@@ -38,8 +38,8 @@ class PointLight : public Light
 {
 public:
   virtual std::unique_ptr<SurfaceSubdiv> subdiv() const
-  { return std::unique_ptr<SurfaceSubdiv>(new SphereSubdiv(position, 6)); }
-  virtual unsigned int num_subdivs() const { return SphereSubdiv::num_subdivs(6); }
+  { return std::unique_ptr<SurfaceSubdiv>(new SphereSubdiv(position, 8)); }
+  virtual unsigned int num_subdivs() const { return SphereSubdiv::num_subdivs(8); }
 };
 
 std::ostream& operator<<(std::ostream& out, const Light& l);

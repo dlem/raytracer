@@ -26,6 +26,7 @@ public:
 
   // Build the photon map using the given geometry and lights.
   void build(RayTracer &rt, const std::list<Light *> &lights);
+  void build_light(RayTracer &rt, const Light &light, const Colour &energy);
 
   // Estimates the radiance due to shot photons at a given point.
   Colour query_radiance(const Point3D &p, const Vector3D &outgoing);
@@ -37,13 +38,17 @@ public:
   int size() const { return m_photons.size(); }
 
 protected:
-
-  // Add the photons for a light. Specific to the type of the photon map (ie,
-  // caustics or GI).
-  virtual void build_light(RayTracer &rt, const Light &light, const Colour &energy) = 0;
-
   // Number of neighbours to use in radiance estimations.
   virtual unsigned num_neighbours() = 0;
+
+  // # of photons to shoot (if all patches are used).
+  virtual unsigned num_photons() = 0;
+
+  virtual void shoot(RayTracer &rt, const Point3D &src, const Vector3D &ray,
+		     Colour energy, default_random_engine &rng) = 0;
+
+  // Should we shoot from this patch?
+  virtual bool patch_predicate(RayTracer &rt, const SurfaceSubdiv &ss) { return true; }
 
   // Node type used in KDTree.
   struct Photon : public KDNode
@@ -60,27 +65,28 @@ protected:
   // It's just pointers in the KD-tree; this is where the photons are actually
   // stored. Might make sense to sort it...
   std::vector<Photon> m_photons;
+  std::mutex m_build_mutex;
 };
 
 // Photon map implementation for caustics.
 class CausticMap : public PhotonMap
 {
-public:
-  // Used by the --caustic-draw-pm feature.
-  bool test_pm(RayTracer &rt, const Point3D &pt, const Vector3D &normal);
-
 protected:
-  virtual void build_light(RayTracer &rt, const Light &light, const Colour &energy);
+  virtual void shoot(RayTracer &rt, const Point3D &src, const Vector3D &ray,
+		     Colour energy, default_random_engine &rng);
+  virtual bool patch_predicate(RayTracer &rt, const SurfaceSubdiv &ss);
   virtual unsigned num_neighbours() { return GETOPT(caustic_num_neighbours); }
-
+  virtual unsigned num_photons() { return GETOPT(caustic_num_photons); }
 };
 
 // Photon map implementation for global illumination.
 class GIPhotonMap : public PhotonMap
 {
 protected:
-  virtual void build_light(RayTracer &rt, const Light &light, const Colour &energy);
+  virtual void shoot(RayTracer &rt, const Point3D &src, const Vector3D &ray,
+		     Colour energy, default_random_engine &rng);
   virtual unsigned num_neighbours() { return GETOPT(gi_num_neighbours); }
+  virtual unsigned num_photons() { return GETOPT(gi_num_photons); }
 };
 
 #endif

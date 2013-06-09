@@ -81,14 +81,12 @@ Colour PhongModel::compute_lighting(RayTracer &rt,
 
   // Projection drawing stuff.
   const Colour projc(1, 0, 0);
-  const bool use_proj = GETOPT(draw_caustic_prm) &&
-			m_caustics.test_pm(rt, phong_P, hi.normal);
 
   // Set up Phong model variables.
 
   const Point2D &uv = hi.uv;
   const PhongMaterial &mat = hi.tomat();
-  const Colour phong_kd = use_proj ? projc * mat.kd(uv).Y() : mat.kd(uv);
+  const Colour phong_kd = mat.kd(uv);
 
   Vector3D phong_n = hi.tonorm();
   const Colour &phong_ks = refl_attn * mat.ks(uv);
