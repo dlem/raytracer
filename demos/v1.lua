@@ -19,8 +19,8 @@ s = 3.2
 c = 8
 
 function mkwall(x, y, z, m)
-  tex = gr.texture('../bwgrid.png')
-  bm = gr.bumpmap('../bwgrid.png')
+  tex = gr.texture(misc.asset('bwgrid.png'))
+  bm = gr.bumpmap(misc.asset('bwgrid.png'))
   tex:remapt('cubetop')
   bm:remap('cubetop')
   m:set_bumpmap(bm)
@@ -94,7 +94,7 @@ function lab(scene, name)
   g3:translate(0, 0, -2)
   cs_bench:add_child(g3)
 
-  gr1 = paper.paper('../graph1.png', 8.5, 11)
+  gr1 = paper.paper(misc.asset('graph1.png'), 8.5, 11)
   gr1:translate(4, 0, 5)
   s_paper = 2.8
   gr1:scale(s_paper, 1, s_paper)
@@ -107,7 +107,7 @@ function lab(scene, name)
   p2:rotate('y', 50)
   cs_bench:add_child(p2)
 
-  pertable = paper.paper('../pertable.png', 14.5, 8.5)
+  pertable = paper.paper(misc.asset('pertable.png'), 14.5, 8.5)
   pertable:translate(6, 3.5, -c + s)
   pertable:scale(3, 3, 1)
   pertable:rotate('x', 90)

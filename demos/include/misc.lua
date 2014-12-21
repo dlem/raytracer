@@ -57,6 +57,10 @@ function solid(diff)
   return sol
 end
 
+function asset(name)
+  return 'assets/' .. name
+end
+
 function bumpmap(sbm, rm)
   bm = gr.bumpmap(sbm)
   if rm ~= nil then bm:remap(rm) end
@@ -76,4 +80,3 @@ function texture(s, sbm, rm)
 
   return m
 end
-

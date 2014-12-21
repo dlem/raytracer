@@ -7,18 +7,18 @@ gr.option('--hires')
 
 root = gr.node('root')
 
-cyl = gr.cylinder('cyl', misc.texture('../assets/fog.png'));
+cyl = gr.cylinder('cyl', misc.texture(misc.asset('fog.png')));
 root:add_child(cyl)
 
-cone = gr.cone('cone', misc.texture('../assets/noise.png'));
+cone = gr.cone('cone', misc.texture(misc.asset('noise.png')));
 root:add_child(cone)
 
 cube = gr.cube('cube')
-cube:set_material(misc.texture('../assets/lava.png'));
+cube:set_material(misc.texture(misc.asset('lava.png')));
 root:add_child(cube)
 
 sphere = gr.sphere('sphere')
-sphere:set_material(misc.texture('../assets/clouds1.png'));
+sphere:set_material(misc.texture(misc.asset('clouds1.png')));
 root:add_child(sphere)
 
 cyl:translate(1.5, 0, 1.5)

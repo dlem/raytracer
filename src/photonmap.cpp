@@ -68,7 +68,6 @@ void PhotonMap::build_light(RayTracer &rt, const Light &light, const Colour &ene
       if(!patch_predicate(rt, ss))
       {
 	timer.increment(nphotons);
-	errs() << "Incremented" << endl;
 	return;
       }
 
