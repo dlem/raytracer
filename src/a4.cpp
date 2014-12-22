@@ -33,8 +33,6 @@ void a4_render(// What to render
                const std::list<Light*>& lights
                )
 {
-  srand(time(0));
-
   // Override dimensions if they're specified on the command line.
   if(GETOPT(height) != 0)
     height = GETOPT(height);
@@ -163,7 +161,7 @@ void a4_render(// What to render
     }
   }
 
-  // Make sure the four corners of the grid are the first four entires in the
+  // Make sure the four corners of the grid are the first four entries in the
   // offs array. We use the corners for adaptive anti-aliasing to determine
   // whether we should supersample.
   if(aa_grid > 2)
@@ -179,13 +177,17 @@ void a4_render(// What to render
     swap(3, 0 + aa_grid - 1);
   }
 
+  ThreadLocal<default_random_engine> tlrng([]()
+    { return new default_random_engine(get_rng_seed(g_worker_thread_num)); });
+
   // do_lighting takes a (real) point in 2D view grid and does the lighting
   // calculations for that point.
-  auto do_lighting = [model, &eye, &rt, jitter, &viewport2world]
+  auto do_lighting = [model, &eye, &rt, jitter, &viewport2world, &tlrng]
     (const Point3D &pt)
   {
-    const Vector3D vjitter(jitter * (-0.5 + (1 + rand() % 98) * 0.01),
-                           jitter * (-0.5 + (1 + rand() % 98) * 0.01), 0);
+    default_random_engine &rng = tlrng.get();
+    const Vector3D vjitter(jitter * (-0.5 + (1 + rng() % 98) * 0.01),
+                           jitter * (-0.5 + (1 + rng() % 98) * 0.01), 0);
     const Point3D projected = pt + vjitter;
     const Point3D dst = viewport2world * projected;
     Vector3D ray = dst - eye;

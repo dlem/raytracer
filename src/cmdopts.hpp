@@ -87,6 +87,7 @@ public:
   CmdOpts();
 
   // These are the program options.
+  bool reproducible;
   bool aa, bv, draw_aa, timing;
   bool disable_csg_bb;
   bool stats, use_caustic_map, draw_caustic_map;
@@ -125,5 +126,17 @@ static inline std::ostream &errs() { return *g_opts->errs; }
 // The macro used to get arguments. 'opt' must be a member of the CmdOpts
 // struct.
 #define GETOPT(opt) (g_opts->opt)
+
+static inline unsigned get_rng_seed(const unsigned entropy = 0)
+{
+  unsigned seed = entropy;
+
+  if (!GETOPT(reproducible))
+  {
+    seed ^= time(0);
+  }
+
+  return seed;
+}
 
 #endif

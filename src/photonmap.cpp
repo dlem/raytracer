@@ -50,7 +50,7 @@ void PhotonMap::build_light(RayTracer &rt, const Light &light, const Colour &ene
   {
     ProgressTimer timer("shoot caustic photons", total_nphotons);
     ThreadLocal<default_random_engine> _rng([]
-	{ return new default_random_engine(time(0) ^ g_worker_thread_num); });
+	{ return new default_random_engine(get_rng_seed(g_worker_thread_num)); });
     ThreadLocal<SurfaceSubdiv> _ss([&light] { return light.subdiv().release(); });
     mutex mtx;
 
