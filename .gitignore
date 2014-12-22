@@ -1,3 +1,5 @@
 *.o
 *.d
 *.png
+test/*.time
+test/*.png

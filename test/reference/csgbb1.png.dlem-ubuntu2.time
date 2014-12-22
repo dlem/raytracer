@@ -1,18 +1,18 @@
-	Command being timed: "/home/dlem/raytracer/src/rt -S --minres /home/dlem/raytracer/demos/csgbb1.lua"
-	User time (seconds): 36.86
-	System time (seconds): 0.62
-	Percent of CPU this job got: 190%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:19.64
+	Command being timed: "/home/dlem/raytracer/src/rt -S --reproducible --threads 1 --minres /home/dlem/raytracer/demos/csgbb1.lua"
+	User time (seconds): 35.55
+	System time (seconds): 0.55
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:36.18
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 1406688
+	Maximum resident set size (kbytes): 1405728
 	Average resident set size (kbytes): 0
 	Major (requiring I/O) page faults: 0
-	Minor (reclaiming a frame) page faults: 88133
-	Voluntary context switches: 3824
-	Involuntary context switches: 5772
+	Minor (reclaiming a frame) page faults: 88088
+	Voluntary context switches: 4390
+	Involuntary context switches: 281
 	Swaps: 0
 	File system inputs: 0
 	File system outputs: 24

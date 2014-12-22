@@ -1,18 +1,18 @@
-	Command being timed: "/home/dlem/raytracer/src/rt -S --minres /home/dlem/raytracer/demos/texmap1.lua"
-	User time (seconds): 17.18
-	System time (seconds): 0.63
-	Percent of CPU this job got: 182%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:09.78
+	Command being timed: "/home/dlem/raytracer/src/rt -S --reproducible --threads 1 --minres /home/dlem/raytracer/demos/texmap1.lua"
+	User time (seconds): 15.15
+	System time (seconds): 0.74
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:15.92
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 1478800
+	Maximum resident set size (kbytes): 1477888
 	Average resident set size (kbytes): 0
 	Major (requiring I/O) page faults: 0
-	Minor (reclaiming a frame) page faults: 93173
-	Voluntary context switches: 4416
-	Involuntary context switches: 2941
+	Minor (reclaiming a frame) page faults: 93156
+	Voluntary context switches: 1755
+	Involuntary context switches: 114
 	Swaps: 0
 	File system inputs: 0
 	File system outputs: 16

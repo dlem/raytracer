@@ -1,18 +1,18 @@
-	Command being timed: "/home/dlem/raytracer/src/rt -S --minres /home/dlem/raytracer/demos/cmap1.lua"
-	User time (seconds): 43.79
-	System time (seconds): 1.10
-	Percent of CPU this job got: 187%
-	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:23.88
+	Command being timed: "/home/dlem/raytracer/src/rt -S --reproducible --threads 1 --minres /home/dlem/raytracer/demos/cmap1.lua"
+	User time (seconds): 41.31
+	System time (seconds): 1.08
+	Percent of CPU this job got: 99%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:42.46
 	Average shared text size (kbytes): 0
 	Average unshared data size (kbytes): 0
 	Average stack size (kbytes): 0
 	Average total size (kbytes): 0
-	Maximum resident set size (kbytes): 2122848
+	Maximum resident set size (kbytes): 2126112
 	Average resident set size (kbytes): 0
 	Major (requiring I/O) page faults: 0
-	Minor (reclaiming a frame) page faults: 165222
-	Voluntary context switches: 14582
-	Involuntary context switches: 6392
+	Minor (reclaiming a frame) page faults: 165192
+	Voluntary context switches: 5915
+	Involuntary context switches: 365
 	Swaps: 0
 	File system inputs: 0
 	File system outputs: 32
