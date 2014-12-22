@@ -8,5 +8,4 @@ p:rotate('x', 45)
 p:rotate('y', 10)
 p:scale(1, 1, 1)
 
-gr.option('--hires')
 cbox.cbox(p)

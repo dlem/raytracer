@@ -1,9 +1,6 @@
-RT = ../src/rt -S
-LUAS = $(wildcard *.lua)
-PNGS = $(subst .lua,.png,$(LUAS))
-LUA_PATH = $(shell pwd)/?.lua;$(shell pwd)/assets/?.lua;$(shell pwd)/include/?.lua
+include ../common.mk
 
-export LUA_PATH
+PNGS = $(subst .lua,.png,$(DEMO_LUAS))
 
 all: $(PNGS)
 

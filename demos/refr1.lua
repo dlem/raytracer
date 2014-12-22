@@ -2,8 +2,6 @@ require 'misc'
 require 'cbox'
 require 'ghost'
 
-gr.option('--hires')
-
 root = gr.node('root')
 
 cbox.mb = misc.texture('redcheck', nil, 'cubefront')

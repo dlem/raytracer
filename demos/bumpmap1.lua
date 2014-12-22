@@ -2,8 +2,6 @@ require 'misc'
 require 'cbox'
 require 'base'
 
-gr.option('--hires')
-
 base.ambient = {0.2, 0.2, 0.2}
 
 cbox.mb = misc.texture(misc.asset('fog.png'), misc.asset('fog_bm.png'), 'cubefront')

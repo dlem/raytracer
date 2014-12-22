@@ -2,8 +2,6 @@ require 'misc'
 require 'cbox'
 require 'wikithing'
 
-gr.option('--hires')
-
 wt = wikithing.wikithing()
 
 root = gr.node('root')

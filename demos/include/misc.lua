@@ -1,6 +1,9 @@
 module(..., package.seeall)
 
-script_name = debug.getinfo(3).short_src
+require 'os'
+
+script_name = string.sub(debug.getinfo(3).source, 2)
+script_name = string.match(script_name, ".*[/\\]([^/\\]*)") or script_name
 
 png_name, _n = script_name:gsub('.lua', '.png')
 if _n <= 0 then png_name = nil end
@@ -58,7 +61,11 @@ function solid(diff)
 end
 
 function asset(name)
-  return 'assets/' .. name
+  asset_path = os.getenv('ASSET_PATH')
+  if asset_path == nil then
+    asset_path = 'assets'
+  end
+  return (os.getenv('ASSET_PATH') or 'assets') .. '/' .. name
 end
 
 function bumpmap(sbm, rm)

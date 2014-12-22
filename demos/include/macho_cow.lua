@@ -1,10 +1,11 @@
 module(..., package.seeall)
 
-require('readobj')
+require 'readobj'
+require 'misc'
 
 hide = gr.material({0.84, 0.6, 0.53}, {0.3, 0.3, 0.3}, 20)
 
-cow_poly = gr.mesh('cow', readobj('cow.obj'))
+cow_poly = gr.mesh('cow', readobj(misc.asset('cow.obj')))
 factor = 2.0/(2.76+3.637)
 
 cow_poly:set_material(hide)

@@ -1,8 +1,6 @@
 require 'misc'
 require 'cow_jump'
 
-gr.option('--lores')
-
 print('Six threads')
 gr.option('-j 6')
 cow_jump.render('threading.png')

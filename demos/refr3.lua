@@ -1,8 +1,6 @@
 require 'misc'
 require 'cbox'
 
-gr.option('--hires')
-
 w = 0.05
 
 cbox.mb = misc.texture('redcheck', nil, 'cubefront')

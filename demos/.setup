@@ -1,2 +1,3 @@
 alias rt="$(dirname `pwd`)/src/rt -S"
-export LUA_PATH="`pwd`/?.lua;`pwd`/assets/?.lua;`pwd`/include/?.lua"
+export LUA_PATH="`pwd`/?.lua;`pwd`/include/?.lua"
+export ASSET_PATH="`pwd`/assets"

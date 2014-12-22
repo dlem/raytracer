@@ -3,8 +3,6 @@ require 'base'
 require 'cbox'
 require 'ring'
 
-gr.option('--hires')
-
 root = gr.node('root')
 
 s_sph = 0.9

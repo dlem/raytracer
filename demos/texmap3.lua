@@ -3,8 +3,6 @@ require 'cbox'
 require 'base'
 require 'plane'
 
-gr.option('--hires')
-
 root = gr.node('root')
 
 cyl = gr.cylinder('cyl', misc.texture(misc.asset('fog.png')));
@@ -38,5 +36,4 @@ cube:scale(0.5, 0.5, 0.5)
 
 base.lights = {gr.light({0, 0, 2.5}, {0.9, 0.9, 0.9}, {0, 0, 0.15})}
 
-gr.option('--hires')
 cbox.cbox(root)
