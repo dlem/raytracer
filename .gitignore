@@ -1,5 +1,9 @@
 *.o
 *.d
 *.png
+*.cbp
+*.layout
 test/*.time
 test/*.png
+test/reference/*
+test/results/*

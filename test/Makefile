@@ -24,5 +24,4 @@ reference: output
 	cp *.time reference
 
 %.png: $(ROOT)/demos/%.lua
-	@echo $(HOSTNAME)
 	/usr/bin/time -v -o $@.$(shell hostname).time $(RT) --reproducible --threads 1 --minres $<

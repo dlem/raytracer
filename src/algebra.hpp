@@ -36,7 +36,7 @@ T sqr(T x) { return x * x; }
 
 template<typename T>
 T clamp(T val, T lo, T hi)
-{ return max(lo, min(hi, val)); }
+{ return std::max(lo, std::min(hi, val)); }
 
 template<typename T>
 bool inrange(T val, T lo, T hi)
